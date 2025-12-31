@@ -7,3 +7,5 @@ export {
   useUnskipTask,
   useDeleteTask,
 } from "./use-today-tasks";
+
+export { useSettings } from "./use-settings";

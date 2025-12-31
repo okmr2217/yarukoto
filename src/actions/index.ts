@@ -17,3 +17,5 @@ export {
   updateCategory,
   deleteCategory,
 } from "./category";
+
+export { deleteAccount } from "./account";
