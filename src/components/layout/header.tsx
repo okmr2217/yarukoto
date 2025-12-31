@@ -1,25 +1,57 @@
 "use client";
 
-import { Menu, Search, Settings } from "lucide-react";
+import { useState } from "react";
+import { Menu, Search, Settings, Tags } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-interface HeaderProps {
-  onMenuClick?: () => void;
-}
+export function Header() {
+  const [open, setOpen] = useState(false);
 
-export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-background border-b">
       <div className="flex items-center justify-between h-14 px-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onMenuClick}
-          aria-label="メニューを開く"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="メニューを開く"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72">
+            <SheetHeader>
+              <SheetTitle className="text-primary">Yarukoto</SheetTitle>
+            </SheetHeader>
+            <nav className="mt-6 space-y-1">
+              <Link
+                href="/categories"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+              >
+                <Tags className="h-5 w-5 text-muted-foreground" />
+                <span>カテゴリ管理</span>
+              </Link>
+              <Link
+                href="/settings"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+              >
+                <Settings className="h-5 w-5 text-muted-foreground" />
+                <span>設定</span>
+              </Link>
+            </nav>
+          </SheetContent>
+        </Sheet>
 
         <h1 className="text-lg font-bold text-primary">Yarukoto</h1>
 

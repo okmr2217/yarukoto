@@ -9,3 +9,10 @@ export {
 } from "./use-today-tasks";
 
 export { useSettings } from "./use-settings";
+
+export {
+  useCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from "./use-categories";
