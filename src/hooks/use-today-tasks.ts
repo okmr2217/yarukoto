@@ -1,0 +1,349 @@
+"use client";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getTodayTasks,
+  createTask,
+  completeTask,
+  uncompleteTask,
+  skipTask,
+  unskipTask,
+  deleteTask,
+} from "@/actions";
+import type { Task, TodayTasks } from "@/types";
+
+export function useTodayTasks() {
+  return useQuery({
+    queryKey: ["todayTasks"],
+    queryFn: async () => {
+      const result = await getTodayTasks();
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      title,
+      scheduledAt,
+    }: {
+      title: string;
+      scheduledAt?: string;
+    }) => {
+      const result = await createTask({ title, scheduledAt });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.task;
+    },
+    onMutate: async ({ title, scheduledAt }) => {
+      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
+
+      const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
+
+      // Optimistic update
+      const optimisticTask: Task = {
+        id: `temp-${Date.now()}`,
+        title,
+        memo: null,
+        status: "PENDING",
+        priority: null,
+        scheduledAt: scheduledAt || null,
+        completedAt: null,
+        skippedAt: null,
+        skipReason: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        categoryId: null,
+        category: null,
+      };
+
+      if (previous) {
+        const today = new Date().toISOString().split("T")[0];
+        const isToday = scheduledAt === today;
+        const isUndated = !scheduledAt;
+
+        queryClient.setQueryData<TodayTasks>(["todayTasks"], {
+          ...previous,
+          today: isToday ? [optimisticTask, ...previous.today] : previous.today,
+          undated: isUndated
+            ? [optimisticTask, ...previous.undated]
+            : previous.undated,
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["todayTasks"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    },
+  });
+}
+
+export function useCompleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await completeTask({ id });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.task;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
+      const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
+
+      if (previous) {
+        // Find and move task to completed
+        let movedTask: Task | undefined;
+        const newData: TodayTasks = {
+          overdue: previous.overdue.filter((t) => {
+            if (t.id === id) {
+              movedTask = t;
+              return false;
+            }
+            return true;
+          }),
+          today: previous.today.filter((t) => {
+            if (t.id === id) {
+              movedTask = t;
+              return false;
+            }
+            return true;
+          }),
+          undated: previous.undated.filter((t) => {
+            if (t.id === id) {
+              movedTask = t;
+              return false;
+            }
+            return true;
+          }),
+          completed: movedTask
+            ? [
+                {
+                  ...movedTask,
+                  status: "COMPLETED" as const,
+                  completedAt: new Date().toISOString(),
+                },
+                ...previous.completed,
+              ]
+            : previous.completed,
+          skipped: previous.skipped,
+        };
+        queryClient.setQueryData(["todayTasks"], newData);
+      }
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["todayTasks"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    },
+  });
+}
+
+export function useUncompleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await uncompleteTask({ id });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.task;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
+      const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
+
+      if (previous) {
+        let movedTask: Task | undefined;
+        const today = new Date().toISOString().split("T")[0];
+
+        const newCompleted = previous.completed.filter((t) => {
+          if (t.id === id) {
+            movedTask = t;
+            return false;
+          }
+          return true;
+        });
+
+        if (movedTask) {
+          const restoredTask: Task = {
+            ...movedTask,
+            status: "PENDING",
+            completedAt: null,
+          };
+
+          const isToday = movedTask.scheduledAt === today;
+          const isOverdue =
+            movedTask.scheduledAt && movedTask.scheduledAt < today;
+          const isUndated = !movedTask.scheduledAt;
+
+          queryClient.setQueryData<TodayTasks>(["todayTasks"], {
+            overdue: isOverdue
+              ? [restoredTask, ...previous.overdue]
+              : previous.overdue,
+            today: isToday ? [restoredTask, ...previous.today] : previous.today,
+            undated: isUndated
+              ? [restoredTask, ...previous.undated]
+              : previous.undated,
+            completed: newCompleted,
+            skipped: previous.skipped,
+          });
+        }
+      }
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["todayTasks"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    },
+  });
+}
+
+export function useSkipTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
+      const result = await skipTask({ id, reason });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.task;
+    },
+    onMutate: async ({ id, reason }) => {
+      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
+      const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
+
+      if (previous) {
+        let movedTask: Task | undefined;
+        const newData: TodayTasks = {
+          overdue: previous.overdue.filter((t) => {
+            if (t.id === id) {
+              movedTask = t;
+              return false;
+            }
+            return true;
+          }),
+          today: previous.today.filter((t) => {
+            if (t.id === id) {
+              movedTask = t;
+              return false;
+            }
+            return true;
+          }),
+          undated: previous.undated.filter((t) => {
+            if (t.id === id) {
+              movedTask = t;
+              return false;
+            }
+            return true;
+          }),
+          completed: previous.completed,
+          skipped: movedTask
+            ? [
+                {
+                  ...movedTask,
+                  status: "SKIPPED" as const,
+                  skippedAt: new Date().toISOString(),
+                  skipReason: reason || null,
+                },
+                ...previous.skipped,
+              ]
+            : previous.skipped,
+        };
+        queryClient.setQueryData(["todayTasks"], newData);
+      }
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["todayTasks"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    },
+  });
+}
+
+export function useUnskipTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await unskipTask({ id });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.task;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    },
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await deleteTask({ id });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.id;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
+      const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
+
+      if (previous) {
+        queryClient.setQueryData<TodayTasks>(["todayTasks"], {
+          overdue: previous.overdue.filter((t) => t.id !== id),
+          today: previous.today.filter((t) => t.id !== id),
+          undated: previous.undated.filter((t) => t.id !== id),
+          completed: previous.completed.filter((t) => t.id !== id),
+          skipped: previous.skipped.filter((t) => t.id !== id),
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["todayTasks"], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    },
+  });
+}
