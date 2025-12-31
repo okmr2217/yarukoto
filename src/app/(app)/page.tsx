@@ -10,12 +10,14 @@ import {
   useUncompleteTask,
   useSkipTask,
   useDeleteTask,
+  useSettings,
 } from "@/hooks";
 import type { Task } from "@/types";
 
 export default function HomePage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  const { settings } = useSettings();
   const { data: tasks, isLoading, error } = useTodayTasks();
   const createTask = useCreateTask();
   const completeTask = useCompleteTask();
@@ -149,7 +151,7 @@ export default function HomePage() {
                 title="今日完了"
                 tasks={tasks?.completed || []}
                 variant="completed"
-                defaultCollapsed
+                defaultCollapsed={settings.autoCollapseCompleted}
                 onComplete={handleComplete}
                 onUncomplete={handleUncomplete}
                 onEdit={handleEdit}
@@ -162,7 +164,7 @@ export default function HomePage() {
                 title="今日やらない"
                 tasks={tasks?.skipped || []}
                 variant="skipped"
-                defaultCollapsed
+                defaultCollapsed={settings.autoCollapseSkipped}
                 onComplete={handleComplete}
                 onUncomplete={handleUncomplete}
                 onEdit={handleEdit}
