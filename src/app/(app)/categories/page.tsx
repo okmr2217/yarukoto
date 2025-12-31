@@ -31,7 +31,9 @@ export default function CategoriesPage() {
 
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null,
+  );
 
   const handleCreate = () => {
     setEditingCategory(null);
@@ -148,7 +150,9 @@ export default function CategoriesPage() {
               className="w-full mt-4 flex items-center justify-center gap-2 p-4 bg-card rounded-lg border border-dashed border-border hover:border-primary hover:bg-accent transition-colors"
             >
               <Plus className="h-5 w-5 text-muted-foreground" />
-              <span className="text-muted-foreground">新しいカテゴリを追加</span>
+              <span className="text-muted-foreground">
+                新しいカテゴリを追加
+              </span>
             </button>
           </>
         )}

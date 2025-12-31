@@ -10,7 +10,7 @@ const publicPaths = [
 
 function isPublicPath(pathname: string): boolean {
   return publicPaths.some(
-    (path) => pathname === path || pathname.startsWith(`${path}/`)
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 }
 

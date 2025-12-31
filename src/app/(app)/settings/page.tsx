@@ -25,7 +25,12 @@ import { useSettings } from "@/hooks";
 export default function SettingsPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { settings, isLoaded, toggleAutoCollapseCompleted, toggleAutoCollapseSkipped } = useSettings();
+  const {
+    settings,
+    isLoaded,
+    toggleAutoCollapseCompleted,
+    toggleAutoCollapseSkipped,
+  } = useSettings();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -67,7 +72,9 @@ export default function SettingsPage() {
       <main className="px-4 py-6 space-y-6">
         {/* Account Section */}
         <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">アカウント</h2>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            アカウント
+          </h2>
           <div className="bg-card rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-3">
@@ -85,10 +92,15 @@ export default function SettingsPage() {
 
         {/* Display Settings Section */}
         <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">表示設定</h2>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            表示設定
+          </h2>
           <div className="bg-card rounded-lg border border-border overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <Label htmlFor="auto-collapse-completed" className="cursor-pointer flex-1">
+              <Label
+                htmlFor="auto-collapse-completed"
+                className="cursor-pointer flex-1"
+              >
                 完了タスクを自動で折りたたむ
               </Label>
               <Switch
@@ -99,7 +111,10 @@ export default function SettingsPage() {
               />
             </div>
             <div className="flex items-center justify-between p-4">
-              <Label htmlFor="auto-collapse-skipped" className="cursor-pointer flex-1">
+              <Label
+                htmlFor="auto-collapse-skipped"
+                className="cursor-pointer flex-1"
+              >
                 やらないタスクを自動で折りたたむ
               </Label>
               <Switch
@@ -114,7 +129,9 @@ export default function SettingsPage() {
 
         {/* Other Section */}
         <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3">その他</h2>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            その他
+          </h2>
           <div className="bg-card rounded-lg border border-border overflow-hidden">
             <button
               onClick={handleLogout}
@@ -129,12 +146,12 @@ export default function SettingsPage() {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <button
-                  className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors"
-                >
+                <button className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors">
                   <div className="flex items-center gap-3">
                     <Trash2 className="h-5 w-5 text-destructive" />
-                    <span className="text-sm font-medium text-destructive">アカウント削除</span>
+                    <span className="text-sm font-medium text-destructive">
+                      アカウント削除
+                    </span>
                   </div>
                   <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">
                     危険
@@ -143,7 +160,9 @@ export default function SettingsPage() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>アカウントを削除しますか？</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    アカウントを削除しますか？
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
                     この操作は取り消せません。すべてのタスク、カテゴリ、アカウント情報が完全に削除されます。
                   </AlertDialogDescription>

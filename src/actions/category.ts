@@ -42,7 +42,7 @@ export async function getCategories(): Promise<
 }
 
 export async function createCategory(
-  input: CreateCategoryInput
+  input: CreateCategoryInput,
 ): Promise<ActionResult<{ category: Category }>> {
   try {
     const parsed = createCategorySchema.safeParse(input);
@@ -80,7 +80,7 @@ export async function createCategory(
 }
 
 export async function updateCategory(
-  input: UpdateCategoryInput
+  input: UpdateCategoryInput,
 ): Promise<ActionResult<{ category: Category }>> {
   try {
     const parsed = updateCategorySchema.safeParse(input);
@@ -100,7 +100,10 @@ export async function updateCategory(
     }
 
     // Check for duplicate name if name is being changed
-    if (name && name.trim().toLowerCase() !== existingCategory.name.toLowerCase()) {
+    if (
+      name &&
+      name.trim().toLowerCase() !== existingCategory.name.toLowerCase()
+    ) {
       const duplicate = await prisma.category.findFirst({
         where: {
           userId: user.id,
@@ -131,9 +134,9 @@ export async function updateCategory(
   }
 }
 
-export async function deleteCategory(
-  input: { id: string }
-): Promise<ActionResult<{ id: string }>> {
+export async function deleteCategory(input: {
+  id: string;
+}): Promise<ActionResult<{ id: string }>> {
   try {
     const parsed = categoryIdSchema.safeParse(input);
     if (!parsed.success) {

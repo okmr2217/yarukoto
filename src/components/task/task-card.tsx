@@ -114,7 +114,7 @@ export function TaskCard({
         ref={cardRef}
         className={cn(
           "relative bg-card border rounded-lg p-3 transition-transform",
-          !isSwiping && "transition-transform duration-200"
+          !isSwiping && "transition-transform duration-200",
         )}
         style={{ transform: `translateX(-${swipeOffset}px)` }}
         onTouchStart={handleTouchStart}
@@ -132,7 +132,8 @@ export function TaskCard({
             <p
               className={cn(
                 "text-sm",
-                (isCompleted || isSkipped) && "line-through text-muted-foreground"
+                (isCompleted || isSkipped) &&
+                  "line-through text-muted-foreground",
               )}
             >
               {task.title}
@@ -160,7 +161,7 @@ export function TaskCard({
                 <span
                   className={cn(
                     "text-xs",
-                    priorityLabels[task.priority].className
+                    priorityLabels[task.priority].className,
                   )}
                 >
                   ⚡ {priorityLabels[task.priority].label}

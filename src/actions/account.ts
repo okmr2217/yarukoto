@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { getRequiredSession } from "@/lib/auth-server";
 import { success, failure, type ActionResult } from "@/types/action-result";
 
-export async function deleteAccount(): Promise<ActionResult<{ success: boolean }>> {
+export async function deleteAccount(): Promise<
+  ActionResult<{ success: boolean }>
+> {
   try {
     const session = await getRequiredSession();
     const userId = session.user.id;

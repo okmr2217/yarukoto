@@ -73,7 +73,7 @@ export function TaskInput({
             onClick={handleDateClick}
             className={cn(
               "absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded",
-              scheduledAt ? "text-primary" : "text-muted-foreground"
+              scheduledAt ? "text-primary" : "text-muted-foreground",
             )}
             aria-label="日付を選択"
           >

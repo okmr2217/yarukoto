@@ -50,8 +50,8 @@ export function useCreateCategory() {
         queryClient.setQueryData<Category[]>(
           ["categories"],
           [...previous, optimisticCategory].sort((a, b) =>
-            a.name.localeCompare(b.name)
-          )
+            a.name.localeCompare(b.name),
+          ),
         );
       }
 
@@ -103,9 +103,9 @@ export function useUpdateCategory() {
                     color: color !== undefined ? color : cat.color,
                     updatedAt: new Date().toISOString(),
                   }
-                : cat
+                : cat,
             )
-            .sort((a, b) => a.name.localeCompare(b.name))
+            .sort((a, b) => a.name.localeCompare(b.name)),
         );
       }
 
@@ -140,7 +140,7 @@ export function useDeleteCategory() {
       if (previous) {
         queryClient.setQueryData<Category[]>(
           ["categories"],
-          previous.filter((cat) => cat.id !== id)
+          previous.filter((cat) => cat.id !== id),
         );
       }
 

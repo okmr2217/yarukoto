@@ -3,12 +3,14 @@
 ## 1. 設計方針
 
 ### 1.1 基本方針
+
 - **Server Actions優先**: API Routes（route.ts）は最小限にし、Server Actionsを主に使用
 - **API Routes使用箇所**: Better Auth の認証エンドポイントのみ（`/api/auth/[...all]`）
 - **楽観的更新**: UIの即時反映を優先し、失敗時にロールバック
 - **Result型パターン**: エラーハンドリングは型安全なResult型を採用
 
 ### 1.2 Result型定義
+
 ```typescript
 // 成功・失敗を明示的に扱う型
 type ActionResult<T> =
@@ -17,15 +19,16 @@ type ActionResult<T> =
 
 // エラーコード
 type ErrorCode =
-  | "UNAUTHORIZED"      // 未認証
-  | "FORBIDDEN"         // 権限なし
-  | "NOT_FOUND"         // リソースが見つからない
-  | "VALIDATION_ERROR"  // バリデーションエラー
-  | "CONFLICT"          // 競合（重複など）
-  | "INTERNAL_ERROR";   // サーバーエラー
+  | "UNAUTHORIZED" // 未認証
+  | "FORBIDDEN" // 権限なし
+  | "NOT_FOUND" // リソースが見つからない
+  | "VALIDATION_ERROR" // バリデーションエラー
+  | "CONFLICT" // 競合（重複など）
+  | "INTERNAL_ERROR"; // サーバーエラー
 ```
 
 ### 1.3 認証
+
 - すべてのServer Actionsで認証チェックを実施
 - 未認証の場合は `{ success: false, error: "認証が必要です", code: "UNAUTHORIZED" }` を返却
 - セッション取得には Better Auth の `auth.api.getSession()` を使用
@@ -36,11 +39,12 @@ type ErrorCode =
 
 ### 2.1 認証エンドポイント（Better Auth）
 
-| パス | メソッド | 説明 |
-|------|----------|------|
+| パス                 | メソッド  | 説明                                     |
+| -------------------- | --------- | ---------------------------------------- |
 | `/api/auth/[...all]` | GET, POST | Better Auth が提供する認証エンドポイント |
 
 Better Auth が内部的に処理するエンドポイント:
+
 - `POST /api/auth/sign-up` - ユーザー登録
 - `POST /api/auth/sign-in/email` - ログイン
 - `POST /api/auth/sign-out` - ログアウト
@@ -54,37 +58,37 @@ Better Auth が内部的に処理するエンドポイント:
 
 ### 3.1 タスク関連
 
-| Action名 | 説明 | 使用画面 |
-|----------|------|----------|
-| `getTodayTasks` | 今日のタスク一覧を取得 | ホーム画面 |
-| `getTasksByDate` | 指定日付のタスク一覧を取得 | 日付別タスク画面 |
-| `searchTasks` | タスクを検索 | 検索画面 |
-| `createTask` | 新規タスクを作成 | ホーム画面、日付別タスク画面 |
-| `updateTask` | タスクを更新 | タスク編集モーダル |
-| `completeTask` | タスクを完了にする | ホーム画面、日付別タスク画面 |
-| `uncompleteTask` | タスクの完了を取り消す | ホーム画面、日付別タスク画面 |
-| `skipTask` | タスクを「やらない」にする | ホーム画面、日付別タスク画面 |
-| `unskipTask` | 「やらない」を取り消す | ホーム画面、日付別タスク画面 |
-| `deleteTask` | タスクを削除 | ホーム画面、日付別タスク画面 |
+| Action名         | 説明                       | 使用画面                     |
+| ---------------- | -------------------------- | ---------------------------- |
+| `getTodayTasks`  | 今日のタスク一覧を取得     | ホーム画面                   |
+| `getTasksByDate` | 指定日付のタスク一覧を取得 | 日付別タスク画面             |
+| `searchTasks`    | タスクを検索               | 検索画面                     |
+| `createTask`     | 新規タスクを作成           | ホーム画面、日付別タスク画面 |
+| `updateTask`     | タスクを更新               | タスク編集モーダル           |
+| `completeTask`   | タスクを完了にする         | ホーム画面、日付別タスク画面 |
+| `uncompleteTask` | タスクの完了を取り消す     | ホーム画面、日付別タスク画面 |
+| `skipTask`       | タスクを「やらない」にする | ホーム画面、日付別タスク画面 |
+| `unskipTask`     | 「やらない」を取り消す     | ホーム画面、日付別タスク画面 |
+| `deleteTask`     | タスクを削除               | ホーム画面、日付別タスク画面 |
 
 ### 3.2 カテゴリ関連
 
-| Action名 | 説明 | 使用画面 |
-|----------|------|----------|
-| `getCategories` | カテゴリ一覧を取得 | カテゴリ管理画面、タスク編集モーダル |
-| `createCategory` | 新規カテゴリを作成 | カテゴリ管理画面 |
-| `updateCategory` | カテゴリを更新 | カテゴリ管理画面 |
-| `deleteCategory` | カテゴリを削除 | カテゴリ管理画面 |
+| Action名         | 説明               | 使用画面                             |
+| ---------------- | ------------------ | ------------------------------------ |
+| `getCategories`  | カテゴリ一覧を取得 | カテゴリ管理画面、タスク編集モーダル |
+| `createCategory` | 新規カテゴリを作成 | カテゴリ管理画面                     |
+| `updateCategory` | カテゴリを更新     | カテゴリ管理画面                     |
+| `deleteCategory` | カテゴリを削除     | カテゴリ管理画面                     |
 
 ### 3.3 ユーザー設定関連
 
-| Action名 | 説明 | 使用画面 |
-|----------|------|----------|
-| `getUserSettings` | ユーザー設定を取得 | 設定画面 |
-| `updateUserSettings` | ユーザー設定を更新 | 設定画面 |
-| `changeEmail` | メールアドレスを変更 | 設定画面 |
-| `changePassword` | パスワードを変更 | 設定画面 |
-| `deleteAccount` | アカウントを削除 | 設定画面 |
+| Action名             | 説明                 | 使用画面 |
+| -------------------- | -------------------- | -------- |
+| `getUserSettings`    | ユーザー設定を取得   | 設定画面 |
+| `updateUserSettings` | ユーザー設定を更新   | 設定画面 |
+| `changeEmail`        | メールアドレスを変更 | 設定画面 |
+| `changePassword`     | パスワードを変更     | 設定画面 |
+| `deleteAccount`      | アカウントを削除     | 設定画面 |
 
 ---
 
@@ -93,6 +97,7 @@ Better Auth が内部的に処理するエンドポイント:
 ### 4.1 タスク関連
 
 #### getTodayTasks
+
 今日表示すべきタスクを一括取得する。
 
 **必要な理由**: ホーム画面で今日のタスク（期限超過、本日予定、日付未定、完了済み、やらない）をセクション分けして表示するため。
@@ -103,15 +108,16 @@ type GetTodayTasksInput = void;
 
 // 出力
 type GetTodayTasksOutput = ActionResult<{
-  overdue: Task[];      // 期限超過タスク（予定日が過去で未完了）
-  today: Task[];        // 今日のタスク（予定日が今日で未完了）
-  undated: Task[];      // 日付未定タスク（予定日なしで未完了）
-  completed: Task[];    // 今日完了したタスク
-  skipped: Task[];      // 今日やらないにしたタスク
+  overdue: Task[]; // 期限超過タスク（予定日が過去で未完了）
+  today: Task[]; // 今日のタスク（予定日が今日で未完了）
+  undated: Task[]; // 日付未定タスク（予定日なしで未完了）
+  completed: Task[]; // 今日完了したタスク
+  skipped: Task[]; // 今日やらないにしたタスク
 }>;
 ```
 
 #### getTasksByDate
+
 指定した日付に関連するタスクを取得する。
 
 **必要な理由**: 日付ナビゲーションで過去・未来の日付を表示する際に、その日付に関連するタスクを取得するため。
@@ -124,17 +130,18 @@ type GetTasksByDateInput = {
 
 // 出力（統一型）
 type GetTasksByDateOutput = ActionResult<{
-  isPast: boolean;       // 過去の日付かどうか
-  isFuture: boolean;     // 未来の日付かどうか
-  completed: Task[];     // その日に完了したタスク（過去のみ、未来は空配列）
-  skipped: Task[];       // その日にやらないにしたタスク（過去のみ、未来は空配列）
-  scheduled: Task[];     // その日が予定日のタスク
+  isPast: boolean; // 過去の日付かどうか
+  isFuture: boolean; // 未来の日付かどうか
+  completed: Task[]; // その日に完了したタスク（過去のみ、未来は空配列）
+  skipped: Task[]; // その日にやらないにしたタスク（過去のみ、未来は空配列）
+  scheduled: Task[]; // その日が予定日のタスク
 }>;
 ```
 
 ※ 未来の日付の場合、`completed` と `skipped` は空配列を返す
 
 #### searchTasks
+
 キーワードやフィルター条件でタスクを検索する。
 
 **必要な理由**: 検索画面で複数日のタスクを横断的に検索・フィルタリングするため。
@@ -142,18 +149,18 @@ type GetTasksByDateOutput = ActionResult<{
 ```typescript
 // 入力
 type SearchTasksInput = {
-  keyword?: string;                        // 検索キーワード（タスク名、メモ）
+  keyword?: string; // 検索キーワード（タスク名、メモ）
   status?: "all" | "pending" | "completed" | "skipped";
-  categoryId?: string | null;              // null = カテゴリなし
-  priority?: Priority | "all" | null;      // null = 優先度なし、"all" = すべて
-  dateFrom?: string;                       // 期間指定（開始）
-  dateTo?: string;                         // 期間指定（終了）
+  categoryId?: string | null; // null = カテゴリなし
+  priority?: Priority | "all" | null; // null = 優先度なし、"all" = すべて
+  dateFrom?: string; // 期間指定（開始）
+  dateTo?: string; // 期間指定（終了）
 };
 
 // 出力（日付でグループ化）
 type SearchTasksOutput = ActionResult<{
   groups: {
-    date: string | null;  // 予定日（null = 日付未定）
+    date: string | null; // 予定日（null = 日付未定）
     tasks: Task[];
   }[];
   total: number;
@@ -161,6 +168,7 @@ type SearchTasksOutput = ActionResult<{
 ```
 
 #### createTask
+
 新しいタスクを作成する。
 
 **必要な理由**: ホーム画面・日付別画面の下部入力欄から素早くタスクを作成するため。
@@ -168,11 +176,11 @@ type SearchTasksOutput = ActionResult<{
 ```typescript
 // 入力
 type CreateTaskInput = {
-  title: string;           // タスク名（必須）
-  scheduledAt?: string;    // 予定日（ISO 8601形式）
-  categoryId?: string;     // カテゴリID
-  priority?: Priority;     // 優先度
-  memo?: string;           // メモ
+  title: string; // タスク名（必須）
+  scheduledAt?: string; // 予定日（ISO 8601形式）
+  categoryId?: string; // カテゴリID
+  priority?: Priority; // 優先度
+  memo?: string; // メモ
 };
 
 // 出力
@@ -182,6 +190,7 @@ type CreateTaskOutput = ActionResult<{
 ```
 
 #### updateTask
+
 タスクの属性を更新する。
 
 **必要な理由**: タスク編集モーダルでタスクの詳細情報を変更するため。
@@ -189,12 +198,12 @@ type CreateTaskOutput = ActionResult<{
 ```typescript
 // 入力
 type UpdateTaskInput = {
-  id: string;              // タスクID（必須）
-  title?: string;          // タスク名
-  scheduledAt?: string | null;  // 予定日（nullで日付未定に）
-  categoryId?: string | null;   // カテゴリID（nullでカテゴリなしに）
-  priority?: Priority | null;   // 優先度（nullで優先度なしに）
-  memo?: string | null;         // メモ
+  id: string; // タスクID（必須）
+  title?: string; // タスク名
+  scheduledAt?: string | null; // 予定日（nullで日付未定に）
+  categoryId?: string | null; // カテゴリID（nullでカテゴリなしに）
+  priority?: Priority | null; // 優先度（nullで優先度なしに）
+  memo?: string | null; // メモ
 };
 
 // 出力
@@ -204,6 +213,7 @@ type UpdateTaskOutput = ActionResult<{
 ```
 
 #### completeTask
+
 タスクを完了状態にする。
 
 **必要な理由**: チェックボックスタップでタスクを完了にするため。楽観的更新で即座にUIに反映。
@@ -211,7 +221,7 @@ type UpdateTaskOutput = ActionResult<{
 ```typescript
 // 入力
 type CompleteTaskInput = {
-  id: string;  // タスクID
+  id: string; // タスクID
 };
 
 // 出力
@@ -221,6 +231,7 @@ type CompleteTaskOutput = ActionResult<{
 ```
 
 #### uncompleteTask
+
 タスクの完了状態を取り消す。
 
 **必要な理由**: 誤って完了にしたタスクを未完了に戻すため。
@@ -228,7 +239,7 @@ type CompleteTaskOutput = ActionResult<{
 ```typescript
 // 入力
 type UncompleteTaskInput = {
-  id: string;  // タスクID
+  id: string; // タスクID
 };
 
 // 出力
@@ -238,6 +249,7 @@ type UncompleteTaskOutput = ActionResult<{
 ```
 
 #### skipTask
+
 タスクを「やらない」状態にする。
 
 **必要な理由**: タスクを実行しないと決めた際に、履歴として残しつつステータスを変更するため。
@@ -245,8 +257,8 @@ type UncompleteTaskOutput = ActionResult<{
 ```typescript
 // 入力
 type SkipTaskInput = {
-  id: string;         // タスクID
-  reason?: string;    // やらない理由（任意）
+  id: string; // タスクID
+  reason?: string; // やらない理由（任意）
 };
 
 // 出力
@@ -256,6 +268,7 @@ type SkipTaskOutput = ActionResult<{
 ```
 
 #### unskipTask
+
 「やらない」状態を取り消して未完了に戻す。
 
 **必要な理由**: やらないにしたタスクを復活させるため。
@@ -263,7 +276,7 @@ type SkipTaskOutput = ActionResult<{
 ```typescript
 // 入力
 type UnskipTaskInput = {
-  id: string;  // タスクID
+  id: string; // タスクID
 };
 
 // 出力
@@ -273,6 +286,7 @@ type UnskipTaskOutput = ActionResult<{
 ```
 
 #### deleteTask
+
 タスクを完全に削除する。
 
 **必要な理由**: 不要なタスクを削除するため。論理削除ではなく物理削除。
@@ -280,12 +294,12 @@ type UnskipTaskOutput = ActionResult<{
 ```typescript
 // 入力
 type DeleteTaskInput = {
-  id: string;  // タスクID
+  id: string; // タスクID
 };
 
 // 出力
 type DeleteTaskOutput = ActionResult<{
-  id: string;  // 削除したタスクID
+  id: string; // 削除したタスクID
 }>;
 ```
 
@@ -294,6 +308,7 @@ type DeleteTaskOutput = ActionResult<{
 ### 4.2 カテゴリ関連
 
 #### getCategories
+
 ユーザーのカテゴリ一覧を取得する。
 
 **必要な理由**: カテゴリ管理画面での一覧表示、タスク編集時のカテゴリ選択に使用。
@@ -309,6 +324,7 @@ type GetCategoriesOutput = ActionResult<{
 ```
 
 #### createCategory
+
 新しいカテゴリを作成する。
 
 **必要な理由**: カテゴリ管理画面で新規カテゴリを追加するため。
@@ -316,8 +332,8 @@ type GetCategoriesOutput = ActionResult<{
 ```typescript
 // 入力
 type CreateCategoryInput = {
-  name: string;   // カテゴリ名（必須）
-  color: string;  // カラーコード（必須）
+  name: string; // カテゴリ名（必須）
+  color: string; // カラーコード（必須）
 };
 
 // 出力
@@ -327,6 +343,7 @@ type CreateCategoryOutput = ActionResult<{
 ```
 
 #### updateCategory
+
 カテゴリを更新する。
 
 **必要な理由**: カテゴリ名やカラーを変更するため。
@@ -334,9 +351,9 @@ type CreateCategoryOutput = ActionResult<{
 ```typescript
 // 入力
 type UpdateCategoryInput = {
-  id: string;      // カテゴリID（必須）
-  name?: string;   // カテゴリ名
-  color?: string;  // カラーコード
+  id: string; // カテゴリID（必須）
+  name?: string; // カテゴリ名
+  color?: string; // カラーコード
 };
 
 // 出力
@@ -346,6 +363,7 @@ type UpdateCategoryOutput = ActionResult<{
 ```
 
 #### deleteCategory
+
 カテゴリを削除する。
 
 **必要な理由**: 不要なカテゴリを削除するため。紐づくタスクのcategoryIdはnullになる。
@@ -353,12 +371,12 @@ type UpdateCategoryOutput = ActionResult<{
 ```typescript
 // 入力
 type DeleteCategoryInput = {
-  id: string;  // カテゴリID
+  id: string; // カテゴリID
 };
 
 // 出力
 type DeleteCategoryOutput = ActionResult<{
-  id: string;  // 削除したカテゴリID
+  id: string; // 削除したカテゴリID
 }>;
 ```
 
@@ -367,6 +385,7 @@ type DeleteCategoryOutput = ActionResult<{
 ### 4.3 ユーザー設定関連
 
 #### getUserSettings
+
 ユーザーの設定を取得する。
 
 **必要な理由**: 設定画面でユーザーの現在の設定値を表示するため。
@@ -382,6 +401,7 @@ type GetUserSettingsOutput = ActionResult<{
 ```
 
 #### updateUserSettings
+
 ユーザーの設定を更新する。
 
 **必要な理由**: 設定画面で表示設定などを変更するため。
@@ -389,8 +409,8 @@ type GetUserSettingsOutput = ActionResult<{
 ```typescript
 // 入力
 type UpdateUserSettingsInput = {
-  autoCollapseCompleted?: boolean;  // 完了タスクを自動で折りたたむ
-  autoCollapseSkipped?: boolean;    // やらないタスクを自動で折りたたむ
+  autoCollapseCompleted?: boolean; // 完了タスクを自動で折りたたむ
+  autoCollapseSkipped?: boolean; // やらないタスクを自動で折りたたむ
 };
 
 // 出力
@@ -400,6 +420,7 @@ type UpdateUserSettingsOutput = ActionResult<{
 ```
 
 #### changeEmail
+
 メールアドレスを変更する。
 
 **必要な理由**: 設定画面からメールアドレスを変更するため。
@@ -407,19 +428,20 @@ type UpdateUserSettingsOutput = ActionResult<{
 ```typescript
 // 入力
 type ChangeEmailInput = {
-  newEmail: string;      // 新しいメールアドレス
-  currentPassword: string;  // 現在のパスワード（本人確認）
+  newEmail: string; // 新しいメールアドレス
+  currentPassword: string; // 現在のパスワード（本人確認）
 };
 
 // 出力
 type ChangeEmailOutput = ActionResult<{
-  email: string;  // 変更後のメールアドレス
+  email: string; // 変更後のメールアドレス
 }>;
 ```
 
 ※ Better Auth の `changeEmail` API を内部で使用
 
 #### changePassword
+
 パスワードを変更する。
 
 **必要な理由**: 設定画面からパスワードを変更するため。
@@ -427,8 +449,8 @@ type ChangeEmailOutput = ActionResult<{
 ```typescript
 // 入力
 type ChangePasswordInput = {
-  currentPassword: string;  // 現在のパスワード
-  newPassword: string;      // 新しいパスワード
+  currentPassword: string; // 現在のパスワード
+  newPassword: string; // 新しいパスワード
 };
 
 // 出力
@@ -440,6 +462,7 @@ type ChangePasswordOutput = ActionResult<{
 ※ Better Auth の `changePassword` API を内部で使用
 
 #### deleteAccount
+
 アカウントを削除する。
 
 **必要な理由**: 設定画面からアカウントを完全に削除するため。関連データもすべて削除。
@@ -447,7 +470,7 @@ type ChangePasswordOutput = ActionResult<{
 ```typescript
 // 入力
 type DeleteAccountInput = {
-  confirmEmail: string;  // 確認用メールアドレス
+  confirmEmail: string; // 確認用メールアドレス
 };
 
 // 出力
@@ -470,12 +493,12 @@ type Task = {
   memo: string | null;
   status: TaskStatus;
   priority: Priority | null;
-  scheduledAt: string | null;  // ISO 8601 (YYYY-MM-DD)
-  completedAt: string | null;  // ISO 8601
-  skippedAt: string | null;    // ISO 8601
+  scheduledAt: string | null; // ISO 8601 (YYYY-MM-DD)
+  completedAt: string | null; // ISO 8601
+  skippedAt: string | null; // ISO 8601
   skipReason: string | null;
-  createdAt: string;           // ISO 8601
-  updatedAt: string;           // ISO 8601
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
   categoryId: string | null;
   category: CategorySummary | null;
 };
@@ -529,20 +552,20 @@ const CATEGORY_COLORS = [
 
 ### 6.1 タスク
 
-| フィールド | ルール |
-|-----------|--------|
-| title | 必須、1〜500文字、空白のみ不可 |
-| memo | 任意、最大10000文字 |
-| scheduledAt | 任意、有効な日付形式 |
-| priority | 任意、HIGH/MEDIUM/LOW のいずれか |
-| skipReason | 任意、最大1000文字 |
+| フィールド  | ルール                           |
+| ----------- | -------------------------------- |
+| title       | 必須、1〜500文字、空白のみ不可   |
+| memo        | 任意、最大10000文字              |
+| scheduledAt | 任意、有効な日付形式             |
+| priority    | 任意、HIGH/MEDIUM/LOW のいずれか |
+| skipReason  | 任意、最大1000文字               |
 
 ### 6.2 カテゴリ
 
-| フィールド | ルール |
-|-----------|--------|
-| name | 必須、1〜50文字、同一ユーザー内で重複不可 |
-| color | 必須、有効なカラーコード（#RRGGBB形式） |
+| フィールド | ルール                                    |
+| ---------- | ----------------------------------------- |
+| name       | 必須、1〜50文字、同一ユーザー内で重複不可 |
+| color      | 必須、有効なカラーコード（#RRGGBB形式）   |
 
 ---
 
@@ -560,14 +583,14 @@ const CATEGORY_COLORS = [
 
 ### 7.2 対象アクション
 
-| Action | 楽観的更新内容 |
-|--------|---------------|
-| completeTask | チェックボックスON、完了セクションに移動 |
+| Action         | 楽観的更新内容                              |
+| -------------- | ------------------------------------------- |
+| completeTask   | チェックボックスON、完了セクションに移動    |
 | uncompleteTask | チェックボックスOFF、未完了セクションに移動 |
-| skipTask | やらないセクションに移動 |
-| unskipTask | 未完了セクションに移動 |
-| deleteTask | リストから即座に削除 |
-| createTask | リストに即座に追加（仮ID使用） |
+| skipTask       | やらないセクションに移動                    |
+| unskipTask     | 未完了セクションに移動                      |
+| deleteTask     | リストから即座に削除                        |
+| createTask     | リストに即座に追加（仮ID使用）              |
 
 ### 7.3 状態管理
 
@@ -601,6 +624,6 @@ src/
 
 ## 9. 変更履歴
 
-| 日付 | バージョン | 変更内容 |
-|------|-----------|----------|
-| 2024/01/XX | 1.0 | 初版作成 |
+| 日付       | バージョン | 変更内容 |
+| ---------- | ---------- | -------- |
+| 2024/01/XX | 1.0        | 初版作成 |

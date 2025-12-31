@@ -15,7 +15,10 @@ export const createTaskSchema = z.object({
   scheduledAt: dateStringSchema.optional(),
   categoryId: z.string().optional(),
   priority: prioritySchema.optional(),
-  memo: z.string().max(10000, "メモは10000文字以内で入力してください").optional(),
+  memo: z
+    .string()
+    .max(10000, "メモは10000文字以内で入力してください")
+    .optional(),
 });
 
 export const updateTaskSchema = z.object({

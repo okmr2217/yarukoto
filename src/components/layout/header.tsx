@@ -20,11 +20,7 @@ export function Header() {
       <div className="flex items-center justify-between h-14 px-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="メニューを開く"
-            >
+            <Button variant="ghost" size="icon" aria-label="メニューを開く">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>

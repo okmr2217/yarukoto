@@ -116,7 +116,7 @@ export function CategoryEditDialog({
                     "w-10 h-10 rounded-full border-2 transition-all",
                     color === c.value
                       ? "border-foreground scale-110"
-                      : "border-transparent hover:scale-105"
+                      : "border-transparent hover:scale-105",
                   )}
                   style={{ backgroundColor: c.value }}
                   aria-label={c.name}

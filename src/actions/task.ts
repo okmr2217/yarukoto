@@ -27,9 +27,7 @@ import {
 import type { Task as PrismaTask, Category } from "@/generated/prisma/client";
 
 // Helper: Convert Prisma task to API task type
-function toTask(
-  task: PrismaTask & { category: Category | null }
-): Task {
+function toTask(task: PrismaTask & { category: Category | null }): Task {
   return {
     id: task.id,
     title: task.title,
@@ -73,61 +71,62 @@ export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
     const today = getTodayString();
     const { start: todayStart, end: todayEnd } = getDateRange(today);
 
-    const [overdue, todayTasks, undated, completed, skipped] = await Promise.all([
-      // Overdue: scheduled before today and still pending
-      prisma.task.findMany({
-        where: {
-          userId: user.id,
-          status: "PENDING",
-          scheduledAt: { lt: new Date(today) },
-        },
-        include: { category: true },
-        orderBy: { scheduledAt: "asc" },
-      }),
-      // Today: scheduled for today and pending
-      prisma.task.findMany({
-        where: {
-          userId: user.id,
-          status: "PENDING",
-          scheduledAt: {
-            gte: new Date(today),
-            lt: new Date(new Date(today).getTime() + 24 * 60 * 60 * 1000),
+    const [overdue, todayTasks, undated, completed, skipped] =
+      await Promise.all([
+        // Overdue: scheduled before today and still pending
+        prisma.task.findMany({
+          where: {
+            userId: user.id,
+            status: "PENDING",
+            scheduledAt: { lt: new Date(today) },
           },
-        },
-        include: { category: true },
-        orderBy: { createdAt: "desc" },
-      }),
-      // Undated: no scheduled date and pending
-      prisma.task.findMany({
-        where: {
-          userId: user.id,
-          status: "PENDING",
-          scheduledAt: null,
-        },
-        include: { category: true },
-        orderBy: { createdAt: "desc" },
-      }),
-      // Completed today
-      prisma.task.findMany({
-        where: {
-          userId: user.id,
-          status: "COMPLETED",
-          completedAt: { gte: todayStart, lte: todayEnd },
-        },
-        include: { category: true },
-        orderBy: { completedAt: "desc" },
-      }),
-      // Skipped today
-      prisma.task.findMany({
-        where: {
-          userId: user.id,
-          status: "SKIPPED",
-          skippedAt: { gte: todayStart, lte: todayEnd },
-        },
-        include: { category: true },
-        orderBy: { skippedAt: "desc" },
-      }),
-    ]);
+          include: { category: true },
+          orderBy: { scheduledAt: "asc" },
+        }),
+        // Today: scheduled for today and pending
+        prisma.task.findMany({
+          where: {
+            userId: user.id,
+            status: "PENDING",
+            scheduledAt: {
+              gte: new Date(today),
+              lt: new Date(new Date(today).getTime() + 24 * 60 * 60 * 1000),
+            },
+          },
+          include: { category: true },
+          orderBy: { createdAt: "desc" },
+        }),
+        // Undated: no scheduled date and pending
+        prisma.task.findMany({
+          where: {
+            userId: user.id,
+            status: "PENDING",
+            scheduledAt: null,
+          },
+          include: { category: true },
+          orderBy: { createdAt: "desc" },
+        }),
+        // Completed today
+        prisma.task.findMany({
+          where: {
+            userId: user.id,
+            status: "COMPLETED",
+            completedAt: { gte: todayStart, lte: todayEnd },
+          },
+          include: { category: true },
+          orderBy: { completedAt: "desc" },
+        }),
+        // Skipped today
+        prisma.task.findMany({
+          where: {
+            userId: user.id,
+            status: "SKIPPED",
+            skippedAt: { gte: todayStart, lte: todayEnd },
+          },
+          include: { category: true },
+          orderBy: { skippedAt: "desc" },
+        }),
+      ]);
 
     return success({
       overdue: overdue.map(toTask),
@@ -143,7 +142,7 @@ export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
 }
 
 export async function getTasksByDate(
-  input: GetTasksByDateInput
+  input: GetTasksByDateInput,
 ): Promise<ActionResult<DateTasks>> {
   try {
     const parsed = getTasksByDateSchema.safeParse(input);
@@ -215,7 +214,7 @@ export async function getTasksByDate(
 }
 
 export async function searchTasks(
-  input: SearchTasksInput
+  input: SearchTasksInput,
 ): Promise<ActionResult<SearchTasksResult>> {
   try {
     const parsed = searchTasksSchema.safeParse(input);
@@ -224,7 +223,8 @@ export async function searchTasks(
     }
 
     const user = await getRequiredUser();
-    const { keyword, status, categoryId, priority, dateFrom, dateTo } = parsed.data;
+    const { keyword, status, categoryId, priority, dateFrom, dateTo } =
+      parsed.data;
 
     // Build where clause
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -301,7 +301,7 @@ export async function searchTasks(
 }
 
 export async function createTask(
-  input: CreateTaskInput
+  input: CreateTaskInput,
 ): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = createTaskSchema.safeParse(input);
@@ -342,7 +342,7 @@ export async function createTask(
 }
 
 export async function updateTask(
-  input: UpdateTaskInput
+  input: UpdateTaskInput,
 ): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = updateTaskSchema.safeParse(input);
@@ -395,9 +395,9 @@ export async function updateTask(
   }
 }
 
-export async function completeTask(
-  input: { id: string }
-): Promise<ActionResult<{ task: Task }>> {
+export async function completeTask(input: {
+  id: string;
+}): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -433,9 +433,9 @@ export async function completeTask(
   }
 }
 
-export async function uncompleteTask(
-  input: { id: string }
-): Promise<ActionResult<{ task: Task }>> {
+export async function uncompleteTask(input: {
+  id: string;
+}): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -470,7 +470,7 @@ export async function uncompleteTask(
 }
 
 export async function skipTask(
-  input: SkipTaskInput
+  input: SkipTaskInput,
 ): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = skipTaskSchema.safeParse(input);
@@ -507,9 +507,9 @@ export async function skipTask(
   }
 }
 
-export async function unskipTask(
-  input: { id: string }
-): Promise<ActionResult<{ task: Task }>> {
+export async function unskipTask(input: {
+  id: string;
+}): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -544,9 +544,9 @@ export async function unskipTask(
   }
 }
 
-export async function deleteTask(
-  input: { id: string }
-): Promise<ActionResult<{ id: string }>> {
+export async function deleteTask(input: {
+  id: string;
+}): Promise<ActionResult<{ id: string }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
