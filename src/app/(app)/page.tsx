@@ -5,9 +5,7 @@ import { Header } from "@/components/layout";
 import {
   TaskSection,
   TaskInput,
-  TaskCreateDialog,
   TaskEditDialog,
-  type TaskCreateData,
   type TaskEditData,
 } from "@/components/task";
 import {
@@ -25,7 +23,6 @@ import type { Task } from "@/types";
 
 export default function HomePage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { settings } = useSettings();
   const { data: tasks, isLoading, error } = useTodayTasks();
@@ -37,17 +34,14 @@ export default function HomePage() {
   const skipTask = useSkipTask();
   const deleteTask = useDeleteTask();
 
-  const handleCreateTask = (title: string, scheduledAt?: string) => {
-    createTask.mutate({ title, scheduledAt });
-  };
-
-  const handleCreateTaskWithDetails = async (data: TaskCreateData) => {
-    try {
-      await createTask.mutateAsync(data);
-      setIsCreateDialogOpen(false);
-    } catch {
-      // Error is handled by the mutation
-    }
+  const handleCreateTask = (data: {
+    title: string;
+    scheduledAt?: string;
+    categoryId?: string;
+    priority?: "HIGH" | "MEDIUM" | "LOW";
+    memo?: string;
+  }) => {
+    createTask.mutate(data);
   };
 
   const handleComplete = (id: string) => {
@@ -206,15 +200,6 @@ export default function HomePage() {
 
       <TaskInput
         onSubmit={handleCreateTask}
-        onOpenDetailDialog={() => setIsCreateDialogOpen(true)}
-        defaultDate={today}
-        isLoading={createTask.isPending}
-      />
-
-      <TaskCreateDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSave={handleCreateTaskWithDetails}
         categories={categories}
         defaultDate={today}
         isLoading={createTask.isPending}
