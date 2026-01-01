@@ -21,11 +21,12 @@ import {
   useCategories,
 } from "@/hooks";
 import type { Task } from "@/types";
+import { formatDateToJST } from "@/lib/dateUtils";
 
 function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr + "T00:00:00");
   date.setDate(date.getDate() + days);
-  return date.toISOString().split("T")[0];
+  return formatDateToJST(date);
 }
 
 export default function HomePage() {

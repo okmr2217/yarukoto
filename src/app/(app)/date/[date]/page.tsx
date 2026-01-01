@@ -17,16 +17,7 @@ import {
   useCategories,
 } from "@/hooks";
 import type { Task } from "@/types";
-
-function formatDateForDisplay(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-  const weekday = weekdays[date.getDay()];
-  return `${year}年${month}月${day}日（${weekday}）`;
-}
+import { formatDateForDisplay, formatDateToJST } from "@/lib/dateUtils";
 
 function getTodayString(): string {
   return new Date().toISOString().split("T")[0];
@@ -35,7 +26,7 @@ function getTodayString(): string {
 function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr + "T00:00:00");
   date.setDate(date.getDate() + days);
-  return date.toISOString().split("T")[0];
+  return formatDateToJST(date);
 }
 
 export default function DatePage() {
@@ -174,7 +165,7 @@ export default function DatePage() {
           {/* Date title */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg font-bold">
-              {formatDateForDisplay(dateParam)}
+              {formatDateForDisplay(new Date(dateParam + "T00:00:00"))}
             </span>
             {isPast && (
               <span className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full">

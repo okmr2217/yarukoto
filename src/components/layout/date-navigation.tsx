@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 interface DateNavigationProps {
   currentDate: Date;
@@ -10,15 +11,6 @@ interface DateNavigationProps {
   onNext: () => void;
   onToday: () => void;
   onDatePicker: () => void;
-}
-
-function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-  const weekday = weekdays[date.getDay()];
-  return `${year}年${month}月${day}日（${weekday}）`;
 }
 
 function isToday(date: Date): boolean {
@@ -51,7 +43,7 @@ export function DateNavigation({
       </Button>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">{formatDate(currentDate)}</span>
+        <span className="text-sm font-medium">{formatDateForDisplay(currentDate)}</span>
         {isTodayDate && (
           <span className="px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
             今日
