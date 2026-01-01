@@ -57,7 +57,7 @@ export function SignupForm() {
   };
 
   return (
-    <AuthCard title="Yarukoto" description="新規アカウント登録">
+    <AuthCard description="新規アカウント登録">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">

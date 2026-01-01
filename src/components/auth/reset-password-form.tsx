@@ -22,8 +22,7 @@ export function ResetPasswordForm() {
   if (!token) {
     return (
       <AuthCard
-        title="無効なリンク"
-        description="パスワードリセットのリンクが無効です"
+        description="無効なリンク | パスワードリセットのリンクが無効です"
       >
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground text-center">
@@ -75,8 +74,7 @@ export function ResetPasswordForm() {
 
   return (
     <AuthCard
-      title="新しいパスワードを設定"
-      description="新しいパスワードを入力してください"
+      description="新しいパスワードを設定 | 新しいパスワードを入力してください"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
