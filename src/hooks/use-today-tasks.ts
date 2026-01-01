@@ -26,6 +26,15 @@ export function useTodayTasks() {
   });
 }
 
+// 共通のinvalidate関数
+function useInvalidateTaskQueries() {
+  const queryClient = useQueryClient();
+  return () => {
+    queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+    queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
+  };
+}
+
 export interface CreateTaskInput {
   title: string;
   scheduledAt?: string;
@@ -36,22 +45,11 @@ export interface CreateTaskInput {
 
 export function useCreateTask() {
   const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
-    mutationFn: async ({
-      title,
-      scheduledAt,
-      categoryId,
-      priority,
-      memo,
-    }: CreateTaskInput) => {
-      const result = await createTask({
-        title,
-        scheduledAt,
-        categoryId,
-        priority,
-        memo,
-      });
+    mutationFn: async (input: CreateTaskInput) => {
+      const result = await createTask(input);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -76,7 +74,7 @@ export function useCreateTask() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         categoryId: categoryId || null,
-        category: null, // Category will be fetched on refetch
+        category: null,
       };
 
       if (previous) {
@@ -100,14 +98,13 @@ export function useCreateTask() {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }
 
 export function useCompleteTask() {
   const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -122,7 +119,6 @@ export function useCompleteTask() {
       const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
 
       if (previous) {
-        // Find and move task to completed
         let movedTask: Task | undefined;
         const newData: TodayTasks = {
           overdue: previous.overdue.filter((t) => {
@@ -168,14 +164,13 @@ export function useCompleteTask() {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }
 
 export function useUncompleteTask() {
   const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -234,14 +229,13 @@ export function useUncompleteTask() {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }
 
 export function useSkipTask() {
   const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
@@ -302,14 +296,12 @@ export function useSkipTask() {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }
 
 export function useUnskipTask() {
-  const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -319,9 +311,7 @@ export function useUnskipTask() {
       }
       return result.data.task;
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }
 
@@ -336,23 +326,17 @@ export interface UpdateTaskInput {
 
 export function useUpdateTask() {
   const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      title,
-      scheduledAt,
-      categoryId,
-      priority,
-      memo,
-    }: UpdateTaskInput) => {
+    mutationFn: async (input: UpdateTaskInput) => {
       const result = await updateTask({
-        id,
-        title,
-        scheduledAt: scheduledAt === null ? undefined : scheduledAt,
-        categoryId: categoryId === null ? undefined : categoryId,
-        priority: priority === null ? undefined : priority,
-        memo: memo === null ? undefined : memo,
+        id: input.id,
+        title: input.title,
+        scheduledAt: input.scheduledAt === null ? undefined : input.scheduledAt,
+        categoryId: input.categoryId === null ? undefined : input.categoryId,
+        priority: input.priority === null ? undefined : input.priority,
+        memo: input.memo === null ? undefined : input.memo,
       });
       if (!result.success) {
         throw new Error(result.error);
@@ -396,14 +380,13 @@ export function useUpdateTask() {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }
 
 export function useDeleteTask() {
   const queryClient = useQueryClient();
+  const invalidateAll = useInvalidateTaskQueries();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -434,8 +417,6 @@ export function useDeleteTask() {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 }

@@ -9,6 +9,10 @@ export {
   useDeleteTask,
 } from "./use-today-tasks";
 
+export { useDateTasks } from "./use-date-tasks";
+
+export { useTaskMutations } from "./use-task-mutations";
+
 export { useSettings } from "./use-settings";
 
 export {

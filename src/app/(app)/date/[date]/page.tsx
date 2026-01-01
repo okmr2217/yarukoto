@@ -1,0 +1,320 @@
+"use client";
+
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Header } from "@/components/layout";
+import { DateNavigation } from "@/components/layout";
+import {
+  TaskSection,
+  TaskInput,
+  TaskEditDialog,
+  type TaskEditData,
+} from "@/components/task";
+import {
+  useDateTasks,
+  useTaskMutations,
+  useSettings,
+  useCategories,
+} from "@/hooks";
+import type { Task } from "@/types";
+
+function formatDateForDisplay(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const weekday = weekdays[date.getDay()];
+  return `${year}年${month}月${day}日（${weekday}）`;
+}
+
+function getTodayString(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+function addDays(dateStr: string, days: number): string {
+  const date = new Date(dateStr + "T00:00:00");
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+}
+
+export default function DatePage() {
+  const params = useParams();
+  const router = useRouter();
+  const dateParam = params.date as string;
+
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  const { settings } = useSettings();
+  const { data: tasks, isLoading, error } = useDateTasks(dateParam);
+  const { data: categories = [] } = useCategories();
+  const mutations = useTaskMutations();
+
+  const today = getTodayString();
+  const isToday = dateParam === today;
+  const isPast = dateParam < today;
+  const isFuture = dateParam > today;
+
+  // If it's today, redirect to home
+  if (isToday) {
+    router.replace("/");
+    return null;
+  }
+
+  const handleNavigate = (newDate: string) => {
+    if (newDate === today) {
+      router.push("/");
+    } else {
+      router.push(`/date/${newDate}`);
+    }
+  };
+
+  const handlePrevious = () => {
+    handleNavigate(addDays(dateParam, -1));
+  };
+
+  const handleNext = () => {
+    handleNavigate(addDays(dateParam, 1));
+  };
+
+  const handleToday = () => {
+    router.push("/");
+  };
+
+  const handleDatePicker = () => {
+    setDatePickerOpen(true);
+  };
+
+  const handleCreateTask = (data: {
+    title: string;
+    scheduledAt?: string;
+    categoryId?: string;
+    priority?: "HIGH" | "MEDIUM" | "LOW";
+    memo?: string;
+  }) => {
+    mutations.createTask.mutate(data);
+  };
+
+  const handleComplete = (id: string) => {
+    mutations.completeTask.mutate(id);
+  };
+
+  const handleUncomplete = (id: string) => {
+    mutations.uncompleteTask.mutate(id);
+  };
+
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleEditTaskWithDetails = async (data: TaskEditData) => {
+    try {
+      await mutations.updateTask.mutateAsync(data);
+      setEditingTask(null);
+    } catch {
+      // Error is handled by the mutation
+    }
+  };
+
+  const handleSkip = (id: string) => {
+    mutations.skipTask.mutate({ id });
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("このタスクを削除しますか？")) {
+      mutations.deleteTask.mutate(id);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+          <div className="text-muted-foreground">読み込み中...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+          <div className="text-destructive">
+            エラーが発生しました: {error.message}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const hasNoTasks =
+    !tasks ||
+    (tasks.scheduled.length === 0 &&
+      tasks.completed.length === 0 &&
+      tasks.skipped.length === 0);
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+
+      <DateNavigation
+        currentDate={new Date(dateParam + "T00:00:00")}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        onToday={handleToday}
+        onDatePicker={handleDatePicker}
+      />
+
+      <main className="flex-1 overflow-auto pb-20">
+        <div className="px-4 py-4">
+          {/* Date title */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg font-bold">
+              {formatDateForDisplay(dateParam)}
+            </span>
+            {isPast && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full">
+                過去
+              </span>
+            )}
+            {isFuture && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                未来
+              </span>
+            )}
+          </div>
+
+          {hasNoTasks ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>この日のタスクはありません</p>
+              {isFuture && (
+                <p className="text-sm mt-1">
+                  下の入力欄から新しいタスクを追加できます
+                </p>
+              )}
+              {isPast && (
+                <p className="text-sm mt-1">
+                  過去の日付にはタスクを追加できません
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* For past dates */}
+              {isPast && (
+                <>
+                  {/* Completed on this day */}
+                  <TaskSection
+                    title="この日に完了"
+                    tasks={tasks?.completed || []}
+                    variant="completed"
+                    defaultCollapsed={settings.autoCollapseCompleted}
+                    onComplete={handleComplete}
+                    onUncomplete={handleUncomplete}
+                    onEdit={handleEdit}
+                    onSkip={handleSkip}
+                    onDelete={handleDelete}
+                  />
+
+                  {/* Skipped on this day */}
+                  <TaskSection
+                    title="この日にやらない"
+                    tasks={tasks?.skipped || []}
+                    variant="skipped"
+                    defaultCollapsed={settings.autoCollapseSkipped}
+                    onComplete={handleComplete}
+                    onUncomplete={handleUncomplete}
+                    onEdit={handleEdit}
+                    onSkip={handleSkip}
+                    onDelete={handleDelete}
+                  />
+
+                  {/* Scheduled for this day */}
+                  <TaskSection
+                    title="この日が予定日"
+                    tasks={tasks?.scheduled || []}
+                    onComplete={handleComplete}
+                    onUncomplete={handleUncomplete}
+                    onEdit={handleEdit}
+                    onSkip={handleSkip}
+                    onDelete={handleDelete}
+                    showScheduledDate
+                  />
+                </>
+              )}
+
+              {/* For future dates */}
+              {isFuture && (
+                <TaskSection
+                  title="予定タスク"
+                  tasks={tasks?.scheduled || []}
+                  onComplete={handleComplete}
+                  onUncomplete={handleUncomplete}
+                  onEdit={handleEdit}
+                  onSkip={handleSkip}
+                  onDelete={handleDelete}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </main>
+
+      {/* Task input - only for future dates */}
+      {isFuture && (
+        <TaskInput
+          onSubmit={handleCreateTask}
+          categories={categories}
+          defaultDate={dateParam}
+          isLoading={mutations.createTask.isPending}
+        />
+      )}
+
+      {/* No input for past dates */}
+      {isPast && (
+        <div className="sticky bottom-0 bg-muted/50 border-t p-4 text-center text-sm text-muted-foreground">
+          過去の日付にはタスクを追加できません
+        </div>
+      )}
+
+      <TaskEditDialog
+        open={editingTask !== null}
+        onOpenChange={(open) => !open && setEditingTask(null)}
+        onSave={handleEditTaskWithDetails}
+        task={editingTask}
+        categories={categories}
+        isLoading={mutations.updateTask.isPending}
+      />
+
+      {/* Date picker dialog */}
+      {datePickerOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+          onClick={() => setDatePickerOpen(false)}
+        >
+          <div
+            className="bg-background p-4 rounded-lg shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="date"
+              defaultValue={dateParam}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleNavigate(e.target.value);
+                  setDatePickerOpen(false);
+                }
+              }}
+              className="p-2 border rounded"
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

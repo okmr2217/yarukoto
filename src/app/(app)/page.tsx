@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/components/layout";
+import { useRouter } from "next/navigation";
+import { Header, DateNavigation } from "@/components/layout";
 import {
   TaskSection,
   TaskInput,
@@ -21,8 +22,16 @@ import {
 } from "@/hooks";
 import type { Task } from "@/types";
 
+function addDays(dateStr: string, days: number): string {
+  const date = new Date(dateStr + "T00:00:00");
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split("T")[0];
+}
+
 export default function HomePage() {
+  const router = useRouter();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const { settings } = useSettings();
   const { data: tasks, isLoading, error } = useTodayTasks();
@@ -78,6 +87,25 @@ export default function HomePage() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  const handleNavigate = (newDate: string) => {
+    if (newDate === today) {
+      return; // Already on home
+    }
+    router.push(`/date/${newDate}`);
+  };
+
+  const handlePrevious = () => {
+    handleNavigate(addDays(today, -1));
+  };
+
+  const handleNext = () => {
+    handleNavigate(addDays(today, 1));
+  };
+
+  const handleDatePicker = () => {
+    setDatePickerOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -113,6 +141,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
+
+      <DateNavigation
+        currentDate={new Date()}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        onToday={() => {}}
+        onDatePicker={handleDatePicker}
+      />
 
       <main className="flex-1 overflow-auto pb-20">
         <div className="px-4 py-4">
@@ -213,6 +249,32 @@ export default function HomePage() {
         categories={categories}
         isLoading={updateTask.isPending}
       />
+
+      {/* Date picker dialog */}
+      {datePickerOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+          onClick={() => setDatePickerOpen(false)}
+        >
+          <div
+            className="bg-background p-4 rounded-lg shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="date"
+              defaultValue={today}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleNavigate(e.target.value);
+                  setDatePickerOpen(false);
+                }
+              }}
+              className="p-2 border rounded"
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
