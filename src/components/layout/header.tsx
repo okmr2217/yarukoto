@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import Image from "next/image";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -26,7 +27,7 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="left" className="w-72">
             <SheetHeader>
-              <SheetTitle className="text-primary">Yarukoto</SheetTitle>
+              <SheetTitle className="text-primary font-logo">Yarukoto</SheetTitle>
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               <Link
@@ -49,7 +50,15 @@ export function Header() {
           </SheetContent>
         </Sheet>
 
-        <h1 className="text-lg font-bold text-primary">Yarukoto</h1>
+        <div className="flex items-center">
+          <Image
+            src={"/icons/icon-192x192.png"}
+            alt="icon"
+            width={32}
+            height={32}
+          />
+          <h1 className="text-xl font-medium font-logo">Yarukoto</h1>
+        </div>
 
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" asChild>
