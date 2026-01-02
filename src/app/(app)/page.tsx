@@ -7,6 +7,7 @@ import {
   TaskSection,
   TaskInput,
   TaskEditDialog,
+  SkipReasonDialog,
   type TaskEditData,
 } from "@/components/task";
 import {
@@ -32,6 +33,7 @@ function addDays(dateStr: string, days: number): string {
 export default function HomePage() {
   const router = useRouter();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const { settings } = useSettings();
@@ -76,8 +78,23 @@ export default function HomePage() {
   };
 
   const handleSkip = (id: string) => {
-    // TODO: Show skip reason dialog
-    skipTask.mutate({ id });
+    const task = [
+      ...(tasks?.overdue || []),
+      ...(tasks?.today || []),
+      ...(tasks?.undated || []),
+      ...(tasks?.completed || []),
+      ...(tasks?.skipped || []),
+    ].find((t) => t.id === id);
+    if (task) {
+      setSkippingTask(task);
+    }
+  };
+
+  const handleSkipConfirm = (reason?: string) => {
+    if (skippingTask) {
+      skipTask.mutate({ id: skippingTask.id, reason });
+      setSkippingTask(null);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -249,6 +266,14 @@ export default function HomePage() {
         task={editingTask}
         categories={categories}
         isLoading={updateTask.isPending}
+      />
+
+      <SkipReasonDialog
+        open={skippingTask !== null}
+        onOpenChange={(open) => !open && setSkippingTask(null)}
+        taskTitle={skippingTask?.title || ""}
+        onConfirm={handleSkipConfirm}
+        isLoading={skipTask.isPending}
       />
 
       {/* Date picker dialog */}

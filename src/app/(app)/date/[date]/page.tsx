@@ -8,6 +8,7 @@ import {
   TaskSection,
   TaskInput,
   TaskEditDialog,
+  SkipReasonDialog,
   type TaskEditData,
 } from "@/components/task";
 import {
@@ -35,6 +36,7 @@ export default function DatePage() {
   const dateParam = params.date as string;
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const { settings } = useSettings();
@@ -109,7 +111,21 @@ export default function DatePage() {
   };
 
   const handleSkip = (id: string) => {
-    mutations.skipTask.mutate({ id });
+    const task = [
+      ...(tasks?.scheduled || []),
+      ...(tasks?.completed || []),
+      ...(tasks?.skipped || []),
+    ].find((t) => t.id === id);
+    if (task) {
+      setSkippingTask(task);
+    }
+  };
+
+  const handleSkipConfirm = (reason?: string) => {
+    if (skippingTask) {
+      mutations.skipTask.mutate({ id: skippingTask.id, reason });
+      setSkippingTask(null);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -279,6 +295,14 @@ export default function DatePage() {
         task={editingTask}
         categories={categories}
         isLoading={mutations.updateTask.isPending}
+      />
+
+      <SkipReasonDialog
+        open={skippingTask !== null}
+        onOpenChange={(open) => !open && setSkippingTask(null)}
+        taskTitle={skippingTask?.title || ""}
+        onConfirm={handleSkipConfirm}
+        isLoading={mutations.skipTask.isPending}
       />
 
       {/* Date picker dialog */}

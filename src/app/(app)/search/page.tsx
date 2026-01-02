@@ -4,7 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SearchFiltersComponent, SearchResults } from "@/components/search";
-import { TaskEditDialog, type TaskEditData } from "@/components/task";
+import {
+  TaskEditDialog,
+  SkipReasonDialog,
+  type TaskEditData,
+} from "@/components/task";
 import {
   useSearchTasks,
   useCategories,
@@ -28,6 +32,7 @@ export default function SearchPage() {
     dateTo: undefined,
   });
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [skippingTask, setSkippingTask] = useState<Task | null>(null);
 
   const { data: categories = [] } = useCategories();
   const {
@@ -78,12 +83,23 @@ export default function SearchPage() {
   };
 
   const handleSkip = (id: string) => {
-    skipTask.mutate(
-      { id },
-      {
-        onSuccess: invalidateSearch,
-      }
-    );
+    const allTasks = searchResults?.groups.flatMap((g) => g.tasks) || [];
+    const task = allTasks.find((t) => t.id === id);
+    if (task) {
+      setSkippingTask(task);
+    }
+  };
+
+  const handleSkipConfirm = (reason?: string) => {
+    if (skippingTask) {
+      skipTask.mutate(
+        { id: skippingTask.id, reason },
+        {
+          onSuccess: invalidateSearch,
+        }
+      );
+      setSkippingTask(null);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -140,6 +156,15 @@ export default function SearchPage() {
         task={editingTask}
         categories={categories}
         isLoading={updateTask.isPending}
+      />
+
+      {/* Skip Reason Dialog */}
+      <SkipReasonDialog
+        open={skippingTask !== null}
+        onOpenChange={(open) => !open && setSkippingTask(null)}
+        taskTitle={skippingTask?.title || ""}
+        onConfirm={handleSkipConfirm}
+        isLoading={skipTask.isPending}
       />
     </div>
   );
