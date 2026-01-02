@@ -126,9 +126,9 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex-1 bg-background">
         <Header />
-        <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+        <div className="flex items-center justify-center h-[calc(100vh-56px)] md:h-screen">
           <div className="text-muted-foreground">読み込み中...</div>
         </div>
       </div>
@@ -137,9 +137,9 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex-1 bg-background">
         <Header />
-        <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+        <div className="flex items-center justify-center h-[calc(100vh-56px)] md:h-screen">
           <div className="text-destructive">
             エラーが発生しました: {error.message}
           </div>
@@ -157,19 +157,20 @@ export default function HomePage() {
       tasks.skipped.length === 0);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="flex-1 bg-background flex flex-col">
       <Header />
 
-      <DateNavigation
-        currentDate={new Date()}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        onToday={() => {}}
-        onDatePicker={handleDatePicker}
-      />
+      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
+        <DateNavigation
+          currentDate={new Date()}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onToday={() => {}}
+          onDatePicker={handleDatePicker}
+        />
 
-      <main className="flex-1 overflow-auto pb-20">
-        <div className="px-4 py-4">
+        <main className="flex-1 overflow-auto pb-20 md:pb-4">
+          <div className="px-4 py-4">
           {/* Today badge */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg font-bold">今日のタスク</span>
@@ -247,17 +248,18 @@ export default function HomePage() {
                 onSkip={handleSkip}
                 onDelete={handleDelete}
               />
-            </>
+              </>
           )}
-        </div>
-      </main>
+          </div>
+        </main>
 
-      <TaskInput
-        onSubmit={handleCreateTask}
-        categories={categories}
-        defaultDate={today}
-        isLoading={createTask.isPending}
-      />
+        <TaskInput
+          onSubmit={handleCreateTask}
+          categories={categories}
+          defaultDate={today}
+          isLoading={createTask.isPending}
+        />
+      </div>
 
       <TaskEditDialog
         open={editingTask !== null}

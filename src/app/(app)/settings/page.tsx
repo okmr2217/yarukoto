@@ -58,9 +58,9 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border">
+    <div className="flex-1 bg-background">
+      {/* Header - Mobile only */}
+      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
         <div className="flex items-center h-14 px-4">
           <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
             <ArrowLeft className="h-5 w-5" />
@@ -69,7 +69,13 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <main className="px-4 py-6 space-y-6">
+      <div className="max-w-2xl w-full mx-auto">
+        {/* PC Header */}
+        <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
+          <h1 className="text-lg font-semibold">設定</h1>
+        </header>
+
+        <main className="px-4 py-6 space-y-6">
         {/* Account Section */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">
@@ -185,11 +191,12 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Version */}
-        <div className="text-center text-sm text-muted-foreground">
-          バージョン: 1.0.0
-        </div>
-      </main>
+          {/* Version */}
+          <div className="text-center text-sm text-muted-foreground">
+            バージョン: 1.0.0
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

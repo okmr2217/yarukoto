@@ -76,9 +76,9 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border">
+    <div className="flex-1 bg-background">
+      {/* Header - Mobile only */}
+      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
         <div className="flex items-center h-14 px-4">
           <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
             <ArrowLeft className="h-5 w-5" />
@@ -87,7 +87,13 @@ export default function CategoriesPage() {
         </div>
       </header>
 
-      <main className="px-4 py-6">
+      <div className="max-w-2xl w-full mx-auto">
+        {/* PC Header */}
+        <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
+          <h1 className="text-lg font-semibold">カテゴリ管理</h1>
+        </header>
+
+        <main className="px-4 py-6">
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">
             読み込み中...
@@ -154,9 +160,10 @@ export default function CategoriesPage() {
                 新しいカテゴリを追加
               </span>
             </button>
-          </>
-        )}
-      </main>
+            </>
+          )}
+        </main>
+      </div>
 
       {/* Edit Dialog */}
       <CategoryEditDialog

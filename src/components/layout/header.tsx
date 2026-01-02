@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search, Settings, Tags } from "lucide-react";
+import { Menu, Search, Settings, Tags, Home } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-background border-b">
+    <header className="sticky top-0 z-50 bg-background border-b md:hidden">
       <div className="flex items-center justify-between h-14 px-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -30,6 +30,14 @@ export function Header() {
               <SheetTitle className="text-primary font-logo">Yarukoto</SheetTitle>
             </SheetHeader>
             <nav className="mt-6 space-y-1">
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+              >
+                <Home className="h-5 w-5 text-muted-foreground" />
+                <span>ホーム</span>
+              </Link>
               <Link
                 href="/search"
                 onClick={() => setOpen(false)}

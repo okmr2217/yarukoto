@@ -111,9 +111,9 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border">
+    <div className="flex-1 bg-background flex flex-col">
+      {/* Header - Mobile only */}
+      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
         <div className="flex items-center h-14 px-4">
           <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
             <ArrowLeft className="h-5 w-5" />
@@ -122,31 +122,38 @@ export default function SearchPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto">
-        <div className="px-4 py-4 space-y-6">
-          {/* Search Filters */}
-          <div className="bg-card p-4 rounded-lg border border-border">
-            <SearchFiltersComponent
-              filters={filters}
-              onFiltersChange={setFilters}
-              categories={categories}
+      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
+        {/* PC Header */}
+        <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
+          <h1 className="text-lg font-semibold">タスク検索</h1>
+        </header>
+
+        <main className="flex-1 overflow-auto">
+          <div className="px-4 py-4 space-y-6">
+            {/* Search Filters */}
+            <div className="bg-card p-4 rounded-lg border border-border">
+              <SearchFiltersComponent
+                filters={filters}
+                onFiltersChange={setFilters}
+                categories={categories}
+              />
+            </div>
+
+            {/* Search Results */}
+            <SearchResults
+              groups={searchResults?.groups || []}
+              total={searchResults?.total || 0}
+              isLoading={isLoading || isFetching}
+              hasSearchCriteria={hasSearchCriteria}
+              onComplete={handleComplete}
+              onUncomplete={handleUncomplete}
+              onEdit={handleEdit}
+              onSkip={handleSkip}
+              onDelete={handleDelete}
             />
           </div>
-
-          {/* Search Results */}
-          <SearchResults
-            groups={searchResults?.groups || []}
-            total={searchResults?.total || 0}
-            isLoading={isLoading || isFetching}
-            hasSearchCriteria={hasSearchCriteria}
-            onComplete={handleComplete}
-            onUncomplete={handleUncomplete}
-            onEdit={handleEdit}
-            onSkip={handleSkip}
-            onDelete={handleDelete}
-          />
-        </div>
-      </main>
+        </main>
+      </div>
 
       {/* Edit Dialog */}
       <TaskEditDialog

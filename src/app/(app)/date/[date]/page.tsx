@@ -136,9 +136,9 @@ export default function DatePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex-1 bg-background">
         <Header />
-        <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+        <div className="flex items-center justify-center h-[calc(100vh-56px)] md:h-screen">
           <div className="text-muted-foreground">読み込み中...</div>
         </div>
       </div>
@@ -147,9 +147,9 @@ export default function DatePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex-1 bg-background">
         <Header />
-        <div className="flex items-center justify-center h-[calc(100vh-56px)]">
+        <div className="flex items-center justify-center h-[calc(100vh-56px)] md:h-screen">
           <div className="text-destructive">
             エラーが発生しました: {error.message}
           </div>
@@ -165,19 +165,20 @@ export default function DatePage() {
       tasks.skipped.length === 0);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="flex-1 bg-background flex flex-col">
       <Header />
 
-      <DateNavigation
-        currentDate={new Date(dateParam + "T00:00:00")}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        onToday={handleToday}
-        onDatePicker={handleDatePicker}
-      />
+      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
+        <DateNavigation
+          currentDate={new Date(dateParam + "T00:00:00")}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onToday={handleToday}
+          onDatePicker={handleDatePicker}
+        />
 
-      <main className="flex-1 overflow-auto pb-20">
-        <div className="px-4 py-4">
+        <main className="flex-1 overflow-auto pb-20 md:pb-4">
+          <div className="px-4 py-4">
           {/* Date title */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg font-bold">
@@ -266,27 +267,28 @@ export default function DatePage() {
                   onDelete={handleDelete}
                 />
               )}
-            </>
-          )}
-        </div>
-      </main>
+              </>
+            )}
+          </div>
+        </main>
 
-      {/* Task input - only for future dates */}
-      {isFuture && (
-        <TaskInput
-          onSubmit={handleCreateTask}
-          categories={categories}
-          defaultDate={dateParam}
-          isLoading={mutations.createTask.isPending}
-        />
-      )}
+        {/* Task input - only for future dates */}
+        {isFuture && (
+          <TaskInput
+            onSubmit={handleCreateTask}
+            categories={categories}
+            defaultDate={dateParam}
+            isLoading={mutations.createTask.isPending}
+          />
+        )}
 
-      {/* No input for past dates */}
-      {isPast && (
-        <div className="sticky bottom-0 bg-muted/50 border-t p-4 text-center text-sm text-muted-foreground">
-          過去の日付にはタスクを追加できません
-        </div>
-      )}
+        {/* No input for past dates */}
+        {isPast && (
+          <div className="sticky bottom-0 bg-muted/50 border-t p-4 text-center text-sm text-muted-foreground">
+            過去の日付にはタスクを追加できません
+          </div>
+        )}
+      </div>
 
       <TaskEditDialog
         open={editingTask !== null}
