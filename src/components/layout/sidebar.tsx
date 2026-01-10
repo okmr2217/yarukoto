@@ -24,9 +24,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-60 lg:w-72 flex-col border-r bg-card">
+    <aside className="hidden md:flex md:w-60 lg:w-72 flex-col border-r bg-card sticky top-0 h-screen">
       {/* Logo */}
-      <div className="flex items-center h-14 px-4 border-b">
+      <div className="flex items-center h-14 px-4 border-b shrink-0">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/icons/icon-192x192.png"
