@@ -18,6 +18,11 @@ import {
 import { useMonthlyTaskStats } from "@/hooks";
 import type { DayTaskStats } from "@/types";
 import { cn } from "@/lib/utils";
+import {
+  formatDateToJST,
+  isTodayInJST,
+  toJSTDate,
+} from "@/lib/dateUtils";
 
 interface CalendarDialogProps {
   open: boolean;
@@ -27,6 +32,7 @@ interface CalendarDialogProps {
 }
 
 function getDaysInMonth(year: number, month: number): Date[] {
+  // JSTで月の最初と最後の日を計算
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const days: Date[] = [];
@@ -46,40 +52,23 @@ function getDaysInMonth(year: number, month: number): Date[] {
 }
 
 function formatMonthYear(date: Date): string {
-  return date.toLocaleDateString("ja-JP", {
+  const zonedDate = toJSTDate(date);
+  return zonedDate.toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "long",
   });
 }
 
 function getMonthString(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const zonedDate = toJSTDate(date);
+  const year = zonedDate.getFullYear();
+  const month = String(zonedDate.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
 }
 
-function isToday(date: Date): boolean {
-  const today = new Date();
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
-}
-
 function isSameDate(date1: Date, date2: Date): boolean {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-function formatDateToString(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  // JSTベースで日付を比較
+  return formatDateToJST(date1) === formatDateToJST(date2);
 }
 
 interface DateCellProps {
@@ -185,7 +174,8 @@ export function CalendarDialog({
   };
 
   const handleSelectDate = (date: Date) => {
-    const dateString = formatDateToString(date);
+    // JSTベースで日付文字列を生成
+    const dateString = formatDateToJST(date);
     onSelectDate(dateString);
     onOpenChange(false);
   };
@@ -232,12 +222,12 @@ export function CalendarDialog({
             {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-1">
               {days.map((date, index) => {
-                const dateString = formatDateToString(date);
+                const dateString = formatDateToJST(date);
                 return (
                   <DateCell
                     key={index}
                     date={date}
-                    isToday={isToday(date)}
+                    isToday={isTodayInJST(date)}
                     isSelected={isSameDate(date, currentDate)}
                     stats={stats?.[dateString]}
                     onClick={() => handleSelectDate(date)}

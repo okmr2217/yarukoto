@@ -18,16 +18,16 @@ import {
   useCategories,
 } from "@/hooks";
 import type { Task } from "@/types";
-import { formatDateForDisplay, formatDateToJST } from "@/lib/dateUtils";
+import {
+  formatDateForDisplay,
+  getTodayInJST,
+  addDaysJST,
+  parseJSTDate,
+} from "@/lib/dateUtils";
 
-function getTodayString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function addDays(dateStr: string, days: number): string {
-  const date = new Date(dateStr + "T00:00:00");
-  date.setDate(date.getDate() + days);
-  return formatDateToJST(date);
+// YYYY-MM-DD文字列からローカルのDateオブジェクトを作成
+function dateFromString(dateStr: string): Date {
+  return parseJSTDate(dateStr);
 }
 
 export default function DatePage() {
@@ -45,7 +45,7 @@ export default function DatePage() {
   const { data: categories = [] } = useCategories();
   const mutations = useTaskMutations();
 
-  const today = getTodayString();
+  const today = getTodayInJST();
   const isToday = dateParam === today;
   const isPast = dateParam < today;
   const isFuture = dateParam > today;
@@ -65,11 +65,11 @@ export default function DatePage() {
   };
 
   const handlePrevious = () => {
-    handleNavigate(addDays(dateParam, -1));
+    handleNavigate(addDaysJST(dateParam, -1));
   };
 
   const handleNext = () => {
-    handleNavigate(addDays(dateParam, 1));
+    handleNavigate(addDaysJST(dateParam, 1));
   };
 
   const handleToday = () => {
@@ -187,7 +187,7 @@ export default function DatePage() {
 
       <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
         <DateNavigation
-          currentDate={new Date(dateParam + "T00:00:00")}
+          currentDate={dateFromString(dateParam)}
           onPrevious={handlePrevious}
           onNext={handleNext}
           onToday={handleToday}
@@ -205,7 +205,7 @@ export default function DatePage() {
           {/* Date title */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg font-bold">
-              {formatDateForDisplay(new Date(dateParam + "T00:00:00"))}
+              {formatDateForDisplay(dateFromString(dateParam))}
             </span>
             {isPast && (
               <span className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full">
@@ -334,7 +334,7 @@ export default function DatePage() {
       <CalendarDialog
         open={datePickerOpen}
         onOpenChange={setDatePickerOpen}
-        currentDate={new Date(dateParam + "T00:00:00")}
+        currentDate={dateFromString(dateParam)}
         onSelectDate={handleNavigate}
       />
     </div>

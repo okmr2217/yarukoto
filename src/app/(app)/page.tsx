@@ -23,13 +23,7 @@ import {
   useCategories,
 } from "@/hooks";
 import type { Task } from "@/types";
-import { formatDateToJST } from "@/lib/dateUtils";
-
-function addDays(dateStr: string, days: number): string {
-  const date = new Date(dateStr + "T00:00:00");
-  date.setDate(date.getDate() + days);
-  return formatDateToJST(date);
-}
+import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 
 export default function HomePage() {
   const router = useRouter();
@@ -105,7 +99,7 @@ export default function HomePage() {
     }
   };
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayInJST();
 
   const handleNavigate = (newDate: string) => {
     if (newDate === today) {
@@ -115,11 +109,11 @@ export default function HomePage() {
   };
 
   const handlePrevious = () => {
-    handleNavigate(addDays(today, -1));
+    handleNavigate(addDaysJST(today, -1));
   };
 
   const handleNext = () => {
-    handleNavigate(addDays(today, 1));
+    handleNavigate(addDaysJST(today, 1));
   };
 
   const handleDatePicker = () => {

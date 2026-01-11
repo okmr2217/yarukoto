@@ -3,6 +3,12 @@
 import { TaskCard } from "@/components/task";
 import { cn } from "@/lib/utils";
 import type { Task, TaskGroup } from "@/types";
+import {
+  getTodayInJST,
+  addDaysJST,
+  parseJSTDate,
+  toJSTDate,
+} from "@/lib/dateUtils";
 
 type SearchResultsProps = {
   groups: TaskGroup[];
@@ -19,15 +25,13 @@ type SearchResultsProps = {
 function formatDateLabel(dateStr: string | null): string {
   if (!dateStr) return "日付未定";
 
-  const date = new Date(dateStr + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getTodayInJST();
+  const tomorrow = addDaysJST(today, 1);
+  const yesterday = addDaysJST(today, -1);
 
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  // JSTでDateオブジェクトを作成して表示用にフォーマット
+  const date = parseJSTDate(dateStr);
+  const zonedDate = toJSTDate(date);
 
   // Format: 2024年1月15日（月）
   const options: Intl.DateTimeFormatOptions = {
@@ -36,16 +40,16 @@ function formatDateLabel(dateStr: string | null): string {
     day: "numeric",
     weekday: "short",
   };
-  const formatted = date.toLocaleDateString("ja-JP", options);
+  const formatted = zonedDate.toLocaleDateString("ja-JP", options);
 
   // Add relative label
-  if (date.getTime() === today.getTime()) {
+  if (dateStr === today) {
     return `${formatted} - 今日`;
   }
-  if (date.getTime() === tomorrow.getTime()) {
+  if (dateStr === tomorrow) {
     return `${formatted} - 明日`;
   }
-  if (date.getTime() === yesterday.getTime()) {
+  if (dateStr === yesterday) {
     return `${formatted} - 昨日`;
   }
 

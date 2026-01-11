@@ -28,6 +28,13 @@ import {
   type GetMonthlyTaskStatsInput,
 } from "@/lib/validations";
 import type { Task as PrismaTask, Category } from "@/generated/prisma/client";
+import {
+  getTodayInJST,
+  getDateRangeInJST,
+  getMonthRangeInJST,
+  formatDateToJST,
+  parseJSTDate,
+} from "@/lib/dateUtils";
 
 // Helper: Convert Prisma task to API task type
 function toTask(task: PrismaTask & { category: Category | null }): Task {
@@ -37,9 +44,8 @@ function toTask(task: PrismaTask & { category: Category | null }): Task {
     memo: task.memo,
     status: task.status,
     priority: task.priority,
-    scheduledAt: task.scheduledAt
-      ? task.scheduledAt.toISOString().split("T")[0]
-      : null,
+    // scheduledAtはJSTの日付文字列として返す
+    scheduledAt: task.scheduledAt ? formatDateToJST(task.scheduledAt) : null,
     completedAt: task.completedAt ? task.completedAt.toISOString() : null,
     skippedAt: task.skippedAt ? task.skippedAt.toISOString() : null,
     skipReason: task.skipReason,
@@ -56,23 +62,11 @@ function toTask(task: PrismaTask & { category: Category | null }): Task {
   };
 }
 
-// Helper: Get start and end of a date in UTC
-function getDateRange(dateStr: string): { start: Date; end: Date } {
-  const start = new Date(dateStr + "T00:00:00.000Z");
-  const end = new Date(dateStr + "T23:59:59.999Z");
-  return { start, end };
-}
-
-// Helper: Get today's date string in YYYY-MM-DD format
-function getTodayString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
 export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
   try {
     const user = await getRequiredUser();
-    const today = getTodayString();
-    const { start: todayStart, end: todayEnd } = getDateRange(today);
+    const today = getTodayInJST();
+    const { start: todayStart, end: todayEnd } = getDateRangeInJST(today);
 
     const [overdue, todayTasks, undated, completed, skipped] =
       await Promise.all([
@@ -81,7 +75,7 @@ export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
           where: {
             userId: user.id,
             status: "PENDING",
-            scheduledAt: { lt: new Date(today) },
+            scheduledAt: { lt: todayStart },
           },
           include: { category: true },
           orderBy: { scheduledAt: "asc" },
@@ -92,8 +86,8 @@ export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
             userId: user.id,
             status: "PENDING",
             scheduledAt: {
-              gte: new Date(today),
-              lt: new Date(new Date(today).getTime() + 24 * 60 * 60 * 1000),
+              gte: todayStart,
+              lt: todayEnd,
             },
           },
           include: { category: true },
@@ -155,11 +149,10 @@ export async function getTasksByDate(
 
     const user = await getRequiredUser();
     const { date } = parsed.data;
-    const today = getTodayString();
+    const today = getTodayInJST();
     const isPast = date < today;
     const isFuture = date > today;
-    const { start, end } = getDateRange(date);
-    const targetDate = new Date(date);
+    const { start, end } = getDateRangeInJST(date);
 
     let completed: Task[] = [];
     let skipped: Task[] = [];
@@ -190,13 +183,13 @@ export async function getTasksByDate(
       skipped = skippedTasks.map(toTask);
     }
 
-    // Get scheduled tasks for the date
+    // Get scheduled tasks for the date (JSTベースで日付範囲を計算)
     const scheduledTasks = await prisma.task.findMany({
       where: {
         userId: user.id,
         scheduledAt: {
-          gte: targetDate,
-          lt: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000),
+          gte: start,
+          lt: end,
         },
       },
       include: { category: true },
@@ -256,14 +249,16 @@ export async function searchTasks(
       where.priority = priority;
     }
 
-    // Date range filter
+    // Date range filter (JSTベースで日付範囲を計算)
     if (dateFrom || dateTo) {
       where.scheduledAt = {};
       if (dateFrom) {
-        where.scheduledAt.gte = new Date(dateFrom);
+        const { start } = getDateRangeInJST(dateFrom);
+        where.scheduledAt.gte = start;
       }
       if (dateTo) {
-        where.scheduledAt.lte = new Date(dateTo + "T23:59:59.999Z");
+        const { end } = getDateRangeInJST(dateTo);
+        where.scheduledAt.lte = end;
       }
     }
 
@@ -273,11 +268,11 @@ export async function searchTasks(
       orderBy: [{ scheduledAt: "desc" }, { createdAt: "desc" }],
     });
 
-    // Group by scheduled date
+    // Group by scheduled date (JSTベースで日付をグループ化)
     const groupMap = new Map<string | null, Task[]>();
     for (const task of tasks) {
       const dateKey = task.scheduledAt
-        ? task.scheduledAt.toISOString().split("T")[0]
+        ? formatDateToJST(task.scheduledAt)
         : null;
       const existing = groupMap.get(dateKey) || [];
       existing.push(toTask(task));
@@ -329,7 +324,7 @@ export async function createTask(
       data: {
         title: title.trim(),
         memo: memo?.trim() || null,
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        scheduledAt: scheduledAt ? parseJSTDate(scheduledAt) : null,
         categoryId: categoryId || null,
         priority: priority || null,
         userId: user.id,
@@ -380,7 +375,7 @@ export async function updateTask(
     if (title !== undefined) updateData.title = title.trim();
     if (memo !== undefined) updateData.memo = memo?.trim() || null;
     if (scheduledAt !== undefined) {
-      updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
+      updateData.scheduledAt = scheduledAt ? parseJSTDate(scheduledAt) : null;
     }
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (priority !== undefined) updateData.priority = priority;
@@ -587,12 +582,10 @@ export async function getMonthlyTaskStats(
 
     const user = await getRequiredUser();
     const { month } = parsed.data;
-    const today = getTodayString();
+    const today = getTodayInJST();
 
-    // Parse month (YYYY-MM)
-    const [year, monthNum] = month.split("-").map(Number);
-    const firstDay = new Date(Date.UTC(year, monthNum - 1, 1));
-    const lastDay = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999));
+    // Parse month (YYYY-MM) - JSTベースで月範囲を計算
+    const { start: firstDay, end: lastDay } = getMonthRangeInJST(month);
 
     // Get all tasks for this month
     const tasks = await prisma.task.findMany({
@@ -624,25 +617,25 @@ export async function getMonthlyTaskStats(
       },
     });
 
-    // Build stats by date
+    // Build stats by date (JSTベースで日付を計算)
     const stats: MonthlyTaskStats = {};
 
     for (const task of tasks) {
       const dates = new Set<string>();
 
-      // Add scheduled date
+      // Add scheduled date (JSTで日付を取得)
       if (task.scheduledAt && task.scheduledAt >= firstDay && task.scheduledAt <= lastDay) {
-        dates.add(task.scheduledAt.toISOString().split("T")[0]);
+        dates.add(formatDateToJST(task.scheduledAt));
       }
 
-      // Add completed date
+      // Add completed date (JSTで日付を取得)
       if (task.completedAt && task.completedAt >= firstDay && task.completedAt <= lastDay) {
-        dates.add(task.completedAt.toISOString().split("T")[0]);
+        dates.add(formatDateToJST(task.completedAt));
       }
 
-      // Add skipped date
+      // Add skipped date (JSTで日付を取得)
       if (task.skippedAt && task.skippedAt >= firstDay && task.skippedAt <= lastDay) {
-        dates.add(task.skippedAt.toISOString().split("T")[0]);
+        dates.add(formatDateToJST(task.skippedAt));
       }
 
       // Update stats for each relevant date
@@ -651,8 +644,11 @@ export async function getMonthlyTaskStats(
           stats[dateStr] = { total: 0, completed: 0, overdue: 0, skipped: 0 };
         }
 
-        // Count based on scheduled date for this day
-        const isScheduledForThisDay = task.scheduledAt?.toISOString().split("T")[0] === dateStr;
+        // Count based on scheduled date for this day (JSTで比較)
+        const scheduledDateStr = task.scheduledAt
+          ? formatDateToJST(task.scheduledAt)
+          : null;
+        const isScheduledForThisDay = scheduledDateStr === dateStr;
 
         if (isScheduledForThisDay) {
           stats[dateStr].total++;
@@ -663,13 +659,19 @@ export async function getMonthlyTaskStats(
           }
         }
 
-        // Count completed on this day
-        if (task.completedAt?.toISOString().split("T")[0] === dateStr) {
+        // Count completed on this day (JSTで比較)
+        const completedDateStr = task.completedAt
+          ? formatDateToJST(task.completedAt)
+          : null;
+        if (completedDateStr === dateStr) {
           stats[dateStr].completed++;
         }
 
-        // Count skipped on this day
-        if (task.skippedAt?.toISOString().split("T")[0] === dateStr) {
+        // Count skipped on this day (JSTで比較)
+        const skippedDateStr = task.skippedAt
+          ? formatDateToJST(task.skippedAt)
+          : null;
+        if (skippedDateStr === dateStr) {
           stats[dateStr].skipped++;
         }
       }

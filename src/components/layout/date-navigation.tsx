@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatDateForDisplay } from "@/lib/dateUtils";
+import { formatDateForDisplay, isTodayInJST } from "@/lib/dateUtils";
 
 interface DateNavigationProps {
   currentDate: Date;
@@ -13,15 +13,6 @@ interface DateNavigationProps {
   onDatePicker: () => void;
 }
 
-function isToday(date: Date): boolean {
-  const today = new Date();
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
-}
-
 export function DateNavigation({
   currentDate,
   onPrevious,
@@ -29,7 +20,7 @@ export function DateNavigation({
   onToday,
   onDatePicker,
 }: DateNavigationProps) {
-  const isTodayDate = isToday(currentDate);
+  const isTodayDate = isTodayInJST(currentDate);
 
   return (
     <div className="flex items-center justify-between px-2 py-2 bg-muted/30">
