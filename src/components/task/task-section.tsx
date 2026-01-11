@@ -2,20 +2,22 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { TaskCard } from "./task-card";
+import { TaskCard, type TaskCardHandlers } from "./task-card";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
 
 interface TaskSectionProps {
+  /** セクションタイトル */
   title: string;
+  /** 表示するタスクリスト */
   tasks: Task[];
+  /** デフォルトで折りたたむか */
   defaultCollapsed?: boolean;
+  /** セクションのバリアント（スタイル） */
   variant?: "default" | "completed" | "skipped" | "overdue";
-  onComplete: (id: string) => void;
-  onUncomplete: (id: string) => void;
-  onEdit: (task: Task) => void;
-  onSkip: (id: string) => void;
-  onDelete: (id: string) => void;
+  /** タスク操作のハンドラー群 */
+  handlers: TaskCardHandlers;
+  /** 予定日を表示するか */
   showScheduledDate?: boolean;
 }
 
@@ -38,11 +40,7 @@ export function TaskSection({
   tasks,
   defaultCollapsed = false,
   variant = "default",
-  onComplete,
-  onUncomplete,
-  onEdit,
-  onSkip,
-  onDelete,
+  handlers,
   showScheduledDate = false,
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -73,11 +71,7 @@ export function TaskSection({
             <TaskCard
               key={task.id}
               task={task}
-              onComplete={onComplete}
-              onUncomplete={onUncomplete}
-              onEdit={onEdit}
-              onSkip={onSkip}
-              onDelete={onDelete}
+              handlers={handlers}
               showScheduledDate={showScheduledDate}
             />
           ))}

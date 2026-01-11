@@ -12,13 +12,28 @@ import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
 import { Pencil, Ban, Trash2, ChevronDown, FileText, MoreVertical } from "lucide-react";
 
-interface TaskCardProps {
-  task: Task;
+/**
+ * タスクカードのアクションハンドラー
+ */
+export interface TaskCardHandlers {
+  /** タスク完了時のハンドラー */
   onComplete: (id: string) => void;
+  /** タスク完了取り消し時のハンドラー */
   onUncomplete: (id: string) => void;
+  /** タスク編集時のハンドラー */
   onEdit: (task: Task) => void;
+  /** タスクスキップ時のハンドラー */
   onSkip: (id: string) => void;
+  /** タスク削除時のハンドラー */
   onDelete: (id: string) => void;
+}
+
+interface TaskCardProps {
+  /** 表示するタスク */
+  task: Task;
+  /** タスク操作のハンドラー群 */
+  handlers: TaskCardHandlers;
+  /** 予定日を表示するか（デフォルト: false） */
   showScheduledDate?: boolean;
 }
 
@@ -30,11 +45,7 @@ const priorityLabels: Record<string, { label: string; className: string }> = {
 
 export function TaskCard({
   task,
-  onComplete,
-  onUncomplete,
-  onEdit,
-  onSkip,
-  onDelete,
+  handlers,
   showScheduledDate = false,
 }: TaskCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -46,9 +57,9 @@ export function TaskCard({
 
   const handleCheckChange = (checked: boolean) => {
     if (checked) {
-      onComplete(task.id);
+      handlers.onComplete(task.id);
     } else {
-      onUncomplete(task.id);
+      handlers.onUncomplete(task.id);
     }
   };
 
@@ -112,7 +123,7 @@ export function TaskCard({
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      onEdit(task);
+                      handlers.onEdit(task);
                     }}
                   >
                     <Pencil className="h-4 w-4 mr-2" />
@@ -121,7 +132,7 @@ export function TaskCard({
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSkip(task.id);
+                      handlers.onSkip(task.id);
                     }}
                   >
                     <Ban className="h-4 w-4 mr-2" />
@@ -130,7 +141,7 @@ export function TaskCard({
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete(task.id);
+                      handlers.onDelete(task.id);
                     }}
                     className="text-destructive"
                   >
@@ -151,7 +162,7 @@ export function TaskCard({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit(task);
+                    handlers.onEdit(task);
                   }}
                   className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="編集"
@@ -161,7 +172,7 @@ export function TaskCard({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onSkip(task.id);
+                    handlers.onSkip(task.id);
                   }}
                   className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-yellow-600 transition-colors"
                   aria-label="やらない"
@@ -171,7 +182,7 @@ export function TaskCard({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(task.id);
+                    handlers.onDelete(task.id);
                   }}
                   className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-destructive transition-colors"
                   aria-label="削除"

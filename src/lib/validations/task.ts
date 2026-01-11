@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TASK_CONSTANTS } from "@/lib/constants";
 
 const prioritySchema = z.enum(["HIGH", "MEDIUM", "LOW"]);
 
@@ -10,14 +11,20 @@ export const createTaskSchema = z.object({
   title: z
     .string()
     .min(1, "タスク名を入力してください")
-    .max(500, "タスク名は500文字以内で入力してください")
+    .max(
+      TASK_CONSTANTS.TITLE_MAX_LENGTH,
+      `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`,
+    )
     .refine((val) => val.trim().length > 0, "タスク名を入力してください"),
   scheduledAt: dateStringSchema.optional(),
   categoryId: z.string().optional(),
   priority: prioritySchema.optional(),
   memo: z
     .string()
-    .max(10000, "メモは10000文字以内で入力してください")
+    .max(
+      TASK_CONSTANTS.MEMO_MAX_LENGTH,
+      `メモは${TASK_CONSTANTS.MEMO_MAX_LENGTH}文字以内で入力してください`,
+    )
     .optional(),
 });
 
@@ -26,7 +33,10 @@ export const updateTaskSchema = z.object({
   title: z
     .string()
     .min(1, "タスク名を入力してください")
-    .max(500, "タスク名は500文字以内で入力してください")
+    .max(
+      TASK_CONSTANTS.TITLE_MAX_LENGTH,
+      `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`,
+    )
     .refine((val) => val.trim().length > 0, "タスク名を入力してください")
     .optional(),
   scheduledAt: dateStringSchema.nullable().optional(),
@@ -34,7 +44,10 @@ export const updateTaskSchema = z.object({
   priority: prioritySchema.nullable().optional(),
   memo: z
     .string()
-    .max(10000, "メモは10000文字以内で入力してください")
+    .max(
+      TASK_CONSTANTS.MEMO_MAX_LENGTH,
+      `メモは${TASK_CONSTANTS.MEMO_MAX_LENGTH}文字以内で入力してください`,
+    )
     .nullable()
     .optional(),
 });
@@ -47,7 +60,10 @@ export const skipTaskSchema = z.object({
   id: z.string().min(1, "タスクIDは必須です"),
   reason: z
     .string()
-    .max(1000, "理由は1000文字以内で入力してください")
+    .max(
+      TASK_CONSTANTS.SKIP_REASON_MAX_LENGTH,
+      `理由は${TASK_CONSTANTS.SKIP_REASON_MAX_LENGTH}文字以内で入力してください`,
+    )
     .optional(),
 });
 

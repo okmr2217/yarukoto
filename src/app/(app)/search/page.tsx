@@ -110,6 +110,15 @@ export default function SearchPage() {
     }
   };
 
+  // タスクカード用のハンドラーをまとめる
+  const taskHandlers = {
+    onComplete: handleComplete,
+    onUncomplete: handleUncomplete,
+    onEdit: handleEdit,
+    onSkip: handleSkip,
+    onDelete: handleDelete,
+  };
+
   return (
     <div className="flex-1 bg-background flex flex-col">
       {/* Header - Mobile only */}
@@ -145,11 +154,7 @@ export default function SearchPage() {
               total={searchResults?.total || 0}
               isLoading={isLoading || isFetching}
               hasSearchCriteria={hasSearchCriteria}
-              onComplete={handleComplete}
-              onUncomplete={handleUncomplete}
-              onEdit={handleEdit}
-              onSkip={handleSkip}
-              onDelete={handleDelete}
+              handlers={taskHandlers}
             />
           </div>
         </main>

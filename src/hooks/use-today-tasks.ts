@@ -12,6 +12,10 @@ import {
   deleteTask,
 } from "@/actions";
 import type { Task, TodayTasks } from "@/types";
+import type {
+  CreateTaskInput,
+  UpdateTaskInput,
+} from "@/lib/validations";
 
 export function useTodayTasks() {
   return useQuery({
@@ -33,14 +37,6 @@ function useInvalidateTaskQueries() {
     queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
     queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
   };
-}
-
-export interface CreateTaskInput {
-  title: string;
-  scheduledAt?: string;
-  categoryId?: string;
-  priority?: "HIGH" | "MEDIUM" | "LOW";
-  memo?: string;
 }
 
 export function useCreateTask() {
@@ -313,15 +309,6 @@ export function useUnskipTask() {
     },
     onSettled: invalidateAll,
   });
-}
-
-export interface UpdateTaskInput {
-  id: string;
-  title?: string;
-  scheduledAt?: string | null;
-  categoryId?: string | null;
-  priority?: "HIGH" | "MEDIUM" | "LOW" | null;
-  memo?: string | null;
 }
 
 export function useUpdateTask() {

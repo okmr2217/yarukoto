@@ -10,28 +10,11 @@ import {
   unskipTask,
   deleteTask,
 } from "@/actions";
-
-export interface CreateTaskInput {
-  title: string;
-  scheduledAt?: string;
-  categoryId?: string;
-  priority?: "HIGH" | "MEDIUM" | "LOW";
-  memo?: string;
-}
-
-export interface UpdateTaskInput {
-  id: string;
-  title?: string;
-  scheduledAt?: string | null;
-  categoryId?: string | null;
-  priority?: "HIGH" | "MEDIUM" | "LOW" | null;
-  memo?: string | null;
-}
-
-export interface SkipTaskInput {
-  id: string;
-  reason?: string;
-}
+import type {
+  CreateTaskInput,
+  UpdateTaskInput,
+  SkipTaskInput,
+} from "@/lib/validations";
 
 /**
  * 共通のタスク操作mutation hooks

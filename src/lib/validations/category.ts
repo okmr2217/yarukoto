@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CATEGORY_CONSTANTS } from "@/lib/constants";
 
 const hexColorSchema = z
   .string()
@@ -8,7 +9,10 @@ export const createCategorySchema = z.object({
   name: z
     .string()
     .min(1, "カテゴリ名を入力してください")
-    .max(50, "カテゴリ名は50文字以内で入力してください")
+    .max(
+      CATEGORY_CONSTANTS.NAME_MAX_LENGTH,
+      `カテゴリ名は${CATEGORY_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`,
+    )
     .refine((val) => val.trim().length > 0, "カテゴリ名を入力してください"),
   color: hexColorSchema,
 });
@@ -18,7 +22,10 @@ export const updateCategorySchema = z.object({
   name: z
     .string()
     .min(1, "カテゴリ名を入力してください")
-    .max(50, "カテゴリ名は50文字以内で入力してください")
+    .max(
+      CATEGORY_CONSTANTS.NAME_MAX_LENGTH,
+      `カテゴリ名は${CATEGORY_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`,
+    )
     .refine((val) => val.trim().length > 0, "カテゴリ名を入力してください")
     .optional(),
   color: hexColorSchema.optional(),

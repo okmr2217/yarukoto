@@ -1,8 +1,8 @@
 "use client";
 
-import { TaskCard } from "@/components/task";
+import { TaskCard, type TaskCardHandlers } from "@/components/task";
 import { cn } from "@/lib/utils";
-import type { Task, TaskGroup } from "@/types";
+import type { TaskGroup } from "@/types";
 import {
   getTodayInJST,
   addDaysJST,
@@ -15,11 +15,7 @@ type SearchResultsProps = {
   total: number;
   isLoading: boolean;
   hasSearchCriteria: boolean;
-  onComplete: (id: string) => void;
-  onUncomplete: (id: string) => void;
-  onEdit: (task: Task) => void;
-  onSkip: (id: string) => void;
-  onDelete: (id: string) => void;
+  handlers: TaskCardHandlers;
 };
 
 function formatDateLabel(dateStr: string | null): string {
@@ -61,11 +57,7 @@ export function SearchResults({
   total,
   isLoading,
   hasSearchCriteria,
-  onComplete,
-  onUncomplete,
-  onEdit,
-  onSkip,
-  onDelete,
+  handlers,
 }: SearchResultsProps) {
   if (!hasSearchCriteria) {
     return (
@@ -126,11 +118,7 @@ export function SearchResults({
               <TaskCard
                 key={task.id}
                 task={task}
-                onComplete={onComplete}
-                onUncomplete={onUncomplete}
-                onEdit={onEdit}
-                onSkip={onSkip}
-                onDelete={onDelete}
+                handlers={handlers}
                 showScheduledDate={false}
               />
             ))}

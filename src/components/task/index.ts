@@ -1,4 +1,4 @@
-export { TaskCard } from "./task-card";
+export { TaskCard, type TaskCardHandlers } from "./task-card";
 export { TaskInputModal } from "./task-input-modal";
 export { TaskFab } from "./task-fab";
 export { TaskSection } from "./task-section";

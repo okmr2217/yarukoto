@@ -143,6 +143,15 @@ export default function TaskPage() {
     }
   };
 
+  // タスクカード用のハンドラーをまとめる
+  const taskHandlers = {
+    onComplete: handleComplete,
+    onUncomplete: handleUncomplete,
+    onEdit: handleEdit,
+    onSkip: handleSkip,
+    onDelete: handleDelete,
+  };
+
   const filterTasksByCategory = (taskList: Task[]): Task[] => {
     if (selectedCategoryId === null) return taskList;
     if (selectedCategoryId === "none") {
@@ -265,11 +274,7 @@ export default function TaskPage() {
                       title="期限超過"
                       tasks={filteredTasks?.overdue || []}
                       variant="overdue"
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                       showScheduledDate
                     />
 
@@ -277,22 +282,14 @@ export default function TaskPage() {
                     <TaskSection
                       title="今日"
                       tasks={filteredTasks?.today || []}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                     />
 
                     {/* 日付未定 */}
                     <TaskSection
                       title="日付未定"
                       tasks={filteredTasks?.undated || []}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                     />
 
                     {/* 今日完了 */}
@@ -301,11 +298,7 @@ export default function TaskPage() {
                       tasks={filteredTasks?.completed || []}
                       variant="completed"
                       defaultCollapsed={settings.autoCollapseCompleted}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                     />
 
                     {/* 今日やらない */}
@@ -314,11 +307,7 @@ export default function TaskPage() {
                       tasks={filteredTasks?.skipped || []}
                       variant="skipped"
                       defaultCollapsed={settings.autoCollapseSkipped}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                     />
                   </>
                 )}
@@ -332,11 +321,7 @@ export default function TaskPage() {
                       tasks={filteredTasks?.completed || []}
                       variant="completed"
                       defaultCollapsed={settings.autoCollapseCompleted}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                     />
 
                     {/* この日にやらない */}
@@ -345,22 +330,14 @@ export default function TaskPage() {
                       tasks={filteredTasks?.skipped || []}
                       variant="skipped"
                       defaultCollapsed={settings.autoCollapseSkipped}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                     />
 
                     {/* この日が予定日 */}
                     <TaskSection
                       title="この日が予定日"
                       tasks={filteredTasks?.scheduled || []}
-                      onComplete={handleComplete}
-                      onUncomplete={handleUncomplete}
-                      onEdit={handleEdit}
-                      onSkip={handleSkip}
-                      onDelete={handleDelete}
+                      handlers={taskHandlers}
                       showScheduledDate
                     />
                   </>
@@ -371,11 +348,7 @@ export default function TaskPage() {
                   <TaskSection
                     title="予定タスク"
                     tasks={filteredTasks?.scheduled || []}
-                    onComplete={handleComplete}
-                    onUncomplete={handleUncomplete}
-                    onEdit={handleEdit}
-                    onSkip={handleSkip}
-                    onDelete={handleDelete}
+                    handlers={taskHandlers}
                   />
                 )}
               </>
