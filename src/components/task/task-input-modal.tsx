@@ -75,8 +75,9 @@ export function TaskInputModal({
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 100);
-      // モーダルを開いた時にカテゴリをリセット
+      // モーダルを開いた時にカテゴリと日付をリセット
       setCategoryId(getInitialCategoryId());
+      setScheduledAt(defaultDate || "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -100,7 +101,8 @@ export function TaskInputModal({
     setTitle("");
     setMemo("");
     setShowMemo(false);
-    // 日付、カテゴリ、優先度は保持（連続入力用）
+    // カテゴリと優先度は保持（連続入力用）
+    // 日付は次回モーダルを開いたときにdefaultDateでリセットされる
     onOpenChange(false);
   };
 

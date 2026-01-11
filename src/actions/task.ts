@@ -33,7 +33,6 @@ import {
   getDateRangeInJST,
   getMonthRangeInJST,
   formatDateToJST,
-  parseJSTDate,
 } from "@/lib/dateUtils";
 
 // Helper: Convert Prisma task to API task type
@@ -66,29 +65,29 @@ export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
   try {
     const user = await getRequiredUser();
     const today = getTodayInJST();
+    const todayDate = new Date(today);
     const { start: todayStart, end: todayEnd } = getDateRangeInJST(today);
 
     const [overdue, todayTasks, undated, completed, skipped] =
       await Promise.all([
         // Overdue: scheduled before today and still pending
+        // scheduledAtはDATE型なので、日付として比較
         prisma.task.findMany({
           where: {
             userId: user.id,
             status: "PENDING",
-            scheduledAt: { lt: todayStart },
+            scheduledAt: { lt: todayDate },
           },
           include: { category: true },
           orderBy: { scheduledAt: "asc" },
         }),
         // Today: scheduled for today and pending
+        // DATE型なので、完全一致で比較
         prisma.task.findMany({
           where: {
             userId: user.id,
             status: "PENDING",
-            scheduledAt: {
-              gte: todayStart,
-              lt: todayEnd,
-            },
+            scheduledAt: todayDate,
           },
           include: { category: true },
           orderBy: { createdAt: "desc" },
@@ -152,12 +151,14 @@ export async function getTasksByDate(
     const today = getTodayInJST();
     const isPast = date < today;
     const isFuture = date > today;
+    const dateObj = new Date(date);
     const { start, end } = getDateRangeInJST(date);
 
     let completed: Task[] = [];
     let skipped: Task[] = [];
 
     // For past dates, get completed and skipped tasks
+    // completedAtとskippedAtはTIMESTAMP型なので、範囲で検索
     if (isPast) {
       const [completedTasks, skippedTasks] = await Promise.all([
         prisma.task.findMany({
@@ -183,14 +184,12 @@ export async function getTasksByDate(
       skipped = skippedTasks.map(toTask);
     }
 
-    // Get scheduled tasks for the date (JSTベースで日付範囲を計算)
+    // Get scheduled tasks for the date
+    // scheduledAtはDATE型なので、完全一致で検索
     const scheduledTasks = await prisma.task.findMany({
       where: {
         userId: user.id,
-        scheduledAt: {
-          gte: start,
-          lt: end,
-        },
+        scheduledAt: dateObj,
       },
       include: { category: true },
       orderBy: { createdAt: "desc" },
@@ -310,6 +309,9 @@ export async function createTask(
     const user = await getRequiredUser();
     const { title, scheduledAt, categoryId, priority, memo } = parsed.data;
 
+    // scheduledAtはPostgreSQLのDATE型なので、YYYY-MM-DD形式の文字列をそのまま渡す
+    const parsedScheduledAt = scheduledAt ? new Date(scheduledAt) : null;
+
     // Verify category belongs to user if provided
     if (categoryId) {
       const category = await prisma.category.findFirst({
@@ -324,7 +326,7 @@ export async function createTask(
       data: {
         title: title.trim(),
         memo: memo?.trim() || null,
-        scheduledAt: scheduledAt ? parseJSTDate(scheduledAt) : null,
+        scheduledAt: parsedScheduledAt,
         categoryId: categoryId || null,
         priority: priority || null,
         userId: user.id,
@@ -375,7 +377,8 @@ export async function updateTask(
     if (title !== undefined) updateData.title = title.trim();
     if (memo !== undefined) updateData.memo = memo?.trim() || null;
     if (scheduledAt !== undefined) {
-      updateData.scheduledAt = scheduledAt ? parseJSTDate(scheduledAt) : null;
+      // scheduledAtはDATE型なので、文字列をそのままDateオブジェクトに変換
+      updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
     }
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (priority !== undefined) updateData.priority = priority;
