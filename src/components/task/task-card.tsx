@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
-import { Pencil, Ban, Trash2, ChevronDown, FileText } from "lucide-react";
+import { Pencil, Ban, Trash2, ChevronDown, FileText, MoreVertical } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
@@ -31,12 +37,8 @@ export function TaskCard({
   onDelete,
   showScheduledDate = false,
 }: TaskCardProps) {
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const startXRef = useRef(0);
-  const cardRef = useRef<HTMLDivElement>(null);
 
   const isCompleted = task.status === "COMPLETED";
   const isSkipped = task.status === "SKIPPED";
@@ -50,32 +52,6 @@ export function TaskCard({
     }
   };
 
-  // Swipe handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startXRef.current = e.touches[0].clientX;
-    setIsSwiping(true);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isSwiping) return;
-    const diff = startXRef.current - e.touches[0].clientX;
-    // Only allow left swipe (positive diff), max 150px
-    const offset = Math.min(Math.max(diff, 0), 150);
-    setSwipeOffset(offset);
-  };
-
-  const handleTouchEnd = () => {
-    setIsSwiping(false);
-    // Snap to open (120px) or closed (0)
-    if (swipeOffset > 60) {
-      setSwipeOffset(120);
-    } else {
-      setSwipeOffset(0);
-    }
-  };
-
-  const closeSwipe = () => setSwipeOffset(0);
-
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't toggle if clicking on checkbox or buttons
     if ((e.target as HTMLElement).closest('button, [role="checkbox"]')) {
@@ -88,56 +64,16 @@ export function TaskCard({
 
   return (
     <div
-      className="relative overflow-hidden rounded-lg group"
+      className="relative rounded-lg group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Swipe action buttons (mobile) */}
-      <div className="absolute right-0 top-0 bottom-0 flex items-stretch">
-        <button
-          onClick={() => {
-            closeSwipe();
-            onEdit(task);
-          }}
-          className="w-10 flex items-center justify-center bg-blue-500 text-white"
-          aria-label="編集"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => {
-            closeSwipe();
-            onSkip(task.id);
-          }}
-          className="w-10 flex items-center justify-center bg-yellow-500 text-white"
-          aria-label="やらない"
-        >
-          <Ban className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => {
-            closeSwipe();
-            onDelete(task.id);
-          }}
-          className="w-10 flex items-center justify-center bg-destructive text-white"
-          aria-label="削除"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-
       {/* Main card content */}
       <div
-        ref={cardRef}
         className={cn(
-          "relative bg-card border rounded-lg p-3 transition-transform",
-          !isSwiping && "transition-transform duration-200",
+          "relative bg-card border rounded-lg p-3",
           hasMemo && "cursor-pointer",
         )}
-        style={{ transform: `translateX(-${swipeOffset}px)` }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         onClick={handleCardClick}
       >
         <div className="flex items-start gap-3">
@@ -158,6 +94,51 @@ export function TaskCard({
               >
                 {task.title}
               </p>
+
+              {/* Three-dot menu (mobile) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors sm:hidden"
+                    aria-label="メニュー"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(task);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    編集
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSkip(task.id);
+                    }}
+                  >
+                    <Ban className="h-4 w-4 mr-2" />
+                    やらない
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(task.id);
+                    }}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    削除
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Hover action buttons (PC) */}
               <div
