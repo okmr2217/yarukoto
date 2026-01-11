@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { Header, DateNavigation, CategoryFilter } from "@/components/layout";
 import {
   TaskSection,
-  TaskInput,
+  TaskInputModal,
+  TaskFab,
   TaskEditDialog,
   SkipReasonDialog,
   type TaskEditData,
@@ -42,6 +43,7 @@ export default function TaskPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
@@ -381,23 +383,21 @@ export default function TaskPage() {
           </div>
         </main>
 
-        {/* タスク入力欄: 今日と未来のみ表示 */}
+        {/* FABボタン: 今日と未来のみ表示 */}
         {(isToday || isFuture) && (
-          <TaskInput
-            onSubmit={handleCreateTask}
-            categories={categories}
-            defaultDate={targetDate}
-            isLoading={mutations.createTask.isPending}
-          />
-        )}
-
-        {/* 過去の日付のメッセージ */}
-        {isPast && (
-          <div className="sticky bottom-0 bg-muted/50 border-t p-4 text-center text-sm text-muted-foreground">
-            過去の日付にはタスクを追加できません
-          </div>
+          <TaskFab onClick={() => setTaskInputOpen(true)} />
         )}
       </div>
+
+      <TaskInputModal
+        open={taskInputOpen}
+        onOpenChange={setTaskInputOpen}
+        onSubmit={handleCreateTask}
+        categories={categories}
+        defaultDate={targetDate}
+        defaultCategoryId={selectedCategoryId}
+        isLoading={mutations.createTask.isPending}
+      />
 
       <TaskEditDialog
         open={editingTask !== null}
