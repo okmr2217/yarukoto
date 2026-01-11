@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, StickyNote } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import type { Category } from "@/types";
 
 const PRIORITIES = [
-  { value: "HIGH", label: "高", color: "text-destructive" },
-  { value: "MEDIUM", label: "中", color: "text-yellow-600" },
-  { value: "LOW", label: "低", color: "text-blue-500" },
+  { value: "none", label: "なし" },
+  { value: "LOW", label: "低" },
+  { value: "MEDIUM", label: "中" },
+  { value: "HIGH", label: "高" },
 ] as const;
 
 export interface TaskInputData {
@@ -60,10 +62,9 @@ export function TaskInputModal({
   const [categoryId, setCategoryId] = useState<string | undefined>(
     getInitialCategoryId()
   );
-  const [priority, setPriority] = useState<
-    "HIGH" | "MEDIUM" | "LOW" | undefined
-  >(undefined);
+  const [priority, setPriority] = useState<string>("none");
   const [memo, setMemo] = useState("");
+  const [showMemo, setShowMemo] = useState(false);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
@@ -88,30 +89,31 @@ export function TaskInputModal({
       title: title.trim(),
       scheduledAt: scheduledAt || undefined,
       categoryId: categoryId || undefined,
-      priority: priority || undefined,
+      priority:
+        priority !== "none"
+          ? (priority as "HIGH" | "MEDIUM" | "LOW")
+          : undefined,
       memo: memo.trim() || undefined,
     });
 
     // フォームをリセット
     setTitle("");
     setMemo("");
+    setShowMemo(false);
     // 日付、カテゴリ、優先度は保持（連続入力用）
     onOpenChange(false);
   };
 
-  const handleDateSelect = (type: "none" | "today" | "tomorrow" | "custom") => {
-    const today = new Date();
-    const jstOffset = 9 * 60; // JST is UTC+9
-    const jstDate = new Date(today.getTime() + jstOffset * 60 * 1000);
+  const todayString = getTodayInJST();
+  const tomorrowString = addDaysJST(todayString, 1);
 
+  const handleDateSelect = (type: "none" | "today" | "tomorrow" | "custom") => {
     if (type === "none") {
       setScheduledAt("");
     } else if (type === "today") {
-      setScheduledAt(jstDate.toISOString().split("T")[0]);
+      setScheduledAt(todayString);
     } else if (type === "tomorrow") {
-      const tomorrow = new Date(jstDate);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      setScheduledAt(tomorrow.toISOString().split("T")[0]);
+      setScheduledAt(tomorrowString);
     } else if (type === "custom") {
       dateInputRef.current?.showPicker();
     }
@@ -143,47 +145,40 @@ export function TaskInputModal({
             {/* 予定日 */}
             <div className="space-y-2">
               <label className="text-sm font-medium">予定日</label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 <Button
                   type="button"
+                  size="sm"
                   variant={!scheduledAt ? "default" : "outline"}
                   onClick={() => handleDateSelect("none")}
-                  className="h-10"
                 >
                   なし
                 </Button>
                 <Button
                   type="button"
-                  variant={
-                    scheduledAt ===
-                    new Date(
-                      new Date().getTime() + 9 * 60 * 60 * 1000,
-                    )
-                      .toISOString()
-                      .split("T")[0]
-                      ? "default"
-                      : "outline"
-                  }
+                  size="sm"
+                  variant={scheduledAt === todayString ? "default" : "outline"}
                   onClick={() => handleDateSelect("today")}
-                  className="h-10"
                 >
                   今日
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  size="sm"
+                  variant={
+                    scheduledAt === tomorrowString ? "default" : "outline"
+                  }
                   onClick={() => handleDateSelect("tomorrow")}
-                  className="h-10"
                 >
                   明日
                 </Button>
                 <Button
                   type="button"
+                  size="sm"
                   variant="outline"
                   onClick={() => handleDateSelect("custom")}
-                  className="h-10 flex items-center gap-1"
                 >
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="size-4" />
                   選択
                 </Button>
                 <input
@@ -204,12 +199,12 @@ export function TaskInputModal({
             {/* カテゴリ */}
             <div className="space-y-2">
               <label className="text-sm font-medium">カテゴリ</label>
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-1.5 overflow-x-auto pb-2">
                 <button
                   type="button"
                   onClick={() => setCategoryId(undefined)}
                   className={cn(
-                    "flex-shrink-0 px-3 py-2 rounded-full text-sm border-2 transition-colors",
+                    "shrink-0 px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
                     !categoryId
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-background hover:bg-accent",
@@ -223,7 +218,7 @@ export function TaskInputModal({
                     type="button"
                     onClick={() => setCategoryId(cat.id)}
                     className={cn(
-                      "flex-shrink-0 px-3 py-2 rounded-full text-sm border-2 transition-colors flex items-center gap-1.5",
+                      "shrink-0 px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
                       categoryId === cat.id
                         ? "border-primary"
                         : "border-border hover:bg-accent",
@@ -240,7 +235,7 @@ export function TaskInputModal({
                     }}
                   >
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="w-2.5 h-2.5 rounded-full"
                       style={{ backgroundColor: cat.color || "#6B7280" }}
                     />
                     {cat.name}
@@ -252,40 +247,68 @@ export function TaskInputModal({
             {/* 優先度 */}
             <div className="space-y-2">
               <label className="text-sm font-medium">優先度</label>
-              <div className="grid grid-cols-4 gap-2">
-                <Button
-                  type="button"
-                  variant={!priority ? "default" : "outline"}
-                  onClick={() => setPriority(undefined)}
-                  className="h-10"
-                >
-                  なし
-                </Button>
+              <div className="grid grid-cols-4 gap-1.5">
                 {PRIORITIES.map((p) => (
-                  <Button
+                  <button
                     key={p.value}
                     type="button"
-                    variant={priority === p.value ? "default" : "outline"}
                     onClick={() => setPriority(p.value)}
-                    className={cn("h-10", priority === p.value && p.color)}
+                    className={cn(
+                      "h-8 rounded-md border text-sm font-medium transition-colors",
+                      priority === p.value
+                        ? p.value === "HIGH"
+                          ? "bg-destructive text-destructive-foreground border-destructive"
+                          : p.value === "MEDIUM"
+                            ? "bg-yellow-500 text-white border-yellow-500"
+                            : p.value === "LOW"
+                              ? "bg-blue-500 text-white border-blue-500"
+                              : "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-accent border-border"
+                    )}
                   >
                     {p.label}
-                  </Button>
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* メモ */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">メモ</label>
-              <Textarea
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder="メモを入力..."
-                rows={3}
-                className="resize-none"
-              />
-            </div>
+            {showMemo ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">メモ</label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowMemo(false);
+                      setMemo("");
+                    }}
+                  >
+                    非表示
+                  </Button>
+                </div>
+                <Textarea
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="メモを入力..."
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowMemo(true)}
+                className="w-full"
+              >
+                <StickyNote className="size-4" />
+                メモを追加
+              </Button>
+            )}
           </div>
 
           {/* フッター */}
