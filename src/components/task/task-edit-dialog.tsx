@@ -54,9 +54,9 @@ export function TaskEditDialog({
   const [memo, setMemo] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Populate form when task changes
+  // Populate form when dialog opens or task changes
   useEffect(() => {
-    if (task) {
+    if (open && task) {
       setTitle(task.title);
       setScheduledAt(task.scheduledAt || "");
       setCategoryId(task.categoryId || "none");
@@ -64,7 +64,7 @@ export function TaskEditDialog({
       setMemo(task.memo || "");
       setError(null);
     }
-  }, [task]);
+  }, [open, task]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

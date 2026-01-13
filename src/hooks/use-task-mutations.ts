@@ -233,10 +233,10 @@ export function useTaskMutations() {
       const result = await updateTask({
         id: input.id,
         title: input.title,
-        scheduledAt: input.scheduledAt === null ? undefined : input.scheduledAt,
-        categoryId: input.categoryId === null ? undefined : input.categoryId,
-        priority: input.priority === null ? undefined : input.priority,
-        memo: input.memo === null ? undefined : input.memo,
+        scheduledAt: input.scheduledAt,
+        categoryId: input.categoryId,
+        priority: input.priority,
+        memo: input.memo,
       });
       if (!result.success) {
         throw new Error(result.error);
