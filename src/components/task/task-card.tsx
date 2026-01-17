@@ -62,6 +62,27 @@ export function TaskCard({
   const isSkipped = task.status === "SKIPPED";
   const hasMemo = !!task.memo;
 
+  // 予定日の状態を判定
+  const getScheduledDateStatus = () => {
+    if (!task.scheduledAt) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const scheduledDate = new Date(task.scheduledAt);
+    scheduledDate.setHours(0, 0, 0, 0);
+
+    if (scheduledDate.getTime() === today.getTime()) {
+      return "today";
+    } else if (scheduledDate < today) {
+      return "overdue";
+    } else {
+      return "future";
+    }
+  };
+
+  const scheduledDateStatus = getScheduledDateStatus();
+
   const handleCheckChange = (checked: boolean) => {
     if (checked) {
       handlers.onComplete(task.id);
@@ -218,9 +239,23 @@ export function TaskCard({
 
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               {showScheduledDate && task.scheduledAt && (
-                <span className="text-xs text-muted-foreground">
-                  📅 {task.scheduledAt.replace(/-/g, "/")}
-                </span>
+                <>
+                  {scheduledDateStatus === "today" && (
+                    <span className="text-xs text-primary font-medium">
+                      📅 今日
+                    </span>
+                  )}
+                  {scheduledDateStatus === "overdue" && (
+                    <span className="text-xs text-destructive font-medium">
+                      📅 期限超過 ({task.scheduledAt.replace(/-/g, "/")})
+                    </span>
+                  )}
+                  {scheduledDateStatus === "future" && (
+                    <span className="text-xs text-muted-foreground">
+                      📅 {task.scheduledAt.replace(/-/g, "/")}
+                    </span>
+                  )}
+                </>
               )}
               {task.category && (
                 <span
