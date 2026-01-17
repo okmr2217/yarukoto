@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.*
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# Database
+*.db
+*.db-journal
+
+# Generated files
+/src/generated/
+
+# Supabase (already using PostgreSQL)
+/supabase/
+
+# Temporary files
+tmpclaude-*
+*.tmp
+*.temp
+
+# Lock files (large and not needed for context)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
