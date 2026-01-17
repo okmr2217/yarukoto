@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Header, CategoryFilter } from "@/components/layout";
 import {
@@ -118,6 +118,32 @@ export default function HomePage() {
     onDelete: handleDelete,
   };
 
+  // Nキーでタスク作成モーダルを開く
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // モディファイアキーなしでNキーを押した場合
+      if (
+        e.key === "n" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.shiftKey &&
+        !e.altKey
+      ) {
+        const target = e.target as HTMLElement;
+        // フォーム入力中は無効化
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+          return;
+        }
+
+        e.preventDefault();
+        setTaskInputOpen(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex-1 bg-background">
@@ -189,7 +215,12 @@ export default function HomePage() {
               <div className="text-center py-12 text-muted-foreground">
                 <p>タスクがありません</p>
                 <p className="text-sm mt-1">
-                  下の入力欄から新しいタスクを追加しましょう
+                  <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">
+                    N
+                  </kbd>{" "}
+                  キーまたは下の{" "}
+                  <span className="text-primary font-semibold">＋</span>{" "}
+                  ボタンから新しいタスクを追加しましょう
                 </p>
               </div>
             ) : (

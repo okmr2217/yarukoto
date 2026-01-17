@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Header, DateNavigation, CategoryFilter } from "@/components/layout";
 import {
@@ -148,6 +148,35 @@ export default function TaskPage() {
     onDelete: handleDelete,
   };
 
+  // Nキーでタスク作成モーダルを開く（今日と未来のみ）
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 過去の日付では無効化
+      if (isPast) return;
+
+      // モディファイアキーなしでNキーを押した場合
+      if (
+        e.key === "n" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.shiftKey &&
+        !e.altKey
+      ) {
+        const target = e.target as HTMLElement;
+        // フォーム入力中は無効化
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+          return;
+        }
+
+        e.preventDefault();
+        setTaskInputOpen(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isPast]);
+
   const filterTasksByCategory = (taskList: Task[]): Task[] => {
     if (selectedCategoryId === null) return taskList;
     if (selectedCategoryId === "none") {
@@ -257,9 +286,18 @@ export default function TaskPage() {
                     : "この日のタスクはありません"}
                 </p>
                 <p className="text-sm mt-1">
-                  {isToday || isFuture
-                    ? "下の入力欄から新しいタスクを追加しましょう"
-                    : "過去の日付にはタスクを追加できません"}
+                  {isToday || isFuture ? (
+                    <>
+                      <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">
+                        N
+                      </kbd>{" "}
+                      キーまたは下の{" "}
+                      <span className="text-primary font-semibold">＋</span>{" "}
+                      ボタンから新しいタスクを追加しましょう
+                    </>
+                  ) : (
+                    "過去の日付にはタスクを追加できません"
+                  )}
                 </p>
               </div>
             ) : (
