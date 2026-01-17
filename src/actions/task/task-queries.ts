@@ -205,12 +205,12 @@ export async function getTasksByDate(
  * タスクを検索します。
  *
  * @param input - 検索条件（キーワード、ステータス、カテゴリ、優先度、日付範囲）
- * @returns 検索結果（日付別にグループ化されたタスク）
+ * @returns 検索結果（displayOrder順にソートされたタスク）
  *
  * @remarks
  * - キーワード検索はタイトルとメモの両方に対して、大文字小文字を区別せずに行われます
  * - 日付範囲検索はJST（日本標準時）基準で行われます
- * - 結果は日付降順でグループ化され、未設定のタスクは最後に表示されます
+ * - displayOrderが設定されている場合は昇順、未設定の場合は作成日降順でソートされます
  */
 export async function searchTasks(
   input: SearchTasksInput,
@@ -268,31 +268,31 @@ export async function searchTasks(
     const tasks = await prisma.task.findMany({
       where,
       include: { category: true },
-      orderBy: [{ scheduledAt: "desc" }, { createdAt: "desc" }],
     });
 
-    // 予定日でグループ化（JSTベースで日付をグループ化）
-    const groupMap = new Map<string | null, typeof tasks>();
-    for (const task of tasks) {
-      const dateKey = task.scheduledAt
-        ? formatDateToJST(task.scheduledAt)
-        : null;
-      const existing = groupMap.get(dateKey) || [];
-      existing.push(task);
-      groupMap.set(dateKey, existing);
-    }
-
-    // グループをソート: 日付降順、未設定は最後
-    const groups = Array.from(groupMap.entries())
-      .sort((a, b) => {
-        if (a[0] === null) return 1;
-        if (b[0] === null) return -1;
-        return b[0].localeCompare(a[0]);
-      })
-      .map(([date, tasks]) => ({ date, tasks: tasks.map(toTask) }));
+    // displayOrderでソート（nullは最後、それ以外は昇順）
+    // nullのタスクは作成日降順でソート
+    const sortedTasks = tasks.sort((a, b) => {
+      // 両方displayOrderがある場合
+      if (a.displayOrder !== null && b.displayOrder !== null) {
+        return a.displayOrder - b.displayOrder;
+      }
+      // aのみdisplayOrderがある場合、aを先に
+      if (a.displayOrder !== null && b.displayOrder === null) {
+        return -1;
+      }
+      // bのみdisplayOrderがある場合、bを先に
+      if (a.displayOrder === null && b.displayOrder !== null) {
+        return 1;
+      }
+      // 両方nullの場合、作成日降順
+      return (
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
 
     return success({
-      groups,
+      tasks: sortedTasks.map(toTask),
       total: tasks.length,
     });
   } catch (error) {

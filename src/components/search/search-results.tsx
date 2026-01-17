@@ -1,59 +1,18 @@
 "use client";
 
 import { TaskCard, type TaskCardHandlers } from "@/components/task";
-import { cn } from "@/lib/utils";
-import type { TaskGroup } from "@/types";
-import {
-  getTodayInJST,
-  addDaysJST,
-  parseJSTDate,
-  toJSTDate,
-} from "@/lib/dateUtils";
+import type { Task } from "@/types";
 
 type SearchResultsProps = {
-  groups: TaskGroup[];
+  tasks: Task[];
   total: number;
   isLoading: boolean;
   hasSearchCriteria: boolean;
   handlers: TaskCardHandlers;
 };
 
-function formatDateLabel(dateStr: string | null): string {
-  if (!dateStr) return "日付未定";
-
-  const today = getTodayInJST();
-  const tomorrow = addDaysJST(today, 1);
-  const yesterday = addDaysJST(today, -1);
-
-  // JSTでDateオブジェクトを作成して表示用にフォーマット
-  const date = parseJSTDate(dateStr);
-  const zonedDate = toJSTDate(date);
-
-  // Format: 2024年1月15日（月）
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  };
-  const formatted = zonedDate.toLocaleDateString("ja-JP", options);
-
-  // Add relative label
-  if (dateStr === today) {
-    return `${formatted} - 今日`;
-  }
-  if (dateStr === tomorrow) {
-    return `${formatted} - 明日`;
-  }
-  if (dateStr === yesterday) {
-    return `${formatted} - 昨日`;
-  }
-
-  return formatted;
-}
-
 export function SearchResults({
-  groups,
+  tasks,
   total,
   isLoading,
   hasSearchCriteria,
@@ -88,41 +47,21 @@ export function SearchResults({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Results count */}
       <div className="text-sm text-muted-foreground">検索結果: {total}件</div>
 
-      {/* Grouped results */}
-      {groups.map((group) => (
-        <div key={group.date ?? "undated"} className="space-y-2">
-          {/* Date header */}
-          <div
-            className={cn(
-              "flex items-center gap-2 py-2 border-b",
-              group.date === null && "text-muted-foreground",
-            )}
-          >
-            <span className="text-sm font-medium">
-              {formatDateLabel(group.date)}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              ({group.tasks.length})
-            </span>
-          </div>
-
-          {/* Tasks */}
-          <div className="space-y-2">
-            {group.tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                handlers={handlers}
-                showScheduledDate={false}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+      {/* Tasks */}
+      <div className="space-y-2">
+        {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            handlers={handlers}
+            showScheduledDate={true}
+          />
+        ))}
+      </div>
     </div>
   );
 }

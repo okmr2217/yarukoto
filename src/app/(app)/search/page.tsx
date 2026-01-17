@@ -83,8 +83,7 @@ export default function SearchPage() {
   };
 
   const handleSkip = (id: string) => {
-    const allTasks = searchResults?.groups.flatMap((g) => g.tasks) || [];
-    const task = allTasks.find((t) => t.id === id);
+    const task = searchResults?.tasks.find((t) => t.id === id);
     if (task) {
       setSkippingTask(task);
     }
@@ -150,7 +149,7 @@ export default function SearchPage() {
 
             {/* Search Results */}
             <SearchResults
-              groups={searchResults?.groups || []}
+              tasks={searchResults?.tasks || []}
               total={searchResults?.total || 0}
               isLoading={isLoading || isFetching}
               hasSearchCriteria={hasSearchCriteria}

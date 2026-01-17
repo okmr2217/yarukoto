@@ -46,7 +46,7 @@ export type TaskGroup = {
 };
 
 export type SearchTasksResult = {
-  groups: TaskGroup[];
+  tasks: Task[];
   total: number;
 };
 
