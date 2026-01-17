@@ -371,45 +371,74 @@ export async function deleteTask(input: {
 /**
  * タスクの並び順を更新します。
  *
- * @param input - タスクIDの配列（新しい順序）
+ * @param input - ドラッグしたタスクのIDと新しい位置情報
  * @returns 成功ステータス
  *
  * @remarks
- * - すべてのタスクがユーザーのものであることを確認します
- * - 配列の順序に基づいてdisplayOrderを設定します（0から始まる連番）
+ * - 小数を使った効率的な並び替え
+ * - ドラッグしたタスク1つだけを更新（O(1)の計算量）
+ * - 前後のタスクのdisplayOrderの中間値を計算
  */
 export async function reorderTasks(input: {
-  taskIds: string[];
+  taskId: string;
+  beforeTaskId?: string; // この後ろに配置（nullなら先頭）
+  afterTaskId?: string; // この前に配置（nullなら末尾）
 }): Promise<ActionResult<{ success: boolean }>> {
   try {
     const user = await getRequiredUser();
-    const { taskIds } = input;
+    const { taskId, beforeTaskId, afterTaskId } = input;
 
-    if (!Array.isArray(taskIds) || taskIds.length === 0) {
-      return failure("タスクIDの配列が必要です", "VALIDATION_ERROR");
-    }
-
-    // すべてのタスクがユーザーに属することを確認
-    const tasks = await prisma.task.findMany({
-      where: {
-        id: { in: taskIds },
-        userId: user.id,
-      },
+    // タスクがユーザーに属することを確認
+    const task = await prisma.task.findFirst({
+      where: { id: taskId, userId: user.id },
     });
 
-    if (tasks.length !== taskIds.length) {
+    if (!task) {
       return failure(ERROR_MESSAGES.TASK_NOT_FOUND, "NOT_FOUND");
     }
 
-    // トランザクションで並び順を一括更新
-    await prisma.$transaction(
-      taskIds.map((taskId, index) =>
-        prisma.task.update({
-          where: { id: taskId },
-          data: { displayOrder: index },
-        }),
-      ),
-    );
+    let newDisplayOrder: number;
+
+    // 前後のタスクのdisplayOrderを取得
+    const [beforeTask, afterTask] = await Promise.all([
+      beforeTaskId
+        ? prisma.task.findFirst({
+            where: { id: beforeTaskId, userId: user.id },
+            select: { displayOrder: true },
+          })
+        : null,
+      afterTaskId
+        ? prisma.task.findFirst({
+            where: { id: afterTaskId, userId: user.id },
+            select: { displayOrder: true },
+          })
+        : null,
+    ]);
+
+    // 新しいdisplayOrderを計算
+    if (beforeTask && afterTask) {
+      // 2つのタスクの間に配置
+      const before = beforeTask.displayOrder ?? 0;
+      const after = afterTask.displayOrder ?? 0;
+      newDisplayOrder = (before + after) / 2;
+    } else if (beforeTask) {
+      // beforeTaskの後ろ（末尾）に配置
+      const before = beforeTask.displayOrder ?? 0;
+      newDisplayOrder = before + 1;
+    } else if (afterTask) {
+      // afterTaskの前（先頭）に配置
+      const after = afterTask.displayOrder ?? 0;
+      newDisplayOrder = after - 1;
+    } else {
+      // タスクが1つだけの場合
+      newDisplayOrder = 0;
+    }
+
+    // タスクのdisplayOrderを更新
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { displayOrder: newDisplayOrder },
+    });
 
     return success({ success: true });
   } catch (error) {

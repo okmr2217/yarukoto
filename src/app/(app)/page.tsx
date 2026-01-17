@@ -60,9 +60,12 @@ export default function HomePage() {
     mutations.createTask.mutate(data);
   };
 
-  const handleReorder = (taskIds: string[]) => {
-    console.log("Reordering tasks:", taskIds);
-    mutations.reorderTasks.mutate(taskIds);
+  const handleReorder = (
+    taskId: string,
+    beforeTaskId?: string,
+    afterTaskId?: string,
+  ) => {
+    mutations.reorderTasks.mutate({ taskId, beforeTaskId, afterTaskId });
   };
 
   const handleComplete = (id: string) => {

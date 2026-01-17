@@ -335,14 +335,18 @@ export function useTaskMutations() {
   });
 
   const reorder = useMutation({
-    mutationFn: async (taskIds: string[]) => {
-      const result = await reorderTasks({ taskIds });
+    mutationFn: async (input: {
+      taskId: string;
+      beforeTaskId?: string;
+      afterTaskId?: string;
+    }) => {
+      const result = await reorderTasks(input);
       if (!result.success) {
         throw new Error(result.error);
       }
       return result.data;
     },
-    onMutate: async (taskIds: string[]) => {
+    onMutate: async (input) => {
       // 進行中のクエリをキャンセル
       await queryClient.cancelQueries({ queryKey: ["allTasks"] });
 
@@ -354,28 +358,56 @@ export function useTaskMutations() {
       });
 
       // 楽観的更新: すべてのallTasksクエリの順序を更新
-      queries.forEach(([queryKey, oldData]) => {
+      queries.forEach(([queryKey]) => {
         queryClient.setQueryData(queryKey, (old: Task[] | undefined) => {
           if (!old || !Array.isArray(old)) return old;
 
-          // taskIdsの順序に従ってタスクを並び替え
-          const taskMap = new Map(old.map((task: Task) => [task.id, task]));
-          const reorderedTasks = taskIds
-            .map((id) => taskMap.get(id))
-            .filter((task): task is Task => task !== undefined);
+          const { taskId, beforeTaskId, afterTaskId } = input;
 
-          // taskIdsに含まれないタスクを最後に追加
-          const remainingTasks = old.filter(
-            (task: Task) => !taskIds.includes(task.id),
-          );
+          // ドラッグしたタスクを取得
+          const task = old.find((t) => t.id === taskId);
+          if (!task) return old;
 
-          return [...reorderedTasks, ...remainingTasks];
+          // タスクを除外
+          const withoutTask = old.filter((t) => t.id !== taskId);
+
+          // 新しい位置を見つける
+          let newIndex: number;
+          if (beforeTaskId && afterTaskId) {
+            // 2つのタスクの間
+            const beforeIndex = withoutTask.findIndex(
+              (t) => t.id === beforeTaskId,
+            );
+            newIndex = beforeIndex + 1;
+          } else if (beforeTaskId) {
+            // beforeTaskの後ろ（末尾）
+            const beforeIndex = withoutTask.findIndex(
+              (t) => t.id === beforeTaskId,
+            );
+            newIndex = beforeIndex + 1;
+          } else if (afterTaskId) {
+            // afterTaskの前（先頭）
+            const afterIndex = withoutTask.findIndex((t) => t.id === afterTaskId);
+            newIndex = afterIndex;
+          } else {
+            // 先頭
+            newIndex = 0;
+          }
+
+          // タスクを新しい位置に挿入
+          const newOrder = [
+            ...withoutTask.slice(0, newIndex),
+            task,
+            ...withoutTask.slice(newIndex),
+          ];
+
+          return newOrder;
         });
       });
 
       return { previousData };
     },
-    onError: (_err, _taskIds, context) => {
+    onError: (_err, _input, context) => {
       // エラー時はロールバック
       if (context?.previousData) {
         context.previousData.forEach(([queryKey, data]) => {

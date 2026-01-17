@@ -37,7 +37,7 @@ interface TaskSectionProps {
   /** ドラッグ&ドロップを有効にするか（未完了タスクのみ） */
   enableDragAndDrop?: boolean;
   /** 並び替え完了時のコールバック */
-  onReorder?: (taskIds: string[]) => void;
+  onReorder?: (taskId: string, beforeTaskId?: string, afterTaskId?: string) => void;
 }
 
 const variantStyles = {
@@ -125,10 +125,13 @@ export function TaskSection({
         const newIndex = items.findIndex((item) => item.id === over.id);
 
         const newOrder = arrayMove(items, oldIndex, newIndex);
-        const taskIds = newOrder.map((task) => task.id);
 
         // 並び替えをサーバーに送信
-        onReorder?.(taskIds);
+        const taskId = active.id as string;
+        const beforeTaskId = newIndex > 0 ? newOrder[newIndex - 1].id : undefined;
+        const afterTaskId = newIndex < newOrder.length - 1 ? newOrder[newIndex + 1].id : undefined;
+
+        onReorder?.(taskId, beforeTaskId, afterTaskId);
 
         return newOrder;
       });

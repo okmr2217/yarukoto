@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "tasks" ALTER COLUMN "displayOrder" SET DATA TYPE DOUBLE PRECISION;
