@@ -29,6 +29,7 @@ export function useTaskMutations() {
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
     queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
+    queryClient.invalidateQueries({ queryKey: ["allTasks"] });
   };
 
   /**

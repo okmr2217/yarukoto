@@ -10,6 +10,7 @@ export {
   getTodayTasks,
   getTasksByDate,
   searchTasks,
+  getAllTasks,
   getMonthlyTaskStats,
 } from "./task-queries";
 

@@ -2,6 +2,7 @@ export {
   getTodayTasks,
   getTasksByDate,
   searchTasks,
+  getAllTasks,
   createTask,
   updateTask,
   completeTask,

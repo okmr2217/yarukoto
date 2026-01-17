@@ -35,10 +35,10 @@ export default function TaskPage() {
   const params = useParams();
   const router = useRouter();
 
-  // Optional catch-all: params.date is string[] | undefined
-  const dateSegments = params.date as string[] | undefined;
+  // Dynamic route: params.date is string
+  const dateParam = params.date as string;
   const today = getTodayInJST();
-  const targetDate = dateSegments?.[0] || today;
+  const targetDate = dateParam || today;
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
@@ -58,11 +58,7 @@ export default function TaskPage() {
   const isFuture = targetDate > today;
 
   const handleNavigate = (newDate: string) => {
-    if (newDate === today) {
-      router.push("/");
-    } else {
-      router.push(`/${newDate}`);
-    }
+    router.push(`/dates/${newDate}`);
   };
 
   const handlePrevious = () => {

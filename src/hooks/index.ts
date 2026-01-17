@@ -13,6 +13,8 @@ export { useDateTasks } from "./use-date-tasks";
 
 export { useTasks, type UnifiedTasks } from "./use-tasks";
 
+export { useAllTasks } from "./use-all-tasks";
+
 export { useMonthlyTaskStats } from "./use-monthly-task-stats";
 
 export { useTaskMutations } from "./use-task-mutations";

@@ -302,6 +302,45 @@ export async function searchTasks(
 }
 
 /**
+ * すべてのタスクを取得します。
+ *
+ * @param input - フィルタ条件（カテゴリID）
+ * @returns すべてのタスク（作成日降順）
+ *
+ * @remarks
+ * - カテゴリIDが未指定の場合、すべてのタスクを取得
+ * - カテゴリIDがnullの場合、カテゴリなしのタスクのみ取得
+ * - 作成日の降順でソートされます
+ */
+export async function getAllTasks(input?: {
+  categoryId?: string | null;
+}): Promise<ActionResult<Task[]>> {
+  try {
+    const user = await getRequiredUser();
+
+    // WHERE句の構築
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { userId: user.id };
+
+    // カテゴリフィルタ
+    if (input?.categoryId !== undefined) {
+      where.categoryId = input.categoryId;
+    }
+
+    const tasks = await prisma.task.findMany({
+      where,
+      include: { category: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return success(tasks.map(toTask));
+  } catch (error) {
+    console.error("getAllTasks error:", error);
+    return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");
+  }
+}
+
+/**
  * 指定月のタスク統計を取得します。
  *
  * @param input - 取得する月（YYYY-MM形式）
