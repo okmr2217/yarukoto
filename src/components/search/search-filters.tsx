@@ -74,8 +74,8 @@ export function SearchFiltersComponent({
       </div>
 
       {/* Status Filter */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground">
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+        <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0">
           ステータス
         </label>
         <div className="flex flex-wrap gap-2">
@@ -101,10 +101,10 @@ export function SearchFiltersComponent({
       </div>
 
       {/* Category & Priority Filters */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-col md:flex-row gap-4">
         {/* Category Filter */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 md:flex-1">
+          <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0">
             カテゴリ
           </label>
           <Select
@@ -145,8 +145,8 @@ export function SearchFiltersComponent({
         </div>
 
         {/* Priority Filter */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 md:flex-1">
+          <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0">
             優先度
           </label>
           <Select
@@ -178,12 +178,12 @@ export function SearchFiltersComponent({
       </div>
 
       {/* Date Range Filter */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+        <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0 flex items-center gap-1">
           <Calendar className="size-4" />
-          期間（予定日）
+          期間
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
           <Input
             type="date"
             value={filters.dateFrom || ""}
