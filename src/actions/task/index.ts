@@ -23,6 +23,7 @@ export {
   skipTask,
   unskipTask,
   deleteTask,
+  reorderTasks,
 } from "./task-mutations";
 
 // ヘルパー関数

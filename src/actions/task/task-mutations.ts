@@ -367,3 +367,53 @@ export async function deleteTask(input: {
     return failure(ERROR_MESSAGES.TASK_DELETE_FAILED, "INTERNAL_ERROR");
   }
 }
+
+/**
+ * タスクの並び順を更新します。
+ *
+ * @param input - タスクIDの配列（新しい順序）
+ * @returns 成功ステータス
+ *
+ * @remarks
+ * - すべてのタスクがユーザーのものであることを確認します
+ * - 配列の順序に基づいてdisplayOrderを設定します（0から始まる連番）
+ */
+export async function reorderTasks(input: {
+  taskIds: string[];
+}): Promise<ActionResult<{ success: boolean }>> {
+  try {
+    const user = await getRequiredUser();
+    const { taskIds } = input;
+
+    if (!Array.isArray(taskIds) || taskIds.length === 0) {
+      return failure("タスクIDの配列が必要です", "VALIDATION_ERROR");
+    }
+
+    // すべてのタスクがユーザーに属することを確認
+    const tasks = await prisma.task.findMany({
+      where: {
+        id: { in: taskIds },
+        userId: user.id,
+      },
+    });
+
+    if (tasks.length !== taskIds.length) {
+      return failure(ERROR_MESSAGES.TASK_NOT_FOUND, "NOT_FOUND");
+    }
+
+    // トランザクションで並び順を一括更新
+    await prisma.$transaction(
+      taskIds.map((taskId, index) =>
+        prisma.task.update({
+          where: { id: taskId },
+          data: { displayOrder: index },
+        }),
+      ),
+    );
+
+    return success({ success: true });
+  } catch (error) {
+    console.error("reorderTasks error:", error);
+    return failure(ERROR_MESSAGES.TASK_UPDATE_FAILED, "INTERNAL_ERROR");
+  }
+}

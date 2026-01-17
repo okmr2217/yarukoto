@@ -305,12 +305,12 @@ export async function searchTasks(
  * すべてのタスクを取得します。
  *
  * @param input - フィルタ条件（カテゴリID）
- * @returns すべてのタスク（作成日降順）
+ * @returns すべてのタスク（displayOrder優先、次に作成日降順）
  *
  * @remarks
  * - カテゴリIDが未指定の場合、すべてのタスクを取得
  * - カテゴリIDがnullの場合、カテゴリなしのタスクのみ取得
- * - 作成日の降順でソートされます
+ * - displayOrderが設定されている場合は昇順、未設定の場合は作成日降順でソートされます
  */
 export async function getAllTasks(input?: {
   categoryId?: string | null;
@@ -330,10 +330,30 @@ export async function getAllTasks(input?: {
     const tasks = await prisma.task.findMany({
       where,
       include: { category: true },
-      orderBy: { createdAt: "desc" },
     });
 
-    return success(tasks.map(toTask));
+    // displayOrderでソート（nullは最後、それ以外は昇順）
+    // nullのタスクは作成日降順でソート
+    const sortedTasks = tasks.sort((a, b) => {
+      // 両方displayOrderがある場合
+      if (a.displayOrder !== null && b.displayOrder !== null) {
+        return a.displayOrder - b.displayOrder;
+      }
+      // aのみdisplayOrderがある場合、aを先に
+      if (a.displayOrder !== null && b.displayOrder === null) {
+        return -1;
+      }
+      // bのみdisplayOrderがある場合、bを先に
+      if (a.displayOrder === null && b.displayOrder !== null) {
+        return 1;
+      }
+      // 両方nullの場合、作成日降順
+      return (
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
+
+    return success(sortedTasks.map(toTask));
   } catch (error) {
     console.error("getAllTasks error:", error);
     return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");

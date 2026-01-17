@@ -1,7 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { TaskCard, type TaskCardHandlers } from "./task-card";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
@@ -19,6 +34,10 @@ interface TaskSectionProps {
   handlers: TaskCardHandlers;
   /** 予定日を表示するか */
   showScheduledDate?: boolean;
+  /** ドラッグ&ドロップを有効にするか（未完了タスクのみ） */
+  enableDragAndDrop?: boolean;
+  /** 並び替え完了時のコールバック */
+  onReorder?: (taskIds: string[]) => void;
 }
 
 const variantStyles = {
@@ -35,6 +54,42 @@ const titleStyles = {
   overdue: "text-destructive",
 };
 
+interface SortableTaskCardProps {
+  task: Task;
+  handlers: TaskCardHandlers;
+  showScheduledDate?: boolean;
+}
+
+function SortableTaskCard({
+  task,
+  handlers,
+  showScheduledDate,
+}: SortableTaskCardProps) {
+  const { setNodeRef, transform, transition, isDragging, listeners } =
+    useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="cursor-grab active:cursor-grabbing"
+      {...listeners}
+    >
+      <TaskCard
+        task={task}
+        handlers={handlers}
+        showScheduledDate={showScheduledDate}
+      />
+    </div>
+  );
+}
+
 export function TaskSection({
   title,
   tasks,
@@ -42,10 +97,47 @@ export function TaskSection({
   variant = "default",
   handlers,
   showScheduledDate = false,
+  enableDragAndDrop = false,
+  onReorder,
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [localTasks, setLocalTasks] = useState(tasks);
+
+  // tasksが変更されたらlocalTasksを更新
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px移動するまでドラッグ開始しない（クリックと区別）
+      },
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalTasks((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        const taskIds = newOrder.map((task) => task.id);
+
+        // 並び替えをサーバーに送信
+        onReorder?.(taskIds);
+
+        return newOrder;
+      });
+    }
+  };
 
   if (tasks.length === 0) return null;
+
+  const displayTasks = enableDragAndDrop ? localTasks : tasks;
 
   return (
     <div className={cn("mb-4", variantStyles[variant])}>
@@ -67,14 +159,38 @@ export function TaskSection({
       </button>
       {!isCollapsed && (
         <div className="space-y-2 mt-1">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              handlers={handlers}
-              showScheduledDate={showScheduledDate}
-            />
-          ))}
+          {enableDragAndDrop ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={displayTasks.map((task) => task.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {displayTasks.map((task) => (
+                    <SortableTaskCard
+                      key={task.id}
+                      task={task}
+                      handlers={handlers}
+                      showScheduledDate={showScheduledDate}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            displayTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                handlers={handlers}
+                showScheduledDate={showScheduledDate}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

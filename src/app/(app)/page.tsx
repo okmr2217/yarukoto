@@ -60,6 +60,11 @@ export default function HomePage() {
     mutations.createTask.mutate(data);
   };
 
+  const handleReorder = (taskIds: string[]) => {
+    console.log("Reordering tasks:", taskIds);
+    mutations.reorderTasks.mutate(taskIds);
+  };
+
   const handleComplete = (id: string) => {
     mutations.completeTask.mutate(id);
   };
@@ -134,15 +139,10 @@ export default function HomePage() {
     );
   }
 
-  // ステータス別に分類してソート
-  // 未完了: 作成日降順（新しい順）
+  // ステータス別に分類
+  // 未完了: サーバーから取得した順序をそのまま使用（displayOrder優先、次に作成日降順）
   const pendingTasks =
-    tasks
-      ?.filter((task) => task.status === "PENDING")
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ) || [];
+    tasks?.filter((task) => task.status === "PENDING") || [];
 
   // 完了済み: 完了日時降順（新しい順）
   const completedTasks =
@@ -197,6 +197,8 @@ export default function HomePage() {
                   tasks={pendingTasks}
                   handlers={taskHandlers}
                   showScheduledDate
+                  enableDragAndDrop
+                  onReorder={handleReorder}
                 />
 
                 {/* 完了済みタスク */}

@@ -103,6 +103,7 @@ model Task {
   completedAt  DateTime?
   skippedAt    DateTime?
   skipReason   String?    @db.Text
+  displayOrder Int?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -116,6 +117,7 @@ model Task {
   @@index([userId, status])
   @@index([userId, completedAt])
   @@index([userId, skippedAt])
+  @@index([userId, displayOrder])
   @@map("tasks")
 }
 

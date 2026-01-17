@@ -9,6 +9,7 @@ import {
   skipTask,
   unskipTask,
   deleteTask,
+  reorderTasks,
 } from "@/actions";
 import type {
   CreateTaskInput,
@@ -333,6 +334,62 @@ export function useTaskMutations() {
     onSettled: invalidateAll,
   });
 
+  const reorder = useMutation({
+    mutationFn: async (taskIds: string[]) => {
+      const result = await reorderTasks({ taskIds });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    onMutate: async (taskIds: string[]) => {
+      // 進行中のクエリをキャンセル
+      await queryClient.cancelQueries({ queryKey: ["allTasks"] });
+
+      // 以前のデータをスナップショット
+      const previousData: Array<[any, any]> = [];
+      const queries = queryClient.getQueriesData({ queryKey: ["allTasks"] });
+      queries.forEach(([key, data]) => {
+        previousData.push([key, data]);
+      });
+
+      // 楽観的更新: すべてのallTasksクエリの順序を更新
+      queries.forEach(([queryKey, oldData]) => {
+        queryClient.setQueryData(queryKey, (old: Task[] | undefined) => {
+          if (!old || !Array.isArray(old)) return old;
+
+          // taskIdsの順序に従ってタスクを並び替え
+          const taskMap = new Map(old.map((task: Task) => [task.id, task]));
+          const reorderedTasks = taskIds
+            .map((id) => taskMap.get(id))
+            .filter((task): task is Task => task !== undefined);
+
+          // taskIdsに含まれないタスクを最後に追加
+          const remainingTasks = old.filter(
+            (task: Task) => !taskIds.includes(task.id),
+          );
+
+          return [...reorderedTasks, ...remainingTasks];
+        });
+      });
+
+      return { previousData };
+    },
+    onError: (_err, _taskIds, context) => {
+      // エラー時はロールバック
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+    onSuccess: () => {
+      // 成功時は他のクエリのみ無効化（allTasksは楽観的更新済み）
+      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
+    },
+  });
+
   return {
     createTask: create,
     updateTask: update,
@@ -341,5 +398,6 @@ export function useTaskMutations() {
     skipTask: skip,
     unskipTask: unskip,
     deleteTask: remove,
+    reorderTasks: reorder,
   };
 }
