@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Tags, Settings } from "lucide-react";
+import { Home, Search, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 const navItems = [
   { href: "/", label: "ホーム", icon: Home },
+  { href: "/calendar", label: "カレンダー", icon: Calendar },
   { href: "/search", label: "検索", icon: Search },
   { href: "/categories", label: "カテゴリ管理", icon: Tags },
   { href: "/settings", label: "設定", icon: Settings },

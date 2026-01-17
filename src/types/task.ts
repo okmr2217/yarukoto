@@ -55,6 +55,7 @@ export type DayTaskStats = {
   completed: number;
   overdue: number;
   skipped: number;
+  completedCategories?: CategorySummary[];
 };
 
 export type MonthlyTaskStats = {

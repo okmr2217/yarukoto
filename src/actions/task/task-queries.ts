@@ -356,10 +356,18 @@ export async function getMonthlyTaskStats(
           },
         ],
       },
+      include: {
+        category: true,
+      },
     });
 
     // 日付別の統計を構築（JSTベースで日付を計算）
     const stats: MonthlyTaskStats = {};
+    // 日付ごとの完了タスクのカテゴリを追跡
+    const completedCategoriesMap = new Map<
+      string,
+      Map<string, { id: string; name: string; color: string | null }>
+    >();
 
     for (const task of tasks) {
       const dates = new Set<string>();
@@ -418,6 +426,21 @@ export async function getMonthlyTaskStats(
           : null;
         if (completedDateStr === dateStr) {
           stats[dateStr].completed++;
+
+          // 完了タスクのカテゴリを追跡
+          if (task.category) {
+            if (!completedCategoriesMap.has(dateStr)) {
+              completedCategoriesMap.set(dateStr, new Map());
+            }
+            const categoryMap = completedCategoriesMap.get(dateStr)!;
+            if (!categoryMap.has(task.category.id)) {
+              categoryMap.set(task.category.id, {
+                id: task.category.id,
+                name: task.category.name,
+                color: task.category.color,
+              });
+            }
+          }
         }
 
         // この日にスキップした場合、スキップ数に加算（JSTで比較）
@@ -427,6 +450,13 @@ export async function getMonthlyTaskStats(
         if (skippedDateStr === dateStr) {
           stats[dateStr].skipped++;
         }
+      }
+    }
+
+    // 完了カテゴリをstatsに追加
+    for (const [dateStr, categoryMap] of completedCategoriesMap.entries()) {
+      if (stats[dateStr]) {
+        stats[dateStr].completedCategories = Array.from(categoryMap.values());
       }
     }
 
