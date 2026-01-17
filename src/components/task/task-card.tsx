@@ -14,8 +14,6 @@ import {
   Pencil,
   Ban,
   Trash2,
-  ChevronDown,
-  FileText,
   MoreVertical,
 } from "lucide-react";
 
@@ -55,7 +53,6 @@ export function TaskCard({
   handlers,
   showScheduledDate = false,
 }: TaskCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const isCompleted = task.status === "COMPLETED";
@@ -91,15 +88,6 @@ export function TaskCard({
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't toggle if clicking on checkbox or buttons
-    if ((e.target as HTMLElement).closest('button, [role="checkbox"]')) {
-      return;
-    }
-    if (hasMemo) {
-      setIsExpanded(!isExpanded);
-    }
-  };
 
   return (
     <div
@@ -109,11 +97,7 @@ export function TaskCard({
     >
       {/* Main card content */}
       <div
-        className={cn(
-          "relative bg-card border rounded-lg p-3",
-          hasMemo && "cursor-pointer",
-        )}
-        onClick={handleCardClick}
+        className="relative bg-card border rounded-lg p-3"
       >
         <div className="flex items-start gap-3">
           <Checkbox
@@ -218,85 +202,68 @@ export function TaskCard({
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-
-              {/* Memo indicator / expand button */}
-              {hasMemo && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExpanded(!isExpanded);
-                  }}
-                  className={cn(
-                    "p-1 rounded text-muted-foreground hover:text-foreground transition-all sm:hidden",
-                    isExpanded && "rotate-180",
-                  )}
-                  aria-label={isExpanded ? "メモを閉じる" : "メモを表示"}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-              )}
             </div>
 
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {showScheduledDate && task.scheduledAt && (
-                <>
-                  {scheduledDateStatus === "today" && (
-                    <span className="text-xs text-primary font-medium">
-                      📅 今日
-                    </span>
-                  )}
-                  {scheduledDateStatus === "overdue" && (
-                    <span className="text-xs text-destructive font-medium">
-                      📅 期限超過 ({task.scheduledAt.replace(/-/g, "/")})
-                    </span>
-                  )}
-                  {scheduledDateStatus === "future" && (
-                    <span className="text-xs text-muted-foreground">
-                      📅 {task.scheduledAt.replace(/-/g, "/")}
-                    </span>
-                  )}
-                </>
-              )}
-              {task.category && (
-                <span
-                  className="text-xs px-1.5 py-0.5 rounded"
-                  style={{
-                    backgroundColor: task.category.color
-                      ? `${task.category.color}20`
-                      : undefined,
-                    color: task.category.color || undefined,
-                  }}
-                >
-                  🏷️ {task.category.name}
-                </span>
-              )}
-              {task.priority && priorityLabels[task.priority] && (
-                <span
-                  className={cn(
-                    "text-xs",
-                    priorityLabels[task.priority].className,
-                  )}
-                >
-                  ⚡ {priorityLabels[task.priority].label}
-                </span>
-              )}
-              {hasMemo && !isExpanded && (
-                <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-                  <FileText className="h-3 w-3" />
-                  メモあり
-                </span>
-              )}
-              {isSkipped && task.skipReason && (
-                <span className="text-xs text-muted-foreground">
-                  理由: {task.skipReason}
-                </span>
-              )}
-            </div>
-
-            {/* Expanded memo */}
-            {hasMemo && isExpanded && (
-              <div className="mt-2 p-2 bg-muted/50 rounded text-sm text-muted-foreground whitespace-pre-wrap">
+            {/* Memo content (always shown) */}
+            {hasMemo && (
+              <div className="text-xs text-muted-foreground whitespace-pre-wrap">
                 {task.memo}
+              </div>
+            )}
+
+            {((showScheduledDate && task.scheduledAt) || task.category || task.priority || (isSkipped && task.skipReason)) && (
+              <div className={cn(
+                "flex items-center gap-2 flex-wrap",
+                hasMemo && "mt-2",
+                !hasMemo && "mt-1"
+              )}>
+                {showScheduledDate && task.scheduledAt && (
+                  <>
+                    {scheduledDateStatus === "today" && (
+                      <span className="text-xs text-primary font-medium">
+                        📅 今日
+                      </span>
+                    )}
+                    {scheduledDateStatus === "overdue" && (
+                      <span className="text-xs text-destructive font-medium">
+                        📅 期限超過 ({task.scheduledAt.replace(/-/g, "/")})
+                      </span>
+                    )}
+                    {scheduledDateStatus === "future" && (
+                      <span className="text-xs text-muted-foreground">
+                        📅 {task.scheduledAt.replace(/-/g, "/")}
+                      </span>
+                    )}
+                  </>
+                )}
+                {task.category && (
+                  <span
+                    className="text-xs px-1.5 py-0.5 rounded"
+                    style={{
+                      backgroundColor: task.category.color
+                        ? `${task.category.color}20`
+                        : undefined,
+                      color: task.category.color || undefined,
+                    }}
+                  >
+                    🏷️ {task.category.name}
+                  </span>
+                )}
+                {task.priority && priorityLabels[task.priority] && (
+                  <span
+                    className={cn(
+                      "text-xs",
+                      priorityLabels[task.priority].className,
+                    )}
+                  >
+                    ⚡ {priorityLabels[task.priority].label}
+                  </span>
+                )}
+                {isSkipped && task.skipReason && (
+                  <span className="text-xs text-muted-foreground">
+                    理由: {task.skipReason}
+                  </span>
+                )}
               </div>
             )}
           </div>
