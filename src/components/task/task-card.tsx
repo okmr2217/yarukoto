@@ -10,7 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
-import { Pencil, Ban, Trash2, ChevronDown, FileText, MoreVertical } from "lucide-react";
+import {
+  Pencil,
+  Ban,
+  Trash2,
+  ChevronDown,
+  FileText,
+  MoreVertical,
+} from "lucide-react";
 
 /**
  * タスクカードのアクションハンドラー

@@ -21,9 +21,7 @@ export function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <AuthCard
-        description="無効なリンク | パスワードリセットのリンクが無効です"
-      >
+      <AuthCard description="無効なリンク | パスワードリセットのリンクが無効です">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground text-center">
             リンクが無効か、有効期限が切れている可能性があります。
@@ -73,9 +71,7 @@ export function ResetPasswordForm() {
   };
 
   return (
-    <AuthCard
-      description="新しいパスワードを設定 | 新しいパスワードを入力してください"
-    >
+    <AuthCard description="新しいパスワードを設定 | 新しいパスワードを入力してください">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">

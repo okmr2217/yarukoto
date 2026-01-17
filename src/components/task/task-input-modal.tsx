@@ -60,7 +60,7 @@ export function TaskInputModal({
   const [title, setTitle] = useState("");
   const [scheduledAt, setScheduledAt] = useState(defaultDate || "");
   const [categoryId, setCategoryId] = useState<string | undefined>(
-    getInitialCategoryId()
+    getInitialCategoryId(),
   );
   const [priority, setPriority] = useState<string>("none");
   const [memo, setMemo] = useState("");
@@ -265,7 +265,7 @@ export function TaskInputModal({
                             : p.value === "LOW"
                               ? "bg-blue-500 text-white border-blue-500"
                               : "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-accent border-border"
+                        : "bg-background hover:bg-accent border-border",
                     )}
                   >
                     {p.label}

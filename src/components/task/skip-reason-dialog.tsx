@@ -88,11 +88,7 @@ export function SkipReasonDialog({
           >
             キャンセル
           </Button>
-          <Button
-            type="button"
-            onClick={handleConfirm}
-            disabled={isLoading}
-          >
+          <Button type="button" onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? "処理中..." : "やらないにする"}
           </Button>
         </DialogFooter>

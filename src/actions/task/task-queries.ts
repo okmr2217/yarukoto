@@ -365,17 +365,29 @@ export async function getMonthlyTaskStats(
       const dates = new Set<string>();
 
       // 予定日を追加（JSTで日付を取得）
-      if (task.scheduledAt && task.scheduledAt >= firstDay && task.scheduledAt <= lastDay) {
+      if (
+        task.scheduledAt &&
+        task.scheduledAt >= firstDay &&
+        task.scheduledAt <= lastDay
+      ) {
         dates.add(formatDateToJST(task.scheduledAt));
       }
 
       // 完了日を追加（JSTで日付を取得）
-      if (task.completedAt && task.completedAt >= firstDay && task.completedAt <= lastDay) {
+      if (
+        task.completedAt &&
+        task.completedAt >= firstDay &&
+        task.completedAt <= lastDay
+      ) {
         dates.add(formatDateToJST(task.completedAt));
       }
 
       // スキップ日を追加（JSTで日付を取得）
-      if (task.skippedAt && task.skippedAt >= firstDay && task.skippedAt <= lastDay) {
+      if (
+        task.skippedAt &&
+        task.skippedAt >= firstDay &&
+        task.skippedAt <= lastDay
+      ) {
         dates.add(formatDateToJST(task.skippedAt));
       }
 

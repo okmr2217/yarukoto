@@ -12,8 +12,8 @@ const notoSansJP = Noto_Sans_JP({
 
 const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-outfit"
-})
+  variable: "--font-outfit",
+});
 
 export const metadata: Metadata = {
   title: "Yarukoto - 今日やることを管理",
@@ -42,7 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${notoSansJP.variable} ${outfit.variable} font-sans antialiased`}>
+      <body
+        className={`${notoSansJP.variable} ${outfit.variable} font-sans antialiased`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -45,7 +45,7 @@ export default function TaskPage() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null
+    null,
   );
 
   const { settings } = useSettings();
@@ -256,7 +256,9 @@ export default function TaskPage() {
             {hasNoTasks ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p>
-                  {isToday ? "タスクがありません" : "この日のタスクはありません"}
+                  {isToday
+                    ? "タスクがありません"
+                    : "この日のタスクはありません"}
                 </p>
                 <p className="text-sm mt-1">
                   {isToday || isFuture

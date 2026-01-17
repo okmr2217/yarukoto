@@ -25,6 +25,7 @@
 ### 分割の原則
 
 **良い例: Server Actionsの分割**
+
 ```
 src/actions/task/
 ├── task-queries.ts      # データ取得系（getTodayTasks, getTasksByDate等）
@@ -33,6 +34,7 @@ src/actions/task/
 ```
 
 **理由**:
+
 - クエリとミューテーションで責務が明確
 - ファイルを開いたときに目的がすぐ分かる
 - 関連する機能がまとまっている
@@ -46,8 +48,11 @@ src/actions/task/
 // src/actions/task/task-helpers.ts
 "use server";
 
-export function toTask(task: PrismaTask) { // ← asyncではないのでビルドエラー
-  return { /* ... */ };
+export function toTask(task: PrismaTask) {
+  // ← asyncではないのでビルドエラー
+  return {
+    /* ... */
+  };
 }
 ```
 
@@ -55,7 +60,9 @@ export function toTask(task: PrismaTask) { // ← asyncではないのでビル�
 // ✅ 良い例: libディレクトリに配置
 // src/lib/task-helpers.ts
 export function toTask(task: PrismaTask) {
-  return { /* ... */ };
+  return {
+    /* ... */
+  };
 }
 ```
 
@@ -84,25 +91,27 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 ```typescript
 // ❌ 悪い例: 型を重複定義
 // src/hooks/use-task-mutations.ts
-export interface CreateTaskInput {  // ← validationsと重複
+export interface CreateTaskInput {
+  // ← validationsと重複
   title: string;
   scheduledAt?: string;
 }
 ```
 
 **理由**:
+
 - バリデーションロジックと型定義が同期される
 - 修正時の変更箇所が1箇所で済む
 - 型の不整合を防げる
 
 ### 型のインポート元
 
-| 型の種類 | インポート元 |
-|---------|------------|
-| APIレスポンス型（Task, TodayTasks等） | `@/types` |
-| API入力型（CreateTaskInput等） | `@/lib/validations` |
-| Prisma型 | `@/generated/prisma/client` |
-| コンポーネントprops型 | 同じファイル内で定義 |
+| 型の種類                              | インポート元                |
+| ------------------------------------- | --------------------------- |
+| APIレスポンス型（Task, TodayTasks等） | `@/types`                   |
+| API入力型（CreateTaskInput等）        | `@/lib/validations`         |
+| Prisma型                              | `@/generated/prisma/client` |
+| コンポーネントprops型                 | 同じファイル内で定義        |
 
 ---
 
@@ -129,10 +138,12 @@ export const ERROR_MESSAGES = {
 ```typescript
 // バリデーションで使用
 export const createTaskSchema = z.object({
-  title: z.string().max(
-    TASK_CONSTANTS.TITLE_MAX_LENGTH,
-    `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`
-  ),
+  title: z
+    .string()
+    .max(
+      TASK_CONSTANTS.TITLE_MAX_LENGTH,
+      `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`,
+    ),
 });
 ```
 
@@ -142,6 +153,7 @@ return failure(ERROR_MESSAGES.TASK_CREATE_FAILED, "INTERNAL_ERROR");
 ```
 
 **理由**:
+
 - 値の意味が明確になる
 - 変更時の修正箇所が1箇所で済む
 - タイポを防げる
@@ -194,11 +206,13 @@ interface TaskCardProps {
 ```
 
 **理由**:
+
 - propsの数が減り、可読性が向上
 - 親コンポーネントでハンドラーをまとめて定義できる
 - 将来的なハンドラー追加が容易
 
 **使用例**:
+
 ```typescript
 // 親コンポーネント
 const taskHandlers: TaskCardHandlers = {
@@ -253,7 +267,9 @@ import { toModel } from "@/lib/[domain]-helpers";
  * @remarks
  * - [重要な注意事項]
  */
-export async function getData(input: GetDataInput): Promise<ActionResult<Data>> {
+export async function getData(
+  input: GetDataInput,
+): Promise<ActionResult<Data>> {
   try {
     const parsed = schema.safeParse(input);
     if (!parsed.success) {
@@ -293,7 +309,9 @@ try {
   }
 
   // 4. 処理実行
-  const result = await prisma.model.create({ /* ... */ });
+  const result = await prisma.model.create({
+    /* ... */
+  });
 
   return success({ data: toModel(result) });
 } catch (error) {
@@ -332,14 +350,14 @@ export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
 
 ### コメントの使い分け
 
-| 用途 | 形式 | 例 |
-|------|------|-----|
-| 関数の説明 | JSDoc | `/** 関数の説明 */` |
-| パラメータ説明 | JSDoc `@param` | `@param input - パラメータの説明` |
-| 戻り値説明 | JSDoc `@returns` | `@returns 戻り値の説明` |
-| 補足情報 | JSDoc `@remarks` | `@remarks 重要な注意事項` |
-| 使用例 | JSDoc `@example` | `@example cn("text-sm", "font-bold")` |
-| 実装の説明 | インラインコメント | `// scheduledAtはDATE型なので完全一致で比較` |
+| 用途           | 形式               | 例                                           |
+| -------------- | ------------------ | -------------------------------------------- |
+| 関数の説明     | JSDoc              | `/** 関数の説明 */`                          |
+| パラメータ説明 | JSDoc `@param`     | `@param input - パラメータの説明`            |
+| 戻り値説明     | JSDoc `@returns`   | `@returns 戻り値の説明`                      |
+| 補足情報       | JSDoc `@remarks`   | `@remarks 重要な注意事項`                    |
+| 使用例         | JSDoc `@example`   | `@example cn("text-sm", "font-bold")`        |
+| 実装の説明     | インラインコメント | `// scheduledAtはDATE型なので完全一致で比較` |
 
 ---
 
@@ -387,24 +405,24 @@ return failure(ERROR_MESSAGES.TASK_CREATE_FAILED, "INTERNAL_ERROR");
 
 ### ファイル名
 
-| 種類 | 形式 | 例 |
-|------|------|-----|
-| コンポーネント | kebab-case | `task-card.tsx` |
+| 種類           | 形式       | 例                |
+| -------------- | ---------- | ----------------- |
+| コンポーネント | kebab-case | `task-card.tsx`   |
 | Server Actions | kebab-case | `task-queries.ts` |
-| フック | kebab-case | `use-tasks.ts` |
-| ユーティリティ | kebab-case | `date-utils.ts` |
-| 型定義 | kebab-case | `task.ts` |
+| フック         | kebab-case | `use-tasks.ts`    |
+| ユーティリティ | kebab-case | `date-utils.ts`   |
+| 型定義         | kebab-case | `task.ts`         |
 
 ### 変数・関数名
 
-| 種類 | 形式 | 例 |
-|------|------|-----|
-| コンポーネント | PascalCase | `TaskCard` |
-| 関数 | camelCase | `getTodayTasks` |
-| フック | camelCase (use始まり) | `useTasks` |
-| 定数 | UPPER_SNAKE_CASE | `TASK_CONSTANTS` |
-| 型 | PascalCase | `Task`, `ActionResult` |
-| インターフェース | PascalCase | `TaskCardProps` |
+| 種類             | 形式                  | 例                     |
+| ---------------- | --------------------- | ---------------------- |
+| コンポーネント   | PascalCase            | `TaskCard`             |
+| 関数             | camelCase             | `getTodayTasks`        |
+| フック           | camelCase (use始まり) | `useTasks`             |
+| 定数             | UPPER_SNAKE_CASE      | `TASK_CONSTANTS`       |
+| 型               | PascalCase            | `Task`, `ActionResult` |
+| インターフェース | PascalCase            | `TaskCardProps`        |
 
 ---
 
@@ -413,31 +431,37 @@ return failure(ERROR_MESSAGES.TASK_CREATE_FAILED, "INTERNAL_ERROR");
 新しいコードを追加する前に、以下を確認してください:
 
 ### 全般
+
 - [ ] ファイルサイズは500行以内か？
 - [ ] 適切なディレクトリに配置されているか？
 
 ### 型定義
+
 - [ ] 既存の型と重複していないか？
 - [ ] Zodスキーマから型を推論しているか？
 - [ ] 適切な場所からインポートしているか？
 
 ### 定数
+
 - [ ] マジックナンバー・文字列を定数化したか？
 - [ ] `src/lib/constants.ts`に追加したか？
 - [ ] 定数名は意味が明確か？
 
 ### コンポーネント
+
 - [ ] 関連するpropsはオブジェクトにまとめたか？
 - [ ] すべてのpropsにコメントを追加したか？
 - [ ] 適切な粒度に分割されているか？
 
 ### Server Actions
+
 - [ ] JSDocコメントを追加したか？
 - [ ] エラーハンドリングは適切か？
 - [ ] エラーメッセージは定数化されているか？
 - [ ] Result型パターンを使用しているか？
 
 ### ドキュメント
+
 - [ ] 関数の説明を追加したか？
 - [ ] パラメータと戻り値を説明したか？
 - [ ] 重要な注意事項を`@remarks`に記載したか？

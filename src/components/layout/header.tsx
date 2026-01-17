@@ -27,7 +27,9 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="left" className="w-72">
             <SheetHeader>
-              <SheetTitle className="text-primary font-logo">Yarukoto</SheetTitle>
+              <SheetTitle className="text-primary font-logo">
+                Yarukoto
+              </SheetTitle>
             </SheetHeader>
             <nav className="mt-6 space-y-1">
               <Link

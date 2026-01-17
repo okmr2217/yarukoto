@@ -2,12 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getRequiredUser } from "@/lib/auth-server";
-import {
-  type ActionResult,
-  success,
-  failure,
-  type Task,
-} from "@/types";
+import { type ActionResult, success, failure, type Task } from "@/types";
 import {
   createTaskSchema,
   updateTaskSchema,

@@ -96,7 +96,7 @@ export default function SearchPage() {
         { id: skippingTask.id, reason },
         {
           onSuccess: invalidateSearch,
-        }
+        },
       );
       setSkippingTask(null);
     }

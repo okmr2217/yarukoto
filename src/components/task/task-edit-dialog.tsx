@@ -83,9 +83,7 @@ export function TaskEditDialog({
       scheduledAt: scheduledAt || null,
       categoryId: categoryId !== "none" ? categoryId : null,
       priority:
-        priority !== "none"
-          ? (priority as "HIGH" | "MEDIUM" | "LOW")
-          : null,
+        priority !== "none" ? (priority as "HIGH" | "MEDIUM" | "LOW") : null,
       memo: memo.trim() || null,
     });
   };
@@ -153,7 +151,7 @@ export function TaskEditDialog({
                   "shrink-0 px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
                   categoryId === "none"
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background hover:bg-accent"
+                    : "border-border bg-background hover:bg-accent",
                 )}
               >
                 なし
@@ -167,7 +165,7 @@ export function TaskEditDialog({
                     "shrink-0 px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
                     categoryId === cat.id
                       ? "border-primary"
-                      : "border-border hover:bg-accent"
+                      : "border-border hover:bg-accent",
                   )}
                   style={{
                     backgroundColor:
@@ -209,7 +207,7 @@ export function TaskEditDialog({
                           : p.value === "LOW"
                             ? "bg-blue-500 text-white border-blue-500"
                             : "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-accent border-border"
+                      : "bg-background hover:bg-accent border-border",
                   )}
                 >
                   {p.label}

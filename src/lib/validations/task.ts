@@ -81,9 +81,7 @@ export const searchTasksSchema = z.object({
 });
 
 export const getMonthlyTaskStatsSchema = z.object({
-  month: z
-    .string()
-    .regex(/^\d{4}-\d{2}$/, "月はYYYY-MM形式で入力してください"),
+  month: z.string().regex(/^\d{4}-\d{2}$/, "月はYYYY-MM形式で入力してください"),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

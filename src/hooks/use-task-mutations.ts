@@ -73,7 +73,7 @@ export function useTaskMutations() {
         (old) => {
           if (!old) return old;
           return { ...old, scheduled: [...old.scheduled, tempTask] };
-        }
+        },
       );
     }
   };
@@ -91,7 +91,8 @@ export function useTaskMutations() {
       ...oldTask,
       title: input.title ?? oldTask.title,
       memo: input.memo === undefined ? oldTask.memo : input.memo,
-      priority: input.priority === undefined ? oldTask.priority : input.priority,
+      priority:
+        input.priority === undefined ? oldTask.priority : input.priority,
       scheduledAt: newScheduledAt,
       categoryId:
         input.categoryId === undefined ? oldTask.categoryId : input.categoryId,
@@ -126,7 +127,7 @@ export function useTaskMutations() {
             completed: old.completed.filter((t) => t.id !== input.id),
             skipped: old.skipped.filter((t) => t.id !== input.id),
           };
-        }
+        },
       );
     }
 
@@ -146,7 +147,7 @@ export function useTaskMutations() {
         (old) => {
           if (!old) return old;
           return { ...old, scheduled: [...old.scheduled, updatedTask] };
-        }
+        },
       );
     }
   };
@@ -202,8 +203,9 @@ export function useTaskMutations() {
       await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
 
       // 以前のデータをスナップショット
-      const previousTodayTasks =
-        queryClient.getQueryData<UnifiedTasks>(["todayTasks"]);
+      const previousTodayTasks = queryClient.getQueryData<UnifiedTasks>([
+        "todayTasks",
+      ]);
       const previousDateTasks = queryClient.getQueriesData<UnifiedTasks>({
         queryKey: ["dateTasks"],
       });
@@ -247,8 +249,9 @@ export function useTaskMutations() {
       await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
       await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
 
-      const previousTodayTasks =
-        queryClient.getQueryData<UnifiedTasks>(["todayTasks"]);
+      const previousTodayTasks = queryClient.getQueryData<UnifiedTasks>([
+        "todayTasks",
+      ]);
       const previousDateTasks = queryClient.getQueriesData<UnifiedTasks>({
         queryKey: ["dateTasks"],
       });

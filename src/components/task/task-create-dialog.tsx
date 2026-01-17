@@ -204,7 +204,7 @@ export function TaskCreateDialog({
                           : p.value === "LOW"
                             ? "bg-blue-500 text-white border-blue-500"
                             : "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-accent border-border"
+                      : "bg-background hover:bg-accent border-border",
                   )}
                 >
                   {p.label}

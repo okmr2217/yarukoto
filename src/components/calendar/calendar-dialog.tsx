@@ -18,11 +18,7 @@ import {
 import { useMonthlyTaskStats } from "@/hooks";
 import type { DayTaskStats } from "@/types";
 import { cn } from "@/lib/utils";
-import {
-  formatDateToJST,
-  isTodayInJST,
-  toJSTDate,
-} from "@/lib/dateUtils";
+import { formatDateToJST, isTodayInJST, toJSTDate } from "@/lib/dateUtils";
 
 interface CalendarDialogProps {
   open: boolean;
@@ -79,7 +75,13 @@ interface DateCellProps {
   onClick: () => void;
 }
 
-function DateCell({ date, isToday, isSelected, stats, onClick }: DateCellProps) {
+function DateCell({
+  date,
+  isToday,
+  isSelected,
+  stats,
+  onClick,
+}: DateCellProps) {
   const isEmpty = date.getTime() === 0;
 
   if (isEmpty) {
@@ -96,7 +98,7 @@ function DateCell({ date, isToday, isSelected, stats, onClick }: DateCellProps) 
         "hover:bg-accent",
         isToday && "bg-primary/10 font-bold",
         isSelected && "bg-primary text-primary-foreground hover:bg-primary/90",
-        !hasStats && "text-muted-foreground"
+        !hasStats && "text-muted-foreground",
       )}
     >
       <span className="text-sm">{date.getDate()}</span>
@@ -124,9 +126,7 @@ function DateCell({ date, isToday, isSelected, stats, onClick }: DateCellProps) 
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        {cellContent}
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
       <TooltipContent>
         <div className="text-sm space-y-1">
           <div>予定: {stats.total}件</div>
@@ -158,15 +158,11 @@ export function CalendarDialog({
   const days = getDaysInMonth(viewDate.getFullYear(), viewDate.getMonth());
 
   const handlePrevMonth = () => {
-    setViewDate(
-      new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
-    );
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
   };
 
   const handleNextMonth = () => {
-    setViewDate(
-      new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
-    );
+    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
   };
 
   const handleToday = () => {

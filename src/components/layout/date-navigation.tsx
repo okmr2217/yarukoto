@@ -34,7 +34,9 @@ export function DateNavigation({
       </Button>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">{formatDateForDisplay(currentDate)}</span>
+        <span className="text-sm font-medium">
+          {formatDateForDisplay(currentDate)}
+        </span>
         {isTodayDate && (
           <span className="px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
             今日

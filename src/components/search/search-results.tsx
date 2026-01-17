@@ -90,9 +90,7 @@ export function SearchResults({
   return (
     <div className="space-y-6">
       {/* Results count */}
-      <div className="text-sm text-muted-foreground">
-        検索結果: {total}件
-      </div>
+      <div className="text-sm text-muted-foreground">検索結果: {total}件</div>
 
       {/* Grouped results */}
       {groups.map((group) => (
@@ -101,7 +99,7 @@ export function SearchResults({
           <div
             className={cn(
               "flex items-center gap-2 py-2 border-b",
-              group.date === null && "text-muted-foreground"
+              group.date === null && "text-muted-foreground",
             )}
           >
             <span className="text-sm font-medium">

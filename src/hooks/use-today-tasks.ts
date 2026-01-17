@@ -12,10 +12,7 @@ import {
   deleteTask,
 } from "@/actions";
 import type { Task, TodayTasks } from "@/types";
-import type {
-  CreateTaskInput,
-  UpdateTaskInput,
-} from "@/lib/validations";
+import type { CreateTaskInput, UpdateTaskInput } from "@/lib/validations";
 
 export function useTodayTasks() {
   return useQuery({
@@ -330,7 +327,14 @@ export function useUpdateTask() {
       }
       return result.data.task;
     },
-    onMutate: async ({ id, title, scheduledAt, categoryId, priority, memo }) => {
+    onMutate: async ({
+      id,
+      title,
+      scheduledAt,
+      categoryId,
+      priority,
+      memo,
+    }) => {
       await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
       const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
 
@@ -341,8 +345,10 @@ export function useUpdateTask() {
               return {
                 ...t,
                 title: title ?? t.title,
-                scheduledAt: scheduledAt !== undefined ? scheduledAt : t.scheduledAt,
-                categoryId: categoryId !== undefined ? categoryId : t.categoryId,
+                scheduledAt:
+                  scheduledAt !== undefined ? scheduledAt : t.scheduledAt,
+                categoryId:
+                  categoryId !== undefined ? categoryId : t.categoryId,
                 priority: priority !== undefined ? priority : t.priority,
                 memo: memo !== undefined ? memo : t.memo,
                 updatedAt: new Date().toISOString(),

@@ -26,7 +26,7 @@ export function SearchFiltersComponent({
 }: SearchFiltersProps) {
   const updateFilter = <K extends keyof SearchFilters>(
     key: K,
-    value: SearchFilters[K]
+    value: SearchFilters[K],
   ) => {
     onFiltersChange({ ...filters, [key]: value });
   };
@@ -91,10 +91,7 @@ export function SearchFiltersComponent({
               variant={filters.status === option.value ? "default" : "outline"}
               size="sm"
               onClick={() =>
-                updateFilter(
-                  "status",
-                  option.value as SearchFilters["status"]
-                )
+                updateFilter("status", option.value as SearchFilters["status"])
               }
             >
               {option.label}
@@ -114,7 +111,7 @@ export function SearchFiltersComponent({
             value={
               filters.categoryId === null
                 ? "none"
-                : filters.categoryId ?? "all"
+                : (filters.categoryId ?? "all")
             }
             onValueChange={(value) => {
               if (value === "all") {
@@ -154,9 +151,7 @@ export function SearchFiltersComponent({
           </label>
           <Select
             value={
-              filters.priority === null
-                ? "none"
-                : filters.priority ?? "all"
+              filters.priority === null ? "none" : (filters.priority ?? "all")
             }
             onValueChange={(value) => {
               if (value === "all") {
