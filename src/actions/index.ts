@@ -21,4 +21,4 @@ export {
   deleteCategory,
 } from "./category";
 
-export { deleteAccount } from "./account";
+export { deleteAccount, changeEmail } from "./account";
