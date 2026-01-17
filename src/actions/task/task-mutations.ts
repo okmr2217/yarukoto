@@ -51,6 +51,16 @@ export async function createTask(
       }
     }
 
+    // 現在の最大displayOrderを取得
+    const maxOrderTask = await prisma.task.findFirst({
+      where: { userId: user.id },
+      orderBy: { displayOrder: "desc" },
+      select: { displayOrder: true },
+    });
+
+    // 新しいタスクは最大値+1のdisplayOrderを持つ（最前に表示）
+    const newDisplayOrder = (maxOrderTask?.displayOrder ?? -1) + 1;
+
     const task = await prisma.task.create({
       data: {
         title: title.trim(),
@@ -58,6 +68,7 @@ export async function createTask(
         scheduledAt: parsedScheduledAt,
         categoryId: categoryId || null,
         priority: priority || null,
+        displayOrder: newDisplayOrder,
         userId: user.id,
       },
       include: { category: true },
