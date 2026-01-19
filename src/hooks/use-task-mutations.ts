@@ -21,16 +21,89 @@ import type { UnifiedTasks } from "./use-tasks";
 import { getTodayInJST } from "@/lib/dateUtils";
 
 /**
+ * クエリキーの型
+ */
+type QueryKey = readonly unknown[];
+
+/**
+ * キャッシュのスナップショット型
+ */
+type CacheSnapshot = {
+  previousAllTasks: Array<[QueryKey, unknown]>;
+  previousTodayTasks: UnifiedTasks | undefined;
+  previousDateTasks: Array<[QueryKey, UnifiedTasks | undefined]>;
+};
+
+/**
  * 共通のタスク操作mutation hooks
  * 楽観的更新対応
  */
 export function useTaskMutations() {
   const queryClient = useQueryClient();
 
+  /**
+   * すべてのクエリを無効化
+   */
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
     queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
     queryClient.invalidateQueries({ queryKey: ["allTasks"] });
+  };
+
+  /**
+   * すべてのクエリをキャンセル
+   */
+  const cancelAllQueries = async () => {
+    await queryClient.cancelQueries({ queryKey: ["allTasks"] });
+    await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
+    await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
+  };
+
+  /**
+   * 現在のキャッシュ状態をスナップショット
+   */
+  const snapshotCache = (): CacheSnapshot => {
+    return {
+      previousAllTasks: queryClient.getQueriesData({ queryKey: ["allTasks"] }),
+      previousTodayTasks: queryClient.getQueryData<UnifiedTasks>(["todayTasks"]),
+      previousDateTasks: queryClient.getQueriesData<UnifiedTasks>({
+        queryKey: ["dateTasks"],
+      }),
+    };
+  };
+
+  /**
+   * キャッシュをロールバック
+   */
+  const rollbackCache = (snapshot: CacheSnapshot) => {
+    snapshot.previousAllTasks.forEach(([queryKey, data]) => {
+      queryClient.setQueryData(queryKey, data);
+    });
+    if (snapshot.previousTodayTasks) {
+      queryClient.setQueryData(["todayTasks"], snapshot.previousTodayTasks);
+    }
+    snapshot.previousDateTasks.forEach(([queryKey, data]) => {
+      queryClient.setQueryData(queryKey, data);
+    });
+  };
+
+  /**
+   * allTasksキャッシュ内のタスクを更新
+   */
+  const updateAllTasksCache = (
+    updater: (task: Task) => Task | null
+  ) => {
+    queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
+      if (!old) return old;
+      const updated: Task[] = [];
+      for (const task of old) {
+        const result = updater(task);
+        if (result !== null) {
+          updated.push(result);
+        }
+      }
+      return updated;
+    });
   };
 
   /**
@@ -54,22 +127,19 @@ export function useTaskMutations() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       categoryId: input.categoryId || null,
-      category: null, // カテゴリはサーバーレスポンスで更新される
+      category: null,
     };
 
     if (isForToday) {
-      // 今日のタスクキャッシュを更新
       queryClient.setQueryData<UnifiedTasks>(["todayTasks"], (old) => {
         if (!old) return old;
         if (scheduledAt === today) {
           return { ...old, today: [...old.today, tempTask] };
         } else {
-          // 日付未定
           return { ...old, undated: [...old.undated, tempTask] };
         }
       });
     } else {
-      // 特定日付のキャッシュを更新
       queryClient.setQueryData<UnifiedTasks>(
         ["dateTasks", scheduledAt],
         (old) => {
@@ -93,15 +163,12 @@ export function useTaskMutations() {
       ...oldTask,
       title: input.title ?? oldTask.title,
       memo: input.memo === undefined ? oldTask.memo : input.memo,
-      priority:
-        input.priority === undefined ? oldTask.priority : input.priority,
+      priority: input.priority === undefined ? oldTask.priority : input.priority,
       scheduledAt: newScheduledAt,
-      categoryId:
-        input.categoryId === undefined ? oldTask.categoryId : input.categoryId,
+      categoryId: input.categoryId === undefined ? oldTask.categoryId : input.categoryId,
       updatedAt: new Date().toISOString(),
     };
 
-    // 日付が変わった場合は移動処理
     const oldIsToday = !oldScheduledAt || oldScheduledAt === today;
     const newIsToday = !newScheduledAt || newScheduledAt === today;
 
@@ -158,7 +225,6 @@ export function useTaskMutations() {
    * 全キャッシュからタスクを検索
    */
   const findTaskInCache = (taskId: string): Task | undefined => {
-    // todayTasksから検索
     const todayData = queryClient.getQueryData<UnifiedTasks>(["todayTasks"]);
     if (todayData) {
       const allTodayTasks = [
@@ -172,7 +238,6 @@ export function useTaskMutations() {
       if (found) return found;
     }
 
-    // dateTasksから検索
     const queries = queryClient.getQueriesData<UnifiedTasks>({
       queryKey: ["dateTasks"],
     });
@@ -200,34 +265,37 @@ export function useTaskMutations() {
       return result.data.task;
     },
     onMutate: async (input) => {
-      // キャンセル中のクエリを待機
-      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
-      await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
 
-      // 以前のデータをスナップショット
-      const previousTodayTasks = queryClient.getQueryData<UnifiedTasks>([
-        "todayTasks",
-      ]);
-      const previousDateTasks = queryClient.getQueriesData<UnifiedTasks>({
-        queryKey: ["dateTasks"],
+      const tempId = `temp-${Date.now()}`;
+      const tempTask: Task = {
+        id: tempId,
+        title: input.title,
+        memo: input.memo || null,
+        status: "PENDING",
+        priority: input.priority || null,
+        scheduledAt: input.scheduledAt || null,
+        completedAt: null,
+        skippedAt: null,
+        skipReason: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        categoryId: input.categoryId || null,
+        category: null,
+      };
+
+      queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
+        if (!old) return old;
+        return [tempTask, ...old];
       });
 
-      // 一時IDで楽観的更新
-      const tempId = `temp-${Date.now()}`;
       addTaskToCache(input, tempId);
 
-      return { previousTodayTasks, previousDateTasks, tempId };
+      return { ...snapshot, tempId };
     },
     onError: (_err, _input, context) => {
-      // エラー時はロールバック
-      if (context?.previousTodayTasks) {
-        queryClient.setQueryData(["todayTasks"], context.previousTodayTasks);
-      }
-      if (context?.previousDateTasks) {
-        for (const [queryKey, data] of context.previousDateTasks) {
-          queryClient.setQueryData(queryKey, data);
-        }
-      }
+      if (context) rollbackCache(context);
     },
     onSettled: invalidateAll,
   });
@@ -248,33 +316,32 @@ export function useTaskMutations() {
       return result.data.task;
     },
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
-      await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
 
-      const previousTodayTasks = queryClient.getQueryData<UnifiedTasks>([
-        "todayTasks",
-      ]);
-      const previousDateTasks = queryClient.getQueriesData<UnifiedTasks>({
-        queryKey: ["dateTasks"],
-      });
+      updateAllTasksCache((task) =>
+        task.id === input.id
+          ? {
+              ...task,
+              title: input.title ?? task.title,
+              memo: input.memo === undefined ? task.memo : input.memo,
+              priority: input.priority === undefined ? task.priority : input.priority,
+              scheduledAt: input.scheduledAt === undefined ? task.scheduledAt : input.scheduledAt,
+              categoryId: input.categoryId === undefined ? task.categoryId : input.categoryId,
+              updatedAt: new Date().toISOString(),
+            }
+          : task
+      );
 
-      // 現在のタスクを検索
       const oldTask = findTaskInCache(input.id);
       if (oldTask) {
         updateTaskInCache(input, oldTask);
       }
 
-      return { previousTodayTasks, previousDateTasks };
+      return snapshot;
     },
     onError: (_err, _input, context) => {
-      if (context?.previousTodayTasks) {
-        queryClient.setQueryData(["todayTasks"], context.previousTodayTasks);
-      }
-      if (context?.previousDateTasks) {
-        for (const [queryKey, data] of context.previousDateTasks) {
-          queryClient.setQueryData(queryKey, data);
-        }
-      }
+      if (context) rollbackCache(context);
     },
     onSettled: invalidateAll,
   });
@@ -287,6 +354,21 @@ export function useTaskMutations() {
       }
       return result.data.task;
     },
+    onMutate: async (id) => {
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
+
+      updateAllTasksCache((task) =>
+        task.id === id
+          ? { ...task, status: "COMPLETED" as const, completedAt: new Date().toISOString() }
+          : task
+      );
+
+      return snapshot;
+    },
+    onError: (_err, _id, context) => {
+      if (context) rollbackCache(context);
+    },
     onSettled: invalidateAll,
   });
 
@@ -297,6 +379,21 @@ export function useTaskMutations() {
         throw new Error(result.error);
       }
       return result.data.task;
+    },
+    onMutate: async (id) => {
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
+
+      updateAllTasksCache((task) =>
+        task.id === id
+          ? { ...task, status: "PENDING" as const, completedAt: null }
+          : task
+      );
+
+      return snapshot;
+    },
+    onError: (_err, _id, context) => {
+      if (context) rollbackCache(context);
     },
     onSettled: invalidateAll,
   });
@@ -309,6 +406,26 @@ export function useTaskMutations() {
       }
       return result.data.task;
     },
+    onMutate: async (input) => {
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
+
+      updateAllTasksCache((task) =>
+        task.id === input.id
+          ? {
+              ...task,
+              status: "SKIPPED" as const,
+              skippedAt: new Date().toISOString(),
+              skipReason: input.reason || null
+            }
+          : task
+      );
+
+      return snapshot;
+    },
+    onError: (_err, _input, context) => {
+      if (context) rollbackCache(context);
+    },
     onSettled: invalidateAll,
   });
 
@@ -320,6 +437,21 @@ export function useTaskMutations() {
       }
       return result.data.task;
     },
+    onMutate: async (id) => {
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
+
+      updateAllTasksCache((task) =>
+        task.id === id
+          ? { ...task, status: "PENDING" as const, skippedAt: null, skipReason: null }
+          : task
+      );
+
+      return snapshot;
+    },
+    onError: (_err, _id, context) => {
+      if (context) rollbackCache(context);
+    },
     onSettled: invalidateAll,
   });
 
@@ -330,6 +462,17 @@ export function useTaskMutations() {
         throw new Error(result.error);
       }
       return result.data.id;
+    },
+    onMutate: async (id) => {
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
+
+      updateAllTasksCache((task) => task.id === id ? null : task);
+
+      return snapshot;
+    },
+    onError: (_err, _id, context) => {
+      if (context) rollbackCache(context);
     },
     onSettled: invalidateAll,
   });
@@ -347,54 +490,39 @@ export function useTaskMutations() {
       return result.data;
     },
     onMutate: async (input) => {
-      // 進行中のクエリをキャンセル
       await queryClient.cancelQueries({ queryKey: ["allTasks"] });
 
-      // 以前のデータをスナップショット
-      const previousData: Array<[any, any]> = [];
+      const previousData: Array<[QueryKey, unknown]> = [];
       const queries = queryClient.getQueriesData({ queryKey: ["allTasks"] });
       queries.forEach(([key, data]) => {
         previousData.push([key, data]);
       });
 
-      // 楽観的更新: すべてのallTasksクエリの順序を更新
       queries.forEach(([queryKey]) => {
         queryClient.setQueryData(queryKey, (old: Task[] | undefined) => {
           if (!old || !Array.isArray(old)) return old;
 
           const { taskId, beforeTaskId, afterTaskId } = input;
 
-          // ドラッグしたタスクを取得
           const task = old.find((t) => t.id === taskId);
           if (!task) return old;
 
-          // タスクを除外
           const withoutTask = old.filter((t) => t.id !== taskId);
 
-          // 新しい位置を見つける
           let newIndex: number;
           if (beforeTaskId && afterTaskId) {
-            // 2つのタスクの間
-            const beforeIndex = withoutTask.findIndex(
-              (t) => t.id === beforeTaskId,
-            );
+            const beforeIndex = withoutTask.findIndex((t) => t.id === beforeTaskId);
             newIndex = beforeIndex + 1;
           } else if (beforeTaskId) {
-            // beforeTaskの後ろ（末尾）
-            const beforeIndex = withoutTask.findIndex(
-              (t) => t.id === beforeTaskId,
-            );
+            const beforeIndex = withoutTask.findIndex((t) => t.id === beforeTaskId);
             newIndex = beforeIndex + 1;
           } else if (afterTaskId) {
-            // afterTaskの前（先頭）
             const afterIndex = withoutTask.findIndex((t) => t.id === afterTaskId);
             newIndex = afterIndex;
           } else {
-            // 先頭
             newIndex = 0;
           }
 
-          // タスクを新しい位置に挿入
           const newOrder = [
             ...withoutTask.slice(0, newIndex),
             task,
@@ -408,7 +536,6 @@ export function useTaskMutations() {
       return { previousData };
     },
     onError: (_err, _input, context) => {
-      // エラー時はロールバック
       if (context?.previousData) {
         context.previousData.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -416,7 +543,6 @@ export function useTaskMutations() {
       }
     },
     onSuccess: () => {
-      // 成功時は他のクエリのみ無効化（allTasksは楽観的更新済み）
       queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
       queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
     },

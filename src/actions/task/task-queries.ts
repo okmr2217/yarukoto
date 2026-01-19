@@ -327,6 +327,9 @@ export async function getAllTasks(input?: {
       where.categoryId = input.categoryId;
     }
 
+    // 楽観的更新のテスト用に2秒の遅延を追加
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const tasks = await prisma.task.findMany({
       where,
       include: { category: true },
