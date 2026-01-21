@@ -111,7 +111,7 @@ export function TaskSection({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px移動するまでドラッグ開始しない（クリックと区別）
+        distance: 4, // 4px移動するまでドラッグ開始しない（クリックと区別）
       },
     }),
   );

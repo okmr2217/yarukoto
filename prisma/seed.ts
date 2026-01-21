@@ -100,6 +100,7 @@ async function main() {
         scheduledAt: getRelativeDate(-2),
         userId: testUser.id,
         categoryId: workCategory.id,
+        displayOrder: 1,
       },
     }),
     prisma.task.create({
@@ -111,6 +112,7 @@ async function main() {
         scheduledAt: getRelativeDate(-1),
         userId: testUser.id,
         categoryId: privateCategory.id,
+        displayOrder: 2,
       },
     }),
 
@@ -123,6 +125,7 @@ async function main() {
         scheduledAt: today,
         userId: testUser.id,
         categoryId: workCategory.id,
+        displayOrder: 3,
       },
     }),
     prisma.task.create({
@@ -134,6 +137,7 @@ async function main() {
         scheduledAt: today,
         userId: testUser.id,
         categoryId: shoppingCategory.id,
+        displayOrder: 4,
       },
     }),
     prisma.task.create({
@@ -145,6 +149,7 @@ async function main() {
         scheduledAt: today,
         userId: testUser.id,
         categoryId: privateCategory.id,
+        displayOrder: 5,
       },
     }),
     prisma.task.create({
@@ -156,6 +161,7 @@ async function main() {
         scheduledAt: today,
         userId: testUser.id,
         categoryId: workCategory.id,
+        displayOrder: 6,
       },
     }),
 
@@ -166,6 +172,7 @@ async function main() {
         memo: "Duolingoアプリ",
         status: "PENDING",
         userId: testUser.id,
+        displayOrder: 7,
       },
     }),
     prisma.task.create({
@@ -173,6 +180,7 @@ async function main() {
         title: "写真のバックアップを取る",
         status: "PENDING",
         userId: testUser.id,
+        displayOrder: 8,
       },
     }),
     prisma.task.create({
@@ -182,6 +190,7 @@ async function main() {
         priority: "LOW",
         userId: testUser.id,
         categoryId: privateCategory.id,
+        displayOrder: 9,
       },
     }),
 
@@ -194,6 +203,7 @@ async function main() {
         completedAt: now,
         userId: testUser.id,
         categoryId: privateCategory.id,
+        displayOrder: 10,
       },
     }),
     prisma.task.create({
@@ -205,6 +215,7 @@ async function main() {
         completedAt: now,
         userId: testUser.id,
         categoryId: workCategory.id,
+        displayOrder: 11,
       },
     }),
     prisma.task.create({
@@ -216,6 +227,7 @@ async function main() {
         completedAt: now,
         userId: testUser.id,
         categoryId: shoppingCategory.id,
+        displayOrder: 12,
       },
     }),
 
@@ -231,6 +243,7 @@ async function main() {
         skipReason: "今月は出費を控える",
         userId: testUser.id,
         categoryId: shoppingCategory.id,
+        displayOrder: 13,
       },
     }),
 
@@ -243,6 +256,7 @@ async function main() {
         scheduledAt: getRelativeDate(3),
         userId: testUser.id,
         categoryId: shoppingCategory.id,
+        displayOrder: 14,
       },
     }),
     prisma.task.create({
@@ -254,6 +268,7 @@ async function main() {
         scheduledAt: getRelativeDate(5),
         userId: testUser.id,
         categoryId: workCategory.id,
+        displayOrder: 15,
       },
     }),
     prisma.task.create({
@@ -264,6 +279,7 @@ async function main() {
         scheduledAt: getRelativeDate(7),
         userId: testUser.id,
         categoryId: privateCategory.id,
+        displayOrder: 16,
       },
     }),
   ]);
