@@ -4,13 +4,15 @@ import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateForDisplay, isTodayInJST } from "@/lib/dateUtils";
+import Link from "next/link";
 
 interface DateNavigationProps {
   currentDate: Date;
   onPrevious: () => void;
   onNext: () => void;
   onToday: () => void;
-  onDatePicker: () => void;
+  isPast?: boolean;
+  isFuture?: boolean;
 }
 
 export function DateNavigation({
@@ -18,7 +20,8 @@ export function DateNavigation({
   onPrevious,
   onNext,
   onToday,
-  onDatePicker,
+  isPast = false,
+  isFuture = false,
 }: DateNavigationProps) {
   const isTodayDate = isTodayInJST(currentDate);
 
@@ -42,29 +45,40 @@ export function DateNavigation({
             今日
           </span>
         )}
+        {isPast && (
+          <span className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full">
+            過去
+          </span>
+        )}
+        {isFuture && (
+          <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-full">
+            未来
+          </span>
+        )}
       </div>
 
       <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" onClick={onNext} aria-label="翌日">
           <ChevronRight className="h-5 w-5" />
         </Button>
-        {!isTodayDate && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onToday}
-            className="text-xs"
-          >
-            今日
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onToday}
+          className="text-xs"
+          disabled={isTodayDate}
+        >
+          今日
+        </Button>
         <Button
           variant="ghost"
           size="icon"
-          onClick={onDatePicker}
           aria-label="日付を選択"
+          asChild
         >
-          <Calendar className={cn("h-5 w-5")} />
+          <Link href="/calendar">
+            <Calendar className={cn("h-5 w-5")} />
+          </Link>
         </Button>
       </div>
     </div>

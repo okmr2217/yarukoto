@@ -7,7 +7,6 @@ import {
   success,
   failure,
   type Task,
-  type TodayTasks,
   type DateTasks,
   type SearchTasksResult,
   type MonthlyTaskStats,
@@ -28,96 +27,6 @@ import {
 } from "@/lib/dateUtils";
 import { ERROR_MESSAGES } from "@/lib/constants";
 import { toTask } from "@/lib/task-helpers";
-
-/**
- * 今日のタスクを取得します。
- *
- * @returns 今日のタスク情報（遅延、今日、未設定、完了、スキップの各グループ）
- *
- * @remarks
- * - 遅延: 今日より前に予定されていて、まだ未完了のタスク
- * - 今日: 今日予定されていて、未完了のタスク
- * - 未設定: 予定日が設定されていない未完了のタスク
- * - 完了: 今日完了したタスク
- * - スキップ: 今日スキップしたタスク
- *
- * すべての日付処理はJST（日本標準時）基準で行われます。
- */
-export async function getTodayTasks(): Promise<ActionResult<TodayTasks>> {
-  try {
-    const user = await getRequiredUser();
-    const today = getTodayInJST();
-    const todayDate = new Date(today);
-    const { start: todayStart, end: todayEnd } = getDateRangeInJST(today);
-
-    const [overdue, todayTasks, undated, completed, skipped] =
-      await Promise.all([
-        // 遅延: 今日より前に予定されていて、まだ未完了
-        // scheduledAtはDATE型なので、日付として比較
-        prisma.task.findMany({
-          where: {
-            userId: user.id,
-            status: "PENDING",
-            scheduledAt: { lt: todayDate },
-          },
-          include: { category: true },
-          orderBy: { scheduledAt: "asc" },
-        }),
-        // 今日: 今日予定されていて未完了
-        // DATE型なので、完全一致で比較
-        prisma.task.findMany({
-          where: {
-            userId: user.id,
-            status: "PENDING",
-            scheduledAt: todayDate,
-          },
-          include: { category: true },
-          orderBy: { createdAt: "desc" },
-        }),
-        // 未設定: 予定日なしで未完了
-        prisma.task.findMany({
-          where: {
-            userId: user.id,
-            status: "PENDING",
-            scheduledAt: null,
-          },
-          include: { category: true },
-          orderBy: { createdAt: "desc" },
-        }),
-        // 今日完了したタスク
-        prisma.task.findMany({
-          where: {
-            userId: user.id,
-            status: "COMPLETED",
-            completedAt: { gte: todayStart, lte: todayEnd },
-          },
-          include: { category: true },
-          orderBy: { completedAt: "desc" },
-        }),
-        // 今日スキップしたタスク
-        prisma.task.findMany({
-          where: {
-            userId: user.id,
-            status: "SKIPPED",
-            skippedAt: { gte: todayStart, lte: todayEnd },
-          },
-          include: { category: true },
-          orderBy: { skippedAt: "desc" },
-        }),
-      ]);
-
-    return success({
-      overdue: overdue.map(toTask),
-      today: todayTasks.map(toTask),
-      undated: undated.map(toTask),
-      completed: completed.map(toTask),
-      skipped: skipped.map(toTask),
-    });
-  } catch (error) {
-    console.error("getTodayTasks error:", error);
-    return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");
-  }
-}
 
 /**
  * 指定した日付のタスクを取得します。

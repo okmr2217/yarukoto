@@ -188,11 +188,7 @@ export default function CalendarPage() {
 
   const handleNavigateToDate = () => {
     if (selectedDate) {
-      if (selectedDate === today) {
-        router.push("/");
-      } else {
-        router.push(`/${selectedDate}`);
-      }
+      router.push(`/dates/${selectedDate}`);
     }
   };
 
@@ -350,44 +346,12 @@ export default function CalendarPage() {
                   </h3>
                   {dayTasks ? (
                     <div className="space-y-3">
-                      {/* 今日の場合 */}
-                      {selectedDate === today && (
-                        <>
-                          {dayTasks.overdue.length > 0 && (
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-red-600">期限超過</span>
-                              <span className="font-medium">
-                                {dayTasks.overdue.length}件
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex justify-between items-center text-sm">
-                            <span>今日</span>
-                            <span className="font-medium">
-                              {dayTasks.today.length}件
-                            </span>
-                          </div>
-                          {dayTasks.undated.length > 0 && (
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-muted-foreground">
-                                日付未定
-                              </span>
-                              <span className="font-medium">
-                                {dayTasks.undated.length}件
-                              </span>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      {/* その他の日 */}
-                      {selectedDate !== today && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span>予定</span>
-                          <span className="font-medium">
-                            {dayTasks.scheduled.length}件
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex justify-between items-center text-sm">
+                        <span>予定</span>
+                        <span className="font-medium">
+                          {dayTasks.scheduled.length}件
+                        </span>
+                      </div>
                       {dayTasks.completed.length > 0 && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-green-600">完了</span>

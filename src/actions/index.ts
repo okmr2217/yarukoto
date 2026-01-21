@@ -1,5 +1,4 @@
 export {
-  getTodayTasks,
   getTasksByDate,
   searchTasks,
   getAllTasks,

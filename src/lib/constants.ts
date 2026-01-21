@@ -56,7 +56,6 @@ export const ERROR_MESSAGES = {
  * React Queryのクエリキー
  */
 export const QUERY_KEYS = {
-  TODAY_TASKS: ["todayTasks"] as const,
   DATE_TASKS: ["dateTasks"] as const,
   SEARCH_TASKS: ["searchTasks"] as const,
   CATEGORIES: ["categories"] as const,

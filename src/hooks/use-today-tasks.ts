@@ -1,8 +1,7 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getTodayTasks,
   createTask,
   updateTask,
   completeTask,
@@ -13,19 +12,6 @@ import {
 } from "@/actions";
 import type { Task, TodayTasks } from "@/types";
 import type { CreateTaskInput, UpdateTaskInput } from "@/lib/validations";
-
-export function useTodayTasks() {
-  return useQuery({
-    queryKey: ["todayTasks"],
-    queryFn: async () => {
-      const result = await getTodayTasks();
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
-}
 
 // 共通のinvalidate関数
 function useInvalidateTaskQueries() {

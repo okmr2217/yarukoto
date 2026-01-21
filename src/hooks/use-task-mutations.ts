@@ -18,7 +18,6 @@ import type {
 } from "@/lib/validations";
 import type { Task } from "@/types";
 import type { UnifiedTasks } from "./use-tasks";
-import { getTodayInJST } from "@/lib/dateUtils";
 
 /**
  * クエリキーの型
@@ -30,7 +29,6 @@ type QueryKey = readonly unknown[];
  */
 type CacheSnapshot = {
   previousAllTasks: Array<[QueryKey, unknown]>;
-  previousTodayTasks: UnifiedTasks | undefined;
   previousDateTasks: Array<[QueryKey, UnifiedTasks | undefined]>;
 };
 
@@ -45,7 +43,6 @@ export function useTaskMutations() {
    * すべてのクエリを無効化
    */
   const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
     queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
     queryClient.invalidateQueries({ queryKey: ["allTasks"] });
   };
@@ -55,7 +52,6 @@ export function useTaskMutations() {
    */
   const cancelAllQueries = async () => {
     await queryClient.cancelQueries({ queryKey: ["allTasks"] });
-    await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
     await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
   };
 
@@ -65,7 +61,6 @@ export function useTaskMutations() {
   const snapshotCache = (): CacheSnapshot => {
     return {
       previousAllTasks: queryClient.getQueriesData({ queryKey: ["allTasks"] }),
-      previousTodayTasks: queryClient.getQueryData<UnifiedTasks>(["todayTasks"]),
       previousDateTasks: queryClient.getQueriesData<UnifiedTasks>({
         queryKey: ["dateTasks"],
       }),
@@ -79,9 +74,6 @@ export function useTaskMutations() {
     snapshot.previousAllTasks.forEach(([queryKey, data]) => {
       queryClient.setQueryData(queryKey, data);
     });
-    if (snapshot.previousTodayTasks) {
-      queryClient.setQueryData(["todayTasks"], snapshot.previousTodayTasks);
-    }
     snapshot.previousDateTasks.forEach(([queryKey, data]) => {
       queryClient.setQueryData(queryKey, data);
     });
@@ -110,9 +102,7 @@ export function useTaskMutations() {
    * 楽観的更新用: 新規タスクをキャッシュに追加
    */
   const addTaskToCache = (input: CreateTaskInput, tempId: string) => {
-    const today = getTodayInJST();
     const scheduledAt = input.scheduledAt || null;
-    const isForToday = !scheduledAt || scheduledAt === today;
 
     const tempTask: Task = {
       id: tempId,
@@ -130,31 +120,19 @@ export function useTaskMutations() {
       category: null,
     };
 
-    if (isForToday) {
-      queryClient.setQueryData<UnifiedTasks>(["todayTasks"], (old) => {
+    queryClient.setQueryData<UnifiedTasks>(
+      ["dateTasks", scheduledAt],
+      (old) => {
         if (!old) return old;
-        if (scheduledAt === today) {
-          return { ...old, today: [...old.today, tempTask] };
-        } else {
-          return { ...old, undated: [...old.undated, tempTask] };
-        }
-      });
-    } else {
-      queryClient.setQueryData<UnifiedTasks>(
-        ["dateTasks", scheduledAt],
-        (old) => {
-          if (!old) return old;
-          return { ...old, scheduled: [...old.scheduled, tempTask] };
-        },
-      );
-    }
+        return { ...old, scheduled: [...old.scheduled, tempTask] };
+      },
+    );
   };
 
   /**
    * 楽観的更新用: タスクをキャッシュ内で更新
    */
   const updateTaskInCache = (input: UpdateTaskInput, oldTask: Task) => {
-    const today = getTodayInJST();
     const newScheduledAt =
       input.scheduledAt === undefined ? oldTask.scheduledAt : input.scheduledAt;
     const oldScheduledAt = oldTask.scheduledAt;
@@ -169,75 +147,34 @@ export function useTaskMutations() {
       updatedAt: new Date().toISOString(),
     };
 
-    const oldIsToday = !oldScheduledAt || oldScheduledAt === today;
-    const newIsToday = !newScheduledAt || newScheduledAt === today;
-
     // 古いキャッシュからタスクを削除
-    if (oldIsToday) {
-      queryClient.setQueryData<UnifiedTasks>(["todayTasks"], (old) => {
+    queryClient.setQueryData<UnifiedTasks>(
+      ["dateTasks", oldScheduledAt],
+      (old) => {
         if (!old) return old;
         return {
           ...old,
-          overdue: old.overdue.filter((t) => t.id !== input.id),
-          today: old.today.filter((t) => t.id !== input.id),
-          undated: old.undated.filter((t) => t.id !== input.id),
+          scheduled: old.scheduled.filter((t) => t.id !== input.id),
           completed: old.completed.filter((t) => t.id !== input.id),
           skipped: old.skipped.filter((t) => t.id !== input.id),
         };
-      });
-    } else {
-      queryClient.setQueryData<UnifiedTasks>(
-        ["dateTasks", oldScheduledAt],
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            scheduled: old.scheduled.filter((t) => t.id !== input.id),
-            completed: old.completed.filter((t) => t.id !== input.id),
-            skipped: old.skipped.filter((t) => t.id !== input.id),
-          };
-        },
-      );
-    }
+      },
+    );
 
     // 新しいキャッシュにタスクを追加
-    if (newIsToday) {
-      queryClient.setQueryData<UnifiedTasks>(["todayTasks"], (old) => {
+    queryClient.setQueryData<UnifiedTasks>(
+      ["dateTasks", newScheduledAt],
+      (old) => {
         if (!old) return old;
-        if (newScheduledAt === today) {
-          return { ...old, today: [...old.today, updatedTask] };
-        } else {
-          return { ...old, undated: [...old.undated, updatedTask] };
-        }
-      });
-    } else {
-      queryClient.setQueryData<UnifiedTasks>(
-        ["dateTasks", newScheduledAt],
-        (old) => {
-          if (!old) return old;
-          return { ...old, scheduled: [...old.scheduled, updatedTask] };
-        },
-      );
-    }
+        return { ...old, scheduled: [...old.scheduled, updatedTask] };
+      },
+    );
   };
 
   /**
    * 全キャッシュからタスクを検索
    */
   const findTaskInCache = (taskId: string): Task | undefined => {
-    const todayData = queryClient.getQueryData<UnifiedTasks>(["todayTasks"]);
-    if (todayData) {
-      const allTodayTasks = [
-        ...todayData.overdue,
-        ...todayData.today,
-        ...todayData.undated,
-        ...todayData.completed,
-        ...todayData.skipped,
-      ];
-      const found = allTodayTasks.find((t) => t.id === taskId);
-      if (found) return found;
-    }
-
     const queries = queryClient.getQueriesData<UnifiedTasks>({
       queryKey: ["dateTasks"],
     });
@@ -543,7 +480,6 @@ export function useTaskMutations() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todayTasks"] });
       queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
     },
   });

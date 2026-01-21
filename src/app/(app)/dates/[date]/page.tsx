@@ -11,7 +11,6 @@ import {
   SkipReasonDialog,
   type TaskEditData,
 } from "@/components/task";
-import { CalendarDialog } from "@/components/calendar";
 import {
   useTasks,
   useTaskMutations,
@@ -20,7 +19,6 @@ import {
 } from "@/hooks";
 import type { Task } from "@/types";
 import {
-  formatDateForDisplay,
   getTodayInJST,
   addDaysJST,
   parseJSTDate,
@@ -42,7 +40,6 @@ export default function TaskPage() {
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
@@ -70,11 +67,7 @@ export default function TaskPage() {
   };
 
   const handleToday = () => {
-    router.push("/");
-  };
-
-  const handleDatePicker = () => {
-    setDatePickerOpen(true);
+    router.push(`/dates/${today}`);
   };
 
   const handleCreateTask = (data: {
@@ -110,15 +103,7 @@ export default function TaskPage() {
 
   const handleSkip = (id: string) => {
     if (!tasks) return;
-    const allTasks = isToday
-      ? [
-          ...tasks.overdue,
-          ...tasks.today,
-          ...tasks.undated,
-          ...tasks.completed,
-          ...tasks.skipped,
-        ]
-      : [...tasks.scheduled, ...tasks.completed, ...tasks.skipped];
+    const allTasks = [...tasks.scheduled, ...tasks.completed, ...tasks.skipped];
 
     const task = allTasks.find((t) => t.id === id);
     if (task) {
@@ -212,9 +197,6 @@ export default function TaskPage() {
   // フィルター済みタスク
   const filteredTasks = tasks
     ? {
-        overdue: filterTasksByCategory(tasks.overdue),
-        today: filterTasksByCategory(tasks.today),
-        undated: filterTasksByCategory(tasks.undated),
         scheduled: filterTasksByCategory(tasks.scheduled),
         completed: filterTasksByCategory(tasks.completed),
         skipped: filterTasksByCategory(tasks.skipped),
@@ -223,15 +205,9 @@ export default function TaskPage() {
 
   const hasNoTasks = !filteredTasks
     ? true
-    : isToday
-      ? filteredTasks.overdue.length === 0 &&
-        filteredTasks.today.length === 0 &&
-        filteredTasks.undated.length === 0 &&
-        filteredTasks.completed.length === 0 &&
-        filteredTasks.skipped.length === 0
-      : filteredTasks.scheduled.length === 0 &&
-        filteredTasks.completed.length === 0 &&
-        filteredTasks.skipped.length === 0;
+    : filteredTasks.scheduled.length === 0 &&
+      filteredTasks.completed.length === 0 &&
+      filteredTasks.skipped.length === 0;
 
   return (
     <div className="flex-1 bg-background flex flex-col">
@@ -243,7 +219,8 @@ export default function TaskPage() {
           onPrevious={handlePrevious}
           onNext={handleNext}
           onToday={handleToday}
-          onDatePicker={handleDatePicker}
+          isPast={isPast}
+          isFuture={isFuture}
         />
 
         <CategoryFilter
@@ -254,37 +231,9 @@ export default function TaskPage() {
 
         <main className="flex-1 overflow-auto pb-20 md:pb-4">
           <div className="px-4 py-4">
-            {/* Date title with badge */}
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg font-bold">
-                {isToday
-                  ? "今日のタスク"
-                  : formatDateForDisplay(dateFromString(targetDate))}
-              </span>
-              {isToday && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
-                  今日
-                </span>
-              )}
-              {isPast && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full">
-                  過去
-                </span>
-              )}
-              {isFuture && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded-full">
-                  未来
-                </span>
-              )}
-            </div>
-
             {hasNoTasks ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p>
-                  {isToday
-                    ? "タスクがありません"
-                    : "この日のタスクはありません"}
-                </p>
+                <p>この日のタスクはありません</p>
                 <p className="text-sm mt-1">
                   {isToday || isFuture ? (
                     <>
@@ -302,54 +251,8 @@ export default function TaskPage() {
               </div>
             ) : (
               <>
-                {/* === 今日の表示 === */}
-                {isToday && (
-                  <>
-                    {/* 期限超過 */}
-                    <TaskSection
-                      title="期限超過"
-                      tasks={filteredTasks?.overdue || []}
-                      variant="overdue"
-                      handlers={taskHandlers}
-                      showScheduledDate
-                    />
-
-                    {/* 今日 */}
-                    <TaskSection
-                      title="今日"
-                      tasks={filteredTasks?.today || []}
-                      handlers={taskHandlers}
-                    />
-
-                    {/* 日付未定 */}
-                    <TaskSection
-                      title="日付未定"
-                      tasks={filteredTasks?.undated || []}
-                      handlers={taskHandlers}
-                    />
-
-                    {/* 今日完了 */}
-                    <TaskSection
-                      title="今日完了"
-                      tasks={filteredTasks?.completed || []}
-                      variant="completed"
-                      defaultCollapsed={settings.autoCollapseCompleted}
-                      handlers={taskHandlers}
-                    />
-
-                    {/* 今日やらない */}
-                    <TaskSection
-                      title="今日やらない"
-                      tasks={filteredTasks?.skipped || []}
-                      variant="skipped"
-                      defaultCollapsed={settings.autoCollapseSkipped}
-                      handlers={taskHandlers}
-                    />
-                  </>
-                )}
-
                 {/* === 過去の日付の表示 === */}
-                {isPast && (
+                {(isToday || isPast ) && (
                   <>
                     {/* この日に完了 */}
                     <TaskSection
@@ -423,13 +326,6 @@ export default function TaskPage() {
         taskTitle={skippingTask?.title || ""}
         onConfirm={handleSkipConfirm}
         isLoading={mutations.skipTask.isPending}
-      />
-
-      <CalendarDialog
-        open={datePickerOpen}
-        onOpenChange={setDatePickerOpen}
-        currentDate={dateFromString(targetDate)}
-        onSelectDate={handleNavigate}
       />
     </div>
   );

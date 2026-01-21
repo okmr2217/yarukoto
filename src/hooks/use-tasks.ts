@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getTodayTasks, getTasksByDate } from "@/actions";
+import { getTasksByDate } from "@/actions";
 import { getTodayInJST } from "@/lib/dateUtils";
 import type { Task } from "@/types";
 
@@ -14,11 +14,6 @@ export type UnifiedTasks = {
   isToday: boolean;
   isPast: boolean;
   isFuture: boolean;
-  // 今日のみ
-  overdue: Task[];
-  today: Task[];
-  undated: Task[];
-  // 共通
   scheduled: Task[];
   completed: Task[];
   skipped: Task[];
@@ -34,41 +29,20 @@ export function useTasks(date?: string) {
   const isToday = targetDate === today;
 
   return useQuery({
-    queryKey: isToday ? ["todayTasks"] : ["dateTasks", targetDate],
+    queryKey: ["dateTasks", targetDate],
     queryFn: async (): Promise<UnifiedTasks> => {
-      if (isToday) {
-        const result = await getTodayTasks();
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-        return {
-          isToday: true,
-          isPast: false,
-          isFuture: false,
-          overdue: result.data.overdue,
-          today: result.data.today,
-          undated: result.data.undated,
-          scheduled: [],
-          completed: result.data.completed,
-          skipped: result.data.skipped,
-        };
-      } else {
-        const result = await getTasksByDate({ date: targetDate });
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-        return {
-          isToday: false,
-          isPast: result.data.isPast,
-          isFuture: result.data.isFuture,
-          overdue: [],
-          today: [],
-          undated: [],
-          scheduled: result.data.scheduled,
-          completed: result.data.completed,
-          skipped: result.data.skipped,
-        };
+      const result = await getTasksByDate({ date: targetDate });
+      if (!result.success) {
+        throw new Error(result.error);
       }
+      return {
+        isToday: isToday,
+        isPast: result.data.isPast,
+        isFuture: result.data.isFuture,
+        scheduled: result.data.scheduled,
+        completed: result.data.completed,
+        skipped: result.data.skipped,
+      };
     },
   });
 }
