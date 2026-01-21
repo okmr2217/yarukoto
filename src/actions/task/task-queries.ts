@@ -94,7 +94,7 @@ export async function getTasksByDate(
         scheduledAt: dateObj,
       },
       include: { category: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: { displayOrder: "desc" },
     });
 
     return success({
@@ -114,12 +114,12 @@ export async function getTasksByDate(
  * タスクを検索します。
  *
  * @param input - 検索条件（キーワード、ステータス、カテゴリ、優先度、日付範囲）
- * @returns 検索結果（displayOrder順にソートされたタスク）
+ * @returns 検索結果（displayOrder降順にソートされたタスク）
  *
  * @remarks
  * - キーワード検索はタイトルとメモの両方に対して、大文字小文字を区別せずに行われます
  * - 日付範囲検索はJST（日本標準時）基準で行われます
- * - displayOrderが設定されている場合は昇順、未設定の場合は作成日降順でソートされます
+ * - displayOrderが大きい値ほど上に表示されます
  */
 export async function searchTasks(
   input: SearchTasksInput,
@@ -177,31 +177,11 @@ export async function searchTasks(
     const tasks = await prisma.task.findMany({
       where,
       include: { category: true },
-    });
-
-    // displayOrderでソート（nullは最後、それ以外は昇順）
-    // nullのタスクは作成日降順でソート
-    const sortedTasks = tasks.sort((a, b) => {
-      // 両方displayOrderがある場合
-      if (a.displayOrder !== null && b.displayOrder !== null) {
-        return a.displayOrder - b.displayOrder;
-      }
-      // aのみdisplayOrderがある場合、aを先に
-      if (a.displayOrder !== null && b.displayOrder === null) {
-        return -1;
-      }
-      // bのみdisplayOrderがある場合、bを先に
-      if (a.displayOrder === null && b.displayOrder !== null) {
-        return 1;
-      }
-      // 両方nullの場合、作成日降順
-      return (
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      orderBy: { displayOrder: "desc" },
     });
 
     return success({
-      tasks: sortedTasks.map(toTask),
+      tasks: tasks.map(toTask),
       total: tasks.length,
     });
   } catch (error) {
@@ -214,12 +194,12 @@ export async function searchTasks(
  * すべてのタスクを取得します。
  *
  * @param input - フィルタ条件（カテゴリID）
- * @returns すべてのタスク（displayOrder優先、次に作成日降順）
+ * @returns すべてのタスク（displayOrder降順にソート）
  *
  * @remarks
  * - カテゴリIDが未指定の場合、すべてのタスクを取得
  * - カテゴリIDがnullの場合、カテゴリなしのタスクのみ取得
- * - displayOrderが設定されている場合は昇順、未設定の場合は作成日降順でソートされます
+ * - displayOrderが大きい値ほど上に表示されます
  */
 export async function getAllTasks(input?: {
   categoryId?: string | null;
@@ -235,37 +215,14 @@ export async function getAllTasks(input?: {
     if (input?.categoryId !== undefined) {
       where.categoryId = input.categoryId;
     }
-
-    // 楽観的更新のテスト用に2秒の遅延を追加
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
+    
     const tasks = await prisma.task.findMany({
       where,
       include: { category: true },
+      orderBy: { displayOrder: "desc" },
     });
 
-    // displayOrderでソート（nullは最後、それ以外は昇順）
-    // nullのタスクは作成日降順でソート
-    const sortedTasks = tasks.sort((a, b) => {
-      // 両方displayOrderがある場合
-      if (a.displayOrder !== null && b.displayOrder !== null) {
-        return a.displayOrder - b.displayOrder;
-      }
-      // aのみdisplayOrderがある場合、aを先に
-      if (a.displayOrder !== null && b.displayOrder === null) {
-        return -1;
-      }
-      // bのみdisplayOrderがある場合、bを先に
-      if (a.displayOrder === null && b.displayOrder !== null) {
-        return 1;
-      }
-      // 両方nullの場合、作成日降順
-      return (
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    });
-
-    return success(sortedTasks.map(toTask));
+    return success(tasks.map(toTask));
   } catch (error) {
     console.error("getAllTasks error:", error);
     return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");

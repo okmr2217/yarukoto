@@ -58,8 +58,8 @@ export async function createTask(
       select: { displayOrder: true },
     });
 
-    // 新しいタスクは最大値+1のdisplayOrderを持つ（最前に表示）
-    const newDisplayOrder = (maxOrderTask?.displayOrder ?? -1) + 1;
+    // 新しいタスクは最大値+1のdisplayOrderを持つ（降順表示で最上部に表示）
+    const newDisplayOrder = (maxOrderTask?.displayOrder ?? 0) + 1;
 
     const task = await prisma.task.create({
       data: {
@@ -426,23 +426,23 @@ export async function reorderTasks(input: {
         : null,
     ]);
 
-    // 新しいdisplayOrderを計算
+    // 新しいdisplayOrderを計算（降順表示を前提）
     if (beforeTask && afterTask) {
       // 2つのタスクの間に配置
-      const before = beforeTask.displayOrder ?? 0;
-      const after = afterTask.displayOrder ?? 0;
+      const before = beforeTask.displayOrder ?? 1;
+      const after = afterTask.displayOrder ?? 1;
       newDisplayOrder = (before + after) / 2;
     } else if (beforeTask) {
-      // beforeTaskの後ろ（末尾）に配置
-      const before = beforeTask.displayOrder ?? 0;
-      newDisplayOrder = before + 1;
+      // beforeTaskの後ろ（下側）に配置
+      const before = beforeTask.displayOrder ?? 1;
+      newDisplayOrder = before - 1;
     } else if (afterTask) {
-      // afterTaskの前（先頭）に配置
-      const after = afterTask.displayOrder ?? 0;
-      newDisplayOrder = after - 1;
+      // afterTaskの前（上側）に配置
+      const after = afterTask.displayOrder ?? 1;
+      newDisplayOrder = after + 1;
     } else {
       // タスクが1つだけの場合
-      newDisplayOrder = 0;
+      newDisplayOrder = 1;
     }
 
     // タスクのdisplayOrderを更新

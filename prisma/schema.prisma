@@ -103,7 +103,7 @@ model Task {
   completedAt  DateTime?
   skippedAt    DateTime?
   skipReason   String?    @db.Text
-  displayOrder Float?
+  displayOrder Float
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
