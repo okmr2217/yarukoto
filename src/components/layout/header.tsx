@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search, Settings, Tags, Home } from "lucide-react";
+import { Menu, Search, Settings, Tags, Home, Calendar } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Image from "next/image";
+import { NAV_ITEMS } from "@/lib/constants";
+
+const iconMap = {
+  Home,
+  Calendar,
+  Search,
+  Tags,
+  Settings,
+} as const;
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -32,38 +41,20 @@ export function Header() {
               </SheetTitle>
             </SheetHeader>
             <nav className="mt-6 space-y-1">
-              <Link
-                href="/"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-              >
-                <Home className="h-5 w-5 text-muted-foreground" />
-                <span>ホーム</span>
-              </Link>
-              <Link
-                href="/search"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-              >
-                <Search className="h-5 w-5 text-muted-foreground" />
-                <span>検索</span>
-              </Link>
-              <Link
-                href="/categories"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-              >
-                <Tags className="h-5 w-5 text-muted-foreground" />
-                <span>カテゴリ管理</span>
-              </Link>
-              <Link
-                href="/settings"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-              >
-                <Settings className="h-5 w-5 text-muted-foreground" />
-                <span>設定</span>
-              </Link>
+              {NAV_ITEMS.map((item) => {
+                const Icon = iconMap[item.icon];
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
             </nav>
           </SheetContent>
         </Sheet>

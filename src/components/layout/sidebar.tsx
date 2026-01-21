@@ -5,14 +5,15 @@ import { usePathname } from "next/navigation";
 import { Home, Search, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { NAV_ITEMS } from "@/lib/constants";
 
-const navItems = [
-  { href: "/", label: "ホーム", icon: Home },
-  { href: "/calendar", label: "カレンダー", icon: Calendar },
-  { href: "/search", label: "検索", icon: Search },
-  { href: "/categories", label: "カテゴリ管理", icon: Tags },
-  { href: "/settings", label: "設定", icon: Settings },
-];
+const iconMap = {
+  Home,
+  Calendar,
+  Search,
+  Tags,
+  Settings,
+} as const;
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -41,8 +42,8 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
+        {NAV_ITEMS.map((item) => {
+          const Icon = iconMap[item.icon];
           const active = isActive(item.href);
 
           return (

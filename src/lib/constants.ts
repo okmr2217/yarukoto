@@ -62,3 +62,14 @@ export const QUERY_KEYS = {
   MONTHLY_STATS: ["monthlyTaskStats"] as const,
   SETTINGS: ["settings"] as const,
 } as const;
+
+/**
+ * ナビゲーション項目
+ */
+export const NAV_ITEMS = [
+  { href: "/", label: "ホーム", icon: "Home" },
+  { href: "/calendar", label: "カレンダー", icon: "Calendar" },
+  { href: "/search", label: "検索", icon: "Search" },
+  { href: "/categories", label: "カテゴリ管理", icon: "Tags" },
+  { href: "/settings", label: "設定", icon: "Settings" },
+] as const;
