@@ -15,29 +15,31 @@ export function CategoryFilter({
   onSelectCategory,
 }: CategoryFilterProps) {
   return (
-    <div className="px-4 py-2 overflow-x-auto bg-muted/20 border-b">
-      <div className="flex gap-2 min-w-max">
-        <CategoryChip
-          label="すべて"
-          active={selectedCategoryId === null}
-          onClick={() => onSelectCategory(null)}
-          isSpecial
-        />
-        {categories.map((category) => (
+    <div className="sticky top-14 md:top-0 z-40 bg-background border-b">
+      <div className="px-4 py-2 overflow-x-auto max-w-2xl mx-auto">
+        <div className="flex gap-2 min-w-max">
           <CategoryChip
-            key={category.id}
-            label={category.name}
-            color={category.color}
-            active={selectedCategoryId === category.id}
-            onClick={() => onSelectCategory(category.id)}
+            label="すべて"
+            active={selectedCategoryId === null}
+            onClick={() => onSelectCategory(null)}
+            isSpecial
           />
-        ))}
-        <CategoryChip
-          label="カテゴリなし"
-          active={selectedCategoryId === "none"}
-          onClick={() => onSelectCategory("none")}
-          isSpecial
-        />
+          {categories.map((category) => (
+            <CategoryChip
+              key={category.id}
+              label={category.name}
+              color={category.color}
+              active={selectedCategoryId === category.id}
+              onClick={() => onSelectCategory(category.id)}
+            />
+          ))}
+          <CategoryChip
+            label="カテゴリなし"
+            active={selectedCategoryId === "none"}
+            onClick={() => onSelectCategory("none")}
+            isSpecial
+          />
+        </div>
       </div>
     </div>
   );

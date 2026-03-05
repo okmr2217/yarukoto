@@ -44,9 +44,11 @@ export default function HomePage() {
   // "none"の場合はnullに変換してサーバーに渡す
   const categoryIdForQuery =
     selectedCategoryId === "none" ? null : selectedCategoryId;
-  const { data: tasks, isLoading, error } = useAllTasks(
-    selectedCategoryId === null ? undefined : categoryIdForQuery,
-  );
+  const {
+    data: tasks,
+    isLoading,
+    error,
+  } = useAllTasks(selectedCategoryId === null ? undefined : categoryIdForQuery);
   const { data: categories = [] } = useCategories();
   const mutations = useTaskMutations();
 
@@ -170,8 +172,7 @@ export default function HomePage() {
 
   // ステータス別に分類
   // 未完了: サーバーから取得した順序をそのまま使用（displayOrder優先、次に作成日降順）
-  const pendingTasks =
-    tasks?.filter((task) => task.status === "PENDING") || [];
+  const pendingTasks = tasks?.filter((task) => task.status === "PENDING") || [];
 
   // 完了済み: 完了日時降順（新しい順）
   const completedTasks =
@@ -202,15 +203,15 @@ export default function HomePage() {
     <div className="flex-1 bg-background flex flex-col">
       <Header />
 
-      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
-        <CategoryFilter
-          categories={categories}
-          selectedCategoryId={selectedCategoryId}
-          onSelectCategory={handleCategoryChange}
-        />
+      <CategoryFilter
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={handleCategoryChange}
+      />
 
-        <main className="flex-1 overflow-auto pb-20 md:pb-4">
-          <div className="px-4 py-4">
+      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
+        <main className="flex-1 overflow-auto">
+          <div className="px-4 pt-2 pb-20 md:pb-4">
             {hasNoTasks ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p>タスクがありません</p>
