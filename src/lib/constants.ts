@@ -67,9 +67,14 @@ export const QUERY_KEYS = {
  * ナビゲーション項目
  */
 export const NAV_ITEMS = [
-  { href: "/", label: "ホーム", icon: "Home" },
-  { href: "/calendar", label: "カレンダー", icon: "Calendar" },
-  { href: "/search", label: "検索", icon: "Search" },
-  { href: "/categories", label: "カテゴリ管理", icon: "Tags" },
-  { href: "/settings", label: "設定", icon: "Settings" },
+  { href: "/", label: "ホーム", icon: "Home", group: "main" },
+  { href: "/calendar", label: "カレンダー", icon: "Calendar", group: "main" },
+  { href: "/search", label: "検索", icon: "Search", group: "main" },
+  { href: "/categories", label: "カテゴリ管理", icon: "Tags", group: "manage" },
+  { href: "/settings", label: "設定", icon: "Settings", group: "manage" },
+] as const;
+
+export const NAV_GROUPS = [
+  { key: "main", label: "メイン" },
+  { key: "manage", label: "管理" },
 ] as const;
