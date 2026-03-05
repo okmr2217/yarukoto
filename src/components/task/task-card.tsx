@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { LinkText } from "@/components/ui/link-text";
 import type { Task } from "@/types";
 import {
   Pencil,
@@ -210,7 +211,7 @@ export function TaskCard({
             {/* Memo content (always shown) */}
             {hasMemo && (
               <div className="text-xs text-muted-foreground whitespace-pre-wrap">
-                {task.memo}
+                <LinkText text={task.memo!} />
               </div>
             )}
 
