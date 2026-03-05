@@ -106,3 +106,12 @@ export function parseJSTDate(dateStr: string): Date {
 export function toJSTDate(date: Date): Date {
   return toZonedTime(date, JST_TIMEZONE);
 }
+
+/**
+ * 表示用日時フォーマット（例：2024年1月15日 14:30）
+ * @param date - フォーマットする日付
+ * @returns 日本語形式の日時文字列
+ */
+export function formatDateTimeForDisplay(date: Date): string {
+  return formatInTimeZone(date, JST_TIMEZONE, "yyyy年M月d日 HH:mm");
+}

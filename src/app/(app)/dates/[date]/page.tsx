@@ -9,15 +9,17 @@ import {
   TaskFab,
   TaskEditDialog,
   SkipReasonDialog,
+  TaskDetailSheet,
   type TaskEditData,
 } from "@/components/task";
+import { getTaskDetail } from "@/actions/task";
 import {
   useTasks,
   useTaskMutations,
   useSettings,
   useCategories,
 } from "@/hooks";
-import type { Task } from "@/types";
+import type { Task, TaskDetail } from "@/types";
 import {
   getTodayInJST,
   addDaysJST,
@@ -44,6 +46,8 @@ export default function TaskPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
+  const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { settings } = useSettings();
   const { data: tasks, isLoading, error } = useTasks(targetDate);
@@ -124,8 +128,17 @@ export default function TaskPage() {
     }
   };
 
+  const handleDetail = async (id: string) => {
+    const result = await getTaskDetail(id);
+    if (result.success) {
+      setDetailTask(result.data);
+      setDetailOpen(true);
+    }
+  };
+
   // タスクカード用のハンドラーをまとめる
   const taskHandlers = {
+    onDetail: handleDetail,
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
     onEdit: handleEdit,
@@ -329,6 +342,12 @@ export default function TaskPage() {
         taskTitle={skippingTask?.title || ""}
         onConfirm={handleSkipConfirm}
         isLoading={mutations.skipTask.isPending}
+      />
+
+      <TaskDetailSheet
+        task={detailTask}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
       />
     </div>
   );

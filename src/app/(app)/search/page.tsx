@@ -7,8 +7,10 @@ import { SearchFiltersComponent, SearchResults } from "@/components/search";
 import {
   TaskEditDialog,
   SkipReasonDialog,
+  TaskDetailSheet,
   type TaskEditData,
 } from "@/components/task";
+import { getTaskDetail } from "@/actions/task";
 import {
   useSearchTasks,
   useCategories,
@@ -20,7 +22,7 @@ import {
   useInvalidateSearchTasks,
   type SearchFilters,
 } from "@/hooks";
-import type { Task } from "@/types";
+import type { Task, TaskDetail } from "@/types";
 
 export default function SearchPage() {
   const [filters, setFilters] = useState<SearchFilters>({
@@ -33,6 +35,8 @@ export default function SearchPage() {
   });
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
+  const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { data: categories = [] } = useCategories();
   const {
@@ -109,8 +113,17 @@ export default function SearchPage() {
     }
   };
 
+  const handleDetail = async (id: string) => {
+    const result = await getTaskDetail(id);
+    if (result.success) {
+      setDetailTask(result.data);
+      setDetailOpen(true);
+    }
+  };
+
   // タスクカード用のハンドラーをまとめる
   const taskHandlers = {
+    onDetail: handleDetail,
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
     onEdit: handleEdit,
@@ -176,6 +189,12 @@ export default function SearchPage() {
         taskTitle={skippingTask?.title || ""}
         onConfirm={handleSkipConfirm}
         isLoading={skipTask.isPending}
+      />
+
+      <TaskDetailSheet
+        task={detailTask}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
       />
     </div>
   );

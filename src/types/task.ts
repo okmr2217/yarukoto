@@ -61,3 +61,10 @@ export type DayTaskStats = {
 export type MonthlyTaskStats = {
   [date: string]: DayTaskStats;
 };
+
+export type TaskDetail = Task & {
+  user: {
+    name: string | null;
+    email: string;
+  };
+};

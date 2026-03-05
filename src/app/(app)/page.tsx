@@ -9,8 +9,11 @@ import {
   TaskFab,
   TaskEditDialog,
   SkipReasonDialog,
+  TaskDetailSheet,
   type TaskEditData,
 } from "@/components/task";
+import { getTaskDetail } from "@/actions/task";
+import type { TaskDetail } from "@/types";
 import {
   useAllTasks,
   useTaskMutations,
@@ -30,6 +33,8 @@ export default function HomePage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
+  const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   // カテゴリ選択時にURLを更新
   const handleCategoryChange = (categoryId: string | null) => {
@@ -112,7 +117,16 @@ export default function HomePage() {
     }
   };
 
+  const handleDetail = async (id: string) => {
+    const result = await getTaskDetail(id);
+    if (result.success) {
+      setDetailTask(result.data);
+      setDetailOpen(true);
+    }
+  };
+
   const taskHandlers = {
+    onDetail: handleDetail,
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
     onEdit: handleEdit,
@@ -294,6 +308,12 @@ export default function HomePage() {
         taskTitle={skippingTask?.title || ""}
         onConfirm={handleSkipConfirm}
         isLoading={mutations.skipTask.isPending}
+      />
+
+      <TaskDetailSheet
+        task={detailTask}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
       />
     </div>
   );

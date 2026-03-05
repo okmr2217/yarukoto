@@ -11,17 +11,14 @@ import {
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
 import type { Task } from "@/types";
-import {
-  Pencil,
-  Ban,
-  Trash2,
-  MoreVertical,
-} from "lucide-react";
+import { Pencil, Ban, Trash2, MoreVertical, Info } from "lucide-react";
 
 /**
  * タスクカードのアクションハンドラー
  */
 export interface TaskCardHandlers {
+  /** タスク詳細表示時のハンドラー */
+  onDetail: (id: string) => void;
   /** タスク完了時のハンドラー */
   onComplete: (id: string) => void;
   /** タスク完了取り消し時のハンドラー */
@@ -89,7 +86,6 @@ export function TaskCard({
     }
   };
 
-
   return (
     <div
       className="relative rounded-lg group"
@@ -97,9 +93,7 @@ export function TaskCard({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Main card content */}
-      <div
-        className="relative bg-card border rounded-lg p-3"
-      >
+      <div className="relative bg-card border rounded-lg p-3">
         <div className="flex items-start gap-3">
           <div
             onPointerDown={(e) => e.stopPropagation()}
@@ -141,6 +135,14 @@ export function TaskCard({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onClick={() => {
+                        handlers.onDetail(task.id);
+                      }}
+                    >
+                      <Info className="h-4 w-4 mr-2" />
+                      詳細
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
                         handlers.onEdit(task);
                       }}
                     >
@@ -180,6 +182,15 @@ export function TaskCard({
               >
                 <button
                   onClick={() => {
+                    handlers.onDetail(task.id);
+                  }}
+                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="詳細"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => {
                     handlers.onEdit(task);
                   }}
                   className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
@@ -210,17 +221,22 @@ export function TaskCard({
 
             {/* Memo content (always shown) */}
             {hasMemo && (
-              <div className="text-xs text-muted-foreground whitespace-pre-wrap">
+              <div className="text-xs text-muted-foreground whitespace-pre-wrap pb-1.5">
                 <LinkText text={task.memo!} />
               </div>
             )}
 
-            {((showScheduledDate && task.scheduledAt) || task.category || task.priority || (isSkipped && task.skipReason)) && (
-              <div className={cn(
-                "flex items-center gap-2 flex-wrap",
-                hasMemo && "mt-2",
-                !hasMemo && "mt-1"
-              )}>
+            {((showScheduledDate && task.scheduledAt) ||
+              task.category ||
+              task.priority ||
+              (isSkipped && task.skipReason)) && (
+              <div
+                className={cn(
+                  "flex items-center gap-2 flex-wrap",
+                  hasMemo && "mt-2",
+                  !hasMemo && "mt-1",
+                )}
+              >
                 {showScheduledDate && task.scheduledAt && (
                   <>
                     {scheduledDateStatus === "today" && (

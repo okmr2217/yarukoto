@@ -11,6 +11,7 @@ export {
   searchTasks,
   getAllTasks,
   getMonthlyTaskStats,
+  getTaskDetail,
 } from "./task-queries";
 
 // ミューテーション操作（データ更新）

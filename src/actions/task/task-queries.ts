@@ -7,6 +7,7 @@ import {
   success,
   failure,
   type Task,
+  type TaskDetail,
   type DateTasks,
   type SearchTasksResult,
   type MonthlyTaskStats,
@@ -392,5 +393,47 @@ export async function getMonthlyTaskStats(
   } catch (error) {
     console.error("getMonthlyTaskStats error:", error);
     return failure(ERROR_MESSAGES.TASK_STATS_FAILED, "INTERNAL_ERROR");
+  }
+}
+
+/**
+ * タスクの詳細情報を取得します。
+ *
+ * @param taskId - 取得するタスクのID
+ * @returns タスク詳細情報（user, category を含む）
+ */
+export async function getTaskDetail(
+  taskId: string,
+): Promise<ActionResult<TaskDetail>> {
+  try {
+    const user = await getRequiredUser();
+
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        category: true,
+        user: { select: { name: true, email: true } },
+      },
+    });
+
+    if (!task) {
+      return failure(ERROR_MESSAGES.TASK_NOT_FOUND, "NOT_FOUND");
+    }
+
+    if (task.userId !== user.id) {
+      return failure(ERROR_MESSAGES.TASK_NOT_FOUND, "NOT_FOUND");
+    }
+
+    const baseTask = toTask(task);
+    return success({
+      ...baseTask,
+      user: {
+        name: task.user.name,
+        email: task.user.email,
+      },
+    });
+  } catch (error) {
+    console.error("getTaskDetail error:", error);
+    return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");
   }
 }
