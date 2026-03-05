@@ -86,6 +86,38 @@ export function TaskCard({
     }
   };
 
+  const actions = [
+    {
+      label: "編集",
+      icon: <Pencil className="h-4 w-4" />,
+      iconSm: <Pencil className="h-3.5 w-3.5" />,
+      onClick: () => handlers.onEdit(task),
+      className: "",
+    },
+    {
+      label: "詳細",
+      icon: <Info className="h-4 w-4" />,
+      iconSm: <Info className="h-3.5 w-3.5" />,
+      onClick: () => handlers.onDetail(task.id),
+      className: "",
+    },
+    {
+      label: "やらない",
+      icon: <Ban className="h-4 w-4" />,
+      iconSm: <Ban className="h-3.5 w-3.5" />,
+      onClick: () => handlers.onSkip(task.id),
+      className: "hover:text-yellow-600",
+    },
+    {
+      label: "削除",
+      icon: <Trash2 className="h-4 w-4" />,
+      iconSm: <Trash2 className="h-3.5 w-3.5" />,
+      onClick: () => handlers.onDelete(task.id),
+      className: "hover:text-destructive",
+      destructive: true,
+    },
+  ];
+
   return (
     <div
       className="relative rounded-lg group"
@@ -133,39 +165,16 @@ export function TaskCard({
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        handlers.onDetail(task.id);
-                      }}
-                    >
-                      <Info className="h-4 w-4 mr-2" />
-                      詳細
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        handlers.onEdit(task);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      編集
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        handlers.onSkip(task.id);
-                      }}
-                    >
-                      <Ban className="h-4 w-4 mr-2" />
-                      やらない
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        handlers.onDelete(task.id);
-                      }}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      削除
-                    </DropdownMenuItem>
+                    {actions.map((action) => (
+                      <DropdownMenuItem
+                        key={action.label}
+                        onClick={action.onClick}
+                        className={action.destructive ? "text-destructive" : ""}
+                      >
+                        <span className="mr-2">{action.icon}</span>
+                        {action.label}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -180,42 +189,19 @@ export function TaskCard({
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  onClick={() => {
-                    handlers.onDetail(task.id);
-                  }}
-                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="詳細"
-                >
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => {
-                    handlers.onEdit(task);
-                  }}
-                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="編集"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => {
-                    handlers.onSkip(task.id);
-                  }}
-                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-yellow-600 transition-colors"
-                  aria-label="やらない"
-                >
-                  <Ban className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => {
-                    handlers.onDelete(task.id);
-                  }}
-                  className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-destructive transition-colors"
-                  aria-label="削除"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                {actions.map((action) => (
+                  <button
+                    key={action.label}
+                    onClick={action.onClick}
+                    className={cn(
+                      "p-1.5 rounded hover:bg-accent text-muted-foreground transition-colors",
+                      action.className,
+                    )}
+                    aria-label={action.label}
+                  >
+                    {action.iconSm}
+                  </button>
+                ))}
               </div>
             </div>
 
