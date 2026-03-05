@@ -302,6 +302,7 @@ export default function TaskPage() {
       </div>
 
       <TaskInputModal
+        key={taskInputOpen ? "task-input-open" : "task-input-closed"}
         open={taskInputOpen}
         onOpenChange={setTaskInputOpen}
         onSubmit={handleCreateTask}
@@ -312,6 +313,7 @@ export default function TaskPage() {
       />
 
       <TaskEditDialog
+        key={editingTask?.id ?? "task-edit-closed"}
         open={editingTask !== null}
         onOpenChange={(open) => !open && setEditingTask(null)}
         onSave={handleEditTaskWithDetails}
@@ -321,6 +323,7 @@ export default function TaskPage() {
       />
 
       <SkipReasonDialog
+        key={skippingTask?.id ?? "skip-closed"}
         open={skippingTask !== null}
         onOpenChange={(open) => !open && setSkippingTask(null)}
         taskTitle={skippingTask?.title || ""}

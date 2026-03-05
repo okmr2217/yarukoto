@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,24 +47,12 @@ export function TaskEditDialog({
   categories,
   isLoading = false,
 }: TaskEditDialogProps) {
-  const [title, setTitle] = useState("");
-  const [scheduledAt, setScheduledAt] = useState("");
-  const [categoryId, setCategoryId] = useState<string>("none");
-  const [priority, setPriority] = useState<string>("none");
-  const [memo, setMemo] = useState("");
+  const [title, setTitle] = useState(task?.title ?? "");
+  const [scheduledAt, setScheduledAt] = useState(task?.scheduledAt ?? "");
+  const [categoryId, setCategoryId] = useState<string>(task?.categoryId ?? "none");
+  const [priority, setPriority] = useState<string>(task?.priority ?? "none");
+  const [memo, setMemo] = useState(task?.memo ?? "");
   const [error, setError] = useState<string | null>(null);
-
-  // Populate form when dialog opens or task changes
-  useEffect(() => {
-    if (open && task) {
-      setTitle(task.title);
-      setScheduledAt(task.scheduledAt || "");
-      setCategoryId(task.categoryId || "none");
-      setPriority(task.priority || "none");
-      setMemo(task.memo || "");
-      setError(null);
-    }
-  }, [open, task]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

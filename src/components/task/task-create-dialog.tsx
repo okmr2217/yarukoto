@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -54,23 +54,11 @@ export function TaskCreateDialog({
   isLoading = false,
 }: TaskCreateDialogProps) {
   const [title, setTitle] = useState("");
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledAt, setScheduledAt] = useState(defaultDate || "");
   const [categoryId, setCategoryId] = useState<string>("none");
   const [priority, setPriority] = useState<string>("none");
   const [memo, setMemo] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      setTitle("");
-      setScheduledAt(defaultDate || "");
-      setCategoryId("none");
-      setPriority("none");
-      setMemo("");
-      setError(null);
-    }
-  }, [open, defaultDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

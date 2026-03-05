@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,25 +39,11 @@ export function CategoryEditDialog({
   onSave,
   isLoading = false,
 }: CategoryEditDialogProps) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState(CATEGORY_COLORS[4].value); // デフォルト: 青
+  const [name, setName] = useState(category?.name ?? "");
+  const [color, setColor] = useState(category?.color ?? CATEGORY_COLORS[4].value);
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = !!category;
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      if (category) {
-        setName(category.name);
-        setColor(category.color || CATEGORY_COLORS[4].value);
-      } else {
-        setName("");
-        setColor(CATEGORY_COLORS[4].value);
-      }
-      setError(null);
-    }
-  }, [open, category]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

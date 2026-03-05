@@ -169,6 +169,7 @@ export default function CategoriesPage() {
 
       {/* Edit Dialog */}
       <CategoryEditDialog
+        key={editingCategory?.id ?? "new"}
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         category={editingCategory}

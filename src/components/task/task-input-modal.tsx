@@ -75,11 +75,7 @@ export function TaskInputModal({
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 100);
-      // モーダルを開いた時にカテゴリと日付をリセット
-      setCategoryId(getInitialCategoryId());
-      setScheduledAt(defaultDate || "");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {

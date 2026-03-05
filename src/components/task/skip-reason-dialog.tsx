@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,13 +28,6 @@ export function SkipReasonDialog({
   isLoading = false,
 }: SkipReasonDialogProps) {
   const [reason, setReason] = useState("");
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      setReason("");
-    }
-  }, [open]);
 
   const handleConfirm = () => {
     onConfirm(reason.trim() || undefined);
