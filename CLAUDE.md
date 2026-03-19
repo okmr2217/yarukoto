@@ -1,66 +1,82 @@
-# Yarukoto - Claude Code Context
+# Yarukoto
 
-## Project Overview
+日毎の TODO を整理し、短期タスクを効率的に管理する Web アプリ。Next.js + TypeScript + Supabase。
 
-Yarukoto（やること）は、日毎のTODOを整理し、短期タスクを効率的に管理するWebアプリケーション。
-「今日やること」を中心としたシンプルなタスク管理を提供する。
+---
+
+<!-- ▼ プロジェクト固有（このプロジェクト専用の設定） ▼ -->
 
 ## Tech Stack
 
-- **Framework**: Next.js
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: PostgreSQL
-- **Auth**: Better Auth
-- **Hosting**: Vercel
+- **Framework**: Next.js 15（App Router）
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 4
+- **DB / ORM**: Supabase PostgreSQL + Prisma 6
+- **認証**: Better Auth
+- **状態管理**: TanStack React Query 5
+- **バリデーション**: Zod 4
+- **ホスティング**: Vercel
 
-## Documentation
+## コマンド
 
-### [docs/requirements.md](docs/requirements.md)
-
-要件定義書。プロダクト概要、機能要件、非機能要件を定義。
-
-- タスクの属性（タスク名、予定日、ステータス、優先度、カテゴリ等）
-- タスク操作（作成、編集、完了、やらない、削除）
-- 日付別タスク表示ルール（今日、過去、未来）
-- カテゴリ管理、ユーザー認証、検索機能
-
-### [docs/api-design.md](docs/api-design.md)
-
-API設計書。Server Actionsの仕様を定義。
-
-- 設計方針: Server Actions優先、楽観的更新、Result型パターン
-- タスク関連Actions: getTodayTasks, getTasksByDate, createTask, updateTask, completeTask等
-- カテゴリ関連Actions: getCategories, createCategory, updateCategory, deleteCategory
-- ユーザー設定関連Actions: getUserSettings, updateUserSettings, changeEmail等
-- 型定義: Task, Category, UserSettings, ActionResult
-
-### [docs/screen-design.md](docs/screen-design.md)
-
-画面設計書。UIデザインとインタラクションを定義。
-
-- デザイン方針: カード型・モダン、オレンジをプライマリカラー
-- 共通コンポーネント: ヘッダー、日付ナビゲーション、タスクカード、タスク入力欄
-- 画面一覧: ログイン、ホーム、日付別タスク、タスク編集モーダル、カテゴリ管理、検索、設定
-- インタラクション: スワイプ操作、タスク作成/完了フロー
-- レスポンシブ対応: モバイルファースト設計
-
-## Key Patterns
-
-### Result型パターン
-
-```typescript
-type ActionResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string; code?: ErrorCode };
+```bash
+npm run dev
+npm run build
+npm run lint
+# typecheck は tsc --noEmit（tsconfig.json を確認）
 ```
 
-### タスクステータス
+## コーディングルール
 
-- `PENDING`: 未完了
-- `COMPLETED`: 完了
-- `SKIPPED`: やらない
+- TypeScript strict mode。`any` 禁止
+- Zod スキーマから型を推論する（型の重複定義禁止）
+- DB アクセスはサーバーのみ（Client から Prisma を呼ばない）
+- すべてのクエリに `userId` フィルタを必ず含める
+- ファイル 500 行以内を目安に分割
+- Prettier printWidth = 120
+- 詳細は @docs/coding-guidelines.md を参照
 
-### 優先度
+## プロダクト前提
 
-- `HIGH` / `MEDIUM` / `LOW` / `null`（なし）
+- ホームは「今日のタスク」が中心
+- `scheduledAt` は PostgreSQL の `DATE` 型（JST 基準、`dateUtils.ts` で統一処理）
+- `displayOrder` は Float 型（新規タスクは最小値 - 1.0、並び替えは中間値）
+- タスクステータス: `PENDING` / `COMPLETED` / `SKIPPED`
+- 優先度: `HIGH` / `MEDIUM` / `LOW` / `null`（なし）
+
+## やらないこと
+
+- 不要な抽象化・ライブラリ追加
+- コードコメント・docstring の追加（変更していないコードへ）
+- エラーハンドリングの過剰追加（起こりえないケースへの対処）
+- リファクタリング・整理（明示的に依頼されていない場合）
+
+---
+
+<!-- ▼ 汎用ルール（他プロジェクトでも同じ） ▼ -->
+
+## Git ワークフロー
+
+- コミットメッセージは日本語: `feat: ○○を実装` / `fix: ○○を修正`
+- プレフィックス: `feat:` / `fix:` / `refactor:` / `chore:` / `docs:` / `test:` / `style:`
+- 1 つの論理的変更 = 1 コミット
+- コミット前に typecheck && lint を実行
+
+## セッション管理
+
+- **開始時**: `docs/handoff.md` を読んで現状を把握する
+- **終了時**: 以下を実行する
+  1. typecheck && lint を実行して問題なければコミット
+  2. `docs/session-log.md` の先頭にセッション記録を追記（やったこと・改善案・失敗・技術メモ・次にやりたいこと）
+  3. `docs/handoff.md` を更新する（実装状態・積み残し・次回相談事項）
+- **コンテキスト 60% 到達時**: session-log.md と handoff.md を更新してから `/compact`
+
+---
+
+## 参照ドキュメント
+
+- @docs/project.md（プロジェクト概要・技術設計・アーキテクチャ）
+- @docs/handoff.md（現在の実装状態・積み残し・次にやること）
+- @docs/session-log.md（セッション作業記録）
+- @docs/coding-guidelines.md（コーディングガイドライン）
+- @CHANGELOG.md
