@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   createTask,
   updateTask,
@@ -355,6 +356,7 @@ export function useUpdateTask() {
       if (context?.previous) {
         queryClient.setQueryData(["todayTasks"], context.previous);
       }
+      toast.error("タスクの更新に失敗しました");
     },
     onSettled: invalidateAll,
   });

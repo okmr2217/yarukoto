@@ -95,13 +95,9 @@ export default function TaskPage() {
     setEditingTask(task);
   };
 
-  const handleEditTaskWithDetails = async (data: TaskEditData) => {
-    try {
-      await mutations.updateTask.mutateAsync(data);
-      setEditingTask(null);
-    } catch {
-      // Error is handled by the mutation
-    }
+  const handleEditTaskWithDetails = (data: TaskEditData) => {
+    setEditingTask(null);
+    mutations.updateTask.mutate(data);
   };
 
   const handleSkip = (id: string) => {
@@ -336,7 +332,6 @@ export default function TaskPage() {
         onSave={handleEditTaskWithDetails}
         task={editingTask}
         categories={categories}
-        isLoading={mutations.updateTask.isPending}
       />
 
       <SkipReasonDialog

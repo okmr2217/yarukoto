@@ -78,14 +78,9 @@ export default function SearchPage() {
     setEditingTask(task);
   };
 
-  const handleEditTaskWithDetails = async (data: TaskEditData) => {
-    try {
-      await updateTask.mutateAsync(data);
-      invalidateSearch();
-      setEditingTask(null);
-    } catch {
-      // Error is handled by the mutation
-    }
+  const handleEditTaskWithDetails = (data: TaskEditData) => {
+    setEditingTask(null);
+    updateTask.mutate(data, { onSuccess: invalidateSearch });
   };
 
   const handleSkip = (id: string) => {
@@ -186,7 +181,6 @@ export default function SearchPage() {
         onSave={handleEditTaskWithDetails}
         task={editingTask}
         categories={categories}
-        isLoading={updateTask.isPending}
       />
 
       {/* Skip Reason Dialog */}

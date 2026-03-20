@@ -28,7 +28,6 @@ interface TaskEditDialogProps {
   onSave: (data: TaskEditData) => void;
   task: Task | null;
   categories: Category[];
-  isLoading?: boolean;
 }
 
 export function TaskEditDialog({
@@ -37,7 +36,6 @@ export function TaskEditDialog({
   onSave,
   task,
   categories,
-  isLoading = false,
 }: TaskEditDialogProps) {
   const [title, setTitle] = useState(task?.title ?? "");
   const [scheduledAt, setScheduledAt] = useState(task?.scheduledAt ?? "");
@@ -183,13 +181,10 @@ export function TaskEditDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isLoading}
             >
               キャンセル
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "保存中..." : "保存する"}
-            </Button>
+            <Button type="submit">保存する</Button>
           </div>
         </form>
       </DialogContent>
