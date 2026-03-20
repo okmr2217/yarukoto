@@ -1,16 +1,16 @@
 "use client";
 
-import { Search, X, Calendar, Star } from "lucide-react";
+import { Search, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 
 export type FilterValues = {
   keyword: string;
   status: "all" | "pending" | "completed" | "skipped";
   isFavorite: boolean;
-  dateFrom: string;
-  dateTo: string;
+  date: string; // YYYY-MM-DD or ""
 };
 
 interface FilterPanelProps {
@@ -21,6 +21,19 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: FilterPanelProps) {
+  const today = getTodayInJST();
+  const isToday = values.date === today;
+
+  const handlePrevDay = () => {
+    const base = values.date || today;
+    onChange("date", addDaysJST(base, -1));
+  };
+
+  const handleNextDay = () => {
+    const base = values.date || today;
+    onChange("date", addDaysJST(base, 1));
+  };
+
   return (
     <div className="bg-muted/30 border-b px-4 py-3 space-y-3">
       {/* キーワード検索 */}
@@ -68,41 +81,71 @@ export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: Fil
         ))}
       </div>
 
-      {/* お気に入り & 日付範囲 */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* お気に入り */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="filter-favorite"
-            checked={values.isFavorite}
-            onCheckedChange={(checked) => onChange("isFavorite", !!checked)}
-          />
-          <label
-            htmlFor="filter-favorite"
-            className="text-sm cursor-pointer flex items-center gap-1"
+      {/* 日付ナビゲーション */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs text-muted-foreground shrink-0">日付:</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={handlePrevDay}
+          aria-label="前日"
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+        <Input
+          type="date"
+          value={values.date}
+          onChange={(e) => onChange("date", e.target.value)}
+          className="h-7 text-xs w-36"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={handleNextDay}
+          aria-label="翌日"
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs"
+          onClick={() => onChange("date", today)}
+          disabled={isToday}
+        >
+          今日
+        </Button>
+        {values.date && (
+          <button
+            type="button"
+            onClick={() => onChange("date", "")}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="日付フィルタを解除"
           >
-            <Star className="size-3.5 text-yellow-500" fill="currentColor" />
-            お気に入りのみ
-          </label>
-        </div>
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
 
-        {/* 日付範囲 */}
-        <div className="flex items-center gap-2 flex-1">
-          <Calendar className="size-4 text-muted-foreground shrink-0" />
-          <Input
-            type="date"
-            value={values.dateFrom}
-            onChange={(e) => onChange("dateFrom", e.target.value)}
-            className="h-7 text-xs flex-1"
-          />
-          <span className="text-muted-foreground text-xs">〜</span>
-          <Input
-            type="date"
-            value={values.dateTo}
-            onChange={(e) => onChange("dateTo", e.target.value)}
-            className="h-7 text-xs flex-1"
-          />
-        </div>
+      {/* お気に入り */}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="filter-favorite"
+          checked={values.isFavorite}
+          onCheckedChange={(checked) => onChange("isFavorite", !!checked)}
+        />
+        <label
+          htmlFor="filter-favorite"
+          className="text-sm cursor-pointer flex items-center gap-1"
+        >
+          <Star className="size-3.5 text-yellow-500" fill="currentColor" />
+          お気に入りのみ
+        </label>
       </div>
 
       {/* フィルタクリア */}

@@ -201,7 +201,6 @@ export async function searchTasks(
  *
  * @remarks
  * - `date` 指定時: scheduledAt が一致、または completedAt/skippedAt/createdAt が JST でその日に該当するタスクを返す
- * - `dateFrom`/`dateTo` 指定時: scheduledAt が範囲内のタスクを返す
  * - `keyword` 指定時: タイトル・メモを大文字小文字を区別せずに検索
  * - displayOrderが大きい値ほど上に表示されます
  */
@@ -213,7 +212,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     }
 
     const user = await getRequiredUser();
-    const { categoryId, date, keyword, status, isFavorite, dateFrom, dateTo } = parsed.data;
+    const { categoryId, date, keyword, status, isFavorite } = parsed.data;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const andConditions: any[] = [];
@@ -261,20 +260,6 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     // お気に入りフィルタ
     if (isFavorite !== undefined) {
       where.isFavorite = isFavorite;
-    }
-
-    // 日付範囲フィルタ（scheduledAt の範囲検索）
-    if (dateFrom || dateTo) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where.scheduledAt = {} as any;
-      if (dateFrom) {
-        const { start } = getDateRangeInJST(dateFrom);
-        where.scheduledAt.gte = start;
-      }
-      if (dateTo) {
-        const { end } = getDateRangeInJST(dateTo);
-        where.scheduledAt.lte = end;
-      }
     }
 
     const tasks = await prisma.task.findMany({

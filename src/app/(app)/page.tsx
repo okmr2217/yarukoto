@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Header, CategoryFilter, DateNavigation, FilterPanel, type FilterValues } from "@/components/layout";
+import { Header, CategoryFilter, FilterPanel, type FilterValues } from "@/components/layout";
 import {
   TaskSection,
   TaskInputModal,
@@ -21,7 +21,7 @@ import {
   useCategories,
 } from "@/hooks";
 import type { Task } from "@/types";
-import { getTodayInJST, addDaysJST, parseJSTDate, formatDateToJST } from "@/lib/dateUtils";
+import { formatDateToJST } from "@/lib/dateUtils";
 
 export default function HomePage() {
   const router = useRouter();
@@ -29,14 +29,12 @@ export default function HomePage() {
 
   // URLクエリパラメータからフィルタ状態を読み取る
   const selectedCategoryId = searchParams.get("category") || null;
-  const dateFilter = searchParams.get("date") || null;
+  const dateFilter = searchParams.get("date") || "";
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "all") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const dateFrom = searchParams.get("dateFrom") || "";
-  const dateTo = searchParams.get("dateTo") || "";
 
-  const hasActiveFilters = !!(keyword || statusFilter !== "all" || favoriteFilter || dateFrom || dateTo);
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter);
 
   const [filterPanelOpen, setFilterPanelOpen] = useState(hasActiveFilters);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -44,8 +42,6 @@ export default function HomePage() {
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-
-  const today = getTodayInJST();
 
   // URLクエリパラメータ更新ヘルパー
   const updateSearchParams = (updates: Record<string, string | null>) => {
@@ -65,26 +61,6 @@ export default function HomePage() {
     updateSearchParams({ category: categoryId });
   };
 
-  // 日付ナビゲーション
-  const handleDatePrevious = () => {
-    if (!dateFilter) return;
-    updateSearchParams({ date: addDaysJST(dateFilter, -1) });
-  };
-
-  const handleDateNext = () => {
-    if (!dateFilter) return;
-    updateSearchParams({ date: addDaysJST(dateFilter, 1) });
-  };
-
-  const handleDateToday = () => {
-    updateSearchParams({ date: today });
-  };
-
-  const handleDateClear = () => {
-    updateSearchParams({ date: null });
-  };
-
-  // フィルタパネルの値変更
   const handleFilterChange = <K extends keyof FilterValues>(key: K, value: FilterValues[K]) => {
     if (key === "keyword") {
       updateSearchParams({ keyword: (value as string) || null });
@@ -92,23 +68,20 @@ export default function HomePage() {
       updateSearchParams({ status: value === "all" ? null : (value as string) });
     } else if (key === "isFavorite") {
       updateSearchParams({ favorite: value ? "true" : null });
-    } else if (key === "dateFrom") {
-      updateSearchParams({ dateFrom: (value as string) || null });
-    } else if (key === "dateTo") {
-      updateSearchParams({ dateTo: (value as string) || null });
+    } else if (key === "date") {
+      updateSearchParams({ date: (value as string) || null });
     }
   };
 
   const handleClearFilters = () => {
-    updateSearchParams({ keyword: null, status: null, favorite: null, dateFrom: null, dateTo: null });
+    updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
   };
 
   const filterValues: FilterValues = {
     keyword,
     status: statusFilter,
     isFavorite: favoriteFilter,
-    dateFrom,
-    dateTo,
+    date: dateFilter,
   };
 
   const { settings } = useSettings();
@@ -120,8 +93,6 @@ export default function HomePage() {
     keyword: keyword || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     isFavorite: favoriteFilter || undefined,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
   });
 
   const { data: categories = [] } = useCategories();
@@ -269,9 +240,6 @@ export default function HomePage() {
   const hasNoTasks =
     pendingTasks.length === 0 && completedTasks.length === 0 && skippedTasks.length === 0;
 
-  const isDateFilterPast = dateFilter ? dateFilter < today : false;
-  const isDateFilterFuture = dateFilter ? dateFilter > today : false;
-
   return (
     <div className="flex-1 bg-background flex flex-col">
       <Header />
@@ -285,7 +253,6 @@ export default function HomePage() {
         hasActiveFilters={hasActiveFilters}
       />
 
-      {/* フィルタパネル */}
       {filterPanelOpen && (
         <div className="max-w-2xl w-full mx-auto">
           <FilterPanel
@@ -297,27 +264,12 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 日付ナビゲーション（date パラメータ指定時のみ） */}
-      {dateFilter && (
-        <div className="max-w-2xl w-full mx-auto">
-          <DateNavigation
-            currentDate={parseJSTDate(dateFilter)}
-            onPrevious={handleDatePrevious}
-            onNext={handleDateNext}
-            onToday={handleDateToday}
-            onClear={handleDateClear}
-            isPast={isDateFilterPast}
-            isFuture={isDateFilterFuture}
-          />
-        </div>
-      )}
-
       <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
         <main className="flex-1 overflow-auto">
           <div className="px-4 pt-2 pb-20 md:pb-4">
             {hasNoTasks ? (
               <div className="text-center py-12 text-muted-foreground">
-                {hasActiveFilters || dateFilter ? (
+                {hasActiveFilters ? (
                   <p>条件に一致するタスクがありません</p>
                 ) : (
                   <>
@@ -337,7 +289,7 @@ export default function HomePage() {
                   tasks={pendingTasks}
                   handlers={taskHandlers}
                   showScheduledDate
-                  enableDragAndDrop={!dateFilter && !hasActiveFilters}
+                  enableDragAndDrop={!hasActiveFilters}
                   onReorder={handleReorder}
                   matchReasons={dateFilter ? pendingTasks.map(getMatchReasons) : undefined}
                 />

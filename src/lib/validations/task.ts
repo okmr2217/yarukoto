@@ -90,8 +90,6 @@ export const getAllTasksSchema = z.object({
   keyword: z.string().optional(),
   status: z.enum(["all", "pending", "completed", "skipped"]).optional(),
   isFavorite: z.boolean().optional(),
-  dateFrom: dateStringSchema.optional(),
-  dateTo: dateStringSchema.optional(),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
