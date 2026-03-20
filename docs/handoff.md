@@ -16,7 +16,7 @@
 | `/signup` | 新規登録 | ユーザー作成 |
 | `/forgot-password` | パスワードリセット申請 | メール送信 |
 | `/reset-password` | パスワードリセット実行 | 新パスワード設定 |
-| `/` | 全タスクビュー（統合） | URLクエリパラメータでフィルタ管理（date/category/keyword/status/favorite/dateFrom/dateTo） |
+| `/` | 全タスクビュー（統合） | URLクエリパラメータでフィルタ管理（date/category/keyword/status/favorite） |
 | `/calendar` | カレンダー | 月次カレンダー・日付クリックで `/?date=` に遷移 |
 | `/categories` | カテゴリ管理 | 一覧・作成・編集・削除 |
 | `/settings` | 設定 | メール表示・パスワード変更・ログアウト・アカウント削除 |
@@ -25,8 +25,9 @@
 
 - タスク CRUD（作成・編集・完了・未完了に戻す・やらない・削除）（編集は楽観的更新・即時モーダルクローズ対応）
 - お気に入り（★）トグル機能（タスクカード常時表示、楽観的更新対応）
-- フィルタパネル（keyword/status/favorite/dateFrom/dateTo）URL クエリパラメータで状態管理
-- `?date=YYYY-MM-DD` による単日フィルタ（DateNavigation + マッチ理由バッジ）
+- フィルタパネル（keyword/status/favorite/date）URL クエリパラメータで状態管理。日付ナビゲーション（←→・今日・×）を FilterPanel 内に統合
+- `?date=YYYY-MM-DD` による単日フィルタ（マッチ理由バッジ）
+- CategoryFilter にフィルタ開閉ボタン（PC・モバイル共通）
 - ドラッグ＆ドロップ並び替え（displayOrder Float 方式、フィルタなし時のみ有効）
 - カテゴリ表示順並び替え（sortOrder Int、/categories ページで D&D）
 - N キーショートカットでタスク作成モーダルを開く
@@ -91,4 +92,3 @@
 1. **繰り返しタスク**の実装方法（DB 設計・UI フロー）
 2. **完了タスク折りたたみ**のデフォルト挙動設計
 3. **タスクのコピー機能**（別日への複製）
-4. **フィルタパネルの PC 対応**（現在は Header の検索アイコンがモバイルのみ。PC ではサイドバーに「フィルター」ボタンを追加するか検討）

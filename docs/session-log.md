@@ -4,6 +4,33 @@
 
 ---
 
+## 2026-03-20（FilterPanel UI 改善 / フィルタ開閉ボタン追加）
+
+### やったこと
+
+- `FilterPanel` コンポーネントを UI 改善
+  - レイアウトを `grid grid-cols-[5rem_1fr]` のラベル+フィールド表形式に変更
+  - `dateFrom`/`dateTo` 範囲フィルタを廃止し、日付ナビゲーション（←→・今日・×）を FilterPanel 内に統合
+  - キーワード入力を `h-7 text-xs max-w-xs` に統一（他フィールドと高さ・サイズ感を揃える）
+- `CategoryFilter` にフィルタ開閉ボタン（`SlidersHorizontal` アイコン）を追加
+  - PC・モバイル両対応（CategoryFilter はどちらでも表示される）
+  - アクティブ時: `text-primary bg-primary/10`、フィルタ有効時はドットインジケーター表示
+- `Header` からフィルタ関連 props を除去（`onFilterToggle`/`hasActiveFilters` → CategoryFilter へ移動）
+- `DateNavigation` に `onClear?: () => void` prop を追加（× ボタン）
+- `useAllTasks` の filters から `dateFrom`/`dateTo` を除去（`getAllTasksSchema` も合わせて削除済み）
+
+### 技術メモ
+
+- Tailwind の `grid-cols-[5rem_1fr]` で任意幅カラムを指定する方法が有効
+- フィルタ開閉ボタンは Header ではなく CategoryFilter に置くことで PC/モバイル共通対応できた
+
+### 次にやりたいこと
+
+- 繰り返しタスク実装の検討
+- タスクのコピー機能（別日への複製）
+
+---
+
 ## 2026-03-20（全タスクビュー統合 / dates・search 廃止）
 
 ### やったこと
