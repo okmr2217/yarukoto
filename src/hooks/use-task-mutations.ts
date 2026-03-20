@@ -19,7 +19,6 @@ import type {
   SkipTaskInput,
 } from "@/lib/validations";
 import type { Task } from "@/types";
-import type { UnifiedTasks } from "./use-tasks";
 
 /**
  * クエリキーの型
@@ -31,7 +30,6 @@ type QueryKey = readonly unknown[];
  */
 type CacheSnapshot = {
   previousAllTasks: Array<[QueryKey, unknown]>;
-  previousDateTasks: Array<[QueryKey, UnifiedTasks | undefined]>;
 };
 
 /**
@@ -45,7 +43,6 @@ export function useTaskMutations() {
    * すべてのクエリを無効化
    */
   const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
     queryClient.invalidateQueries({ queryKey: ["allTasks"] });
   };
 
@@ -54,7 +51,6 @@ export function useTaskMutations() {
    */
   const cancelAllQueries = async () => {
     await queryClient.cancelQueries({ queryKey: ["allTasks"] });
-    await queryClient.cancelQueries({ queryKey: ["dateTasks"] });
   };
 
   /**
@@ -63,9 +59,6 @@ export function useTaskMutations() {
   const snapshotCache = (): CacheSnapshot => {
     return {
       previousAllTasks: queryClient.getQueriesData({ queryKey: ["allTasks"] }),
-      previousDateTasks: queryClient.getQueriesData<UnifiedTasks>({
-        queryKey: ["dateTasks"],
-      }),
     };
   };
 
@@ -76,17 +69,12 @@ export function useTaskMutations() {
     snapshot.previousAllTasks.forEach(([queryKey, data]) => {
       queryClient.setQueryData(queryKey, data);
     });
-    snapshot.previousDateTasks.forEach(([queryKey, data]) => {
-      queryClient.setQueryData(queryKey, data);
-    });
   };
 
   /**
    * allTasksキャッシュ内のタスクを更新
    */
-  const updateAllTasksCache = (
-    updater: (task: Task) => Task | null
-  ) => {
+  const updateAllTasksCache = (updater: (task: Task) => Task | null) => {
     queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
       if (!old) return old;
       const updated: Task[] = [];
@@ -98,100 +86,6 @@ export function useTaskMutations() {
       }
       return updated;
     });
-  };
-
-  /**
-   * 楽観的更新用: 新規タスクをキャッシュに追加
-   */
-  const addTaskToCache = (input: CreateTaskInput, tempId: string) => {
-    const scheduledAt = input.scheduledAt || null;
-
-    const tempTask: Task = {
-      id: tempId,
-      title: input.title,
-      memo: input.memo || null,
-      status: "PENDING",
-      isFavorite: false,
-      scheduledAt,
-      completedAt: null,
-      skippedAt: null,
-      skipReason: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      categoryId: input.categoryId || null,
-      category: null,
-    };
-
-    queryClient.setQueryData<UnifiedTasks>(
-      ["dateTasks", scheduledAt],
-      (old) => {
-        if (!old) return old;
-        return { ...old, scheduled: [...old.scheduled, tempTask] };
-      },
-    );
-  };
-
-  /**
-   * 楽観的更新用: タスクをキャッシュ内で更新
-   */
-  const updateTaskInCache = (input: UpdateTaskInput, oldTask: Task) => {
-    const newScheduledAt =
-      input.scheduledAt === undefined ? oldTask.scheduledAt : input.scheduledAt;
-    const oldScheduledAt = oldTask.scheduledAt;
-
-    const updatedTask: Task = {
-      ...oldTask,
-      title: input.title ?? oldTask.title,
-      memo: input.memo === undefined ? oldTask.memo : input.memo,
-      scheduledAt: newScheduledAt,
-      categoryId: input.categoryId === undefined ? oldTask.categoryId : input.categoryId,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // 古いキャッシュからタスクを削除
-    queryClient.setQueryData<UnifiedTasks>(
-      ["dateTasks", oldScheduledAt],
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          scheduled: old.scheduled.filter((t) => t.id !== input.id),
-          completed: old.completed.filter((t) => t.id !== input.id),
-          skipped: old.skipped.filter((t) => t.id !== input.id),
-        };
-      },
-    );
-
-    // 新しいキャッシュにタスクを追加
-    queryClient.setQueryData<UnifiedTasks>(
-      ["dateTasks", newScheduledAt],
-      (old) => {
-        if (!old) return old;
-        return { ...old, scheduled: [...old.scheduled, updatedTask] };
-      },
-    );
-  };
-
-  /**
-   * 全キャッシュからタスクを検索
-   */
-  const findTaskInCache = (taskId: string): Task | undefined => {
-    const queries = queryClient.getQueriesData<UnifiedTasks>({
-      queryKey: ["dateTasks"],
-    });
-    for (const [, data] of queries) {
-      if (data) {
-        const allDateTasks = [
-          ...data.scheduled,
-          ...data.completed,
-          ...data.skipped,
-        ];
-        const found = allDateTasks.find((t) => t.id === taskId);
-        if (found) return found;
-      }
-    }
-
-    return undefined;
   };
 
   const create = useMutation({
@@ -227,8 +121,6 @@ export function useTaskMutations() {
         if (!old) return old;
         return [tempTask, ...old];
       });
-
-      addTaskToCache(input, tempId);
 
       return { ...snapshot, tempId };
     },
@@ -268,11 +160,6 @@ export function useTaskMutations() {
             }
           : task
       );
-
-      const oldTask = findTaskInCache(input.id);
-      if (oldTask) {
-        updateTaskInCache(input, oldTask);
-      }
 
       return snapshot;
     },
@@ -353,7 +240,7 @@ export function useTaskMutations() {
               ...task,
               status: "SKIPPED" as const,
               skippedAt: new Date().toISOString(),
-              skipReason: input.reason || null
+              skipReason: input.reason || null,
             }
           : task
       );
@@ -404,7 +291,7 @@ export function useTaskMutations() {
       await cancelAllQueries();
       const snapshot = snapshotCache();
 
-      updateAllTasksCache((task) => task.id === id ? null : task);
+      updateAllTasksCache((task) => (task.id === id ? null : task));
 
       return snapshot;
     },
@@ -460,13 +347,11 @@ export function useTaskMutations() {
             newIndex = 0;
           }
 
-          const newOrder = [
+          return [
             ...withoutTask.slice(0, newIndex),
             task,
             ...withoutTask.slice(newIndex),
           ];
-
-          return newOrder;
         });
       });
 
@@ -479,9 +364,7 @@ export function useTaskMutations() {
         });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dateTasks"] });
-    },
+    onSettled: invalidateAll,
   });
 
   const toggleFav = useMutation({

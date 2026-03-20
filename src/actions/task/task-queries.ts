@@ -16,9 +16,11 @@ import {
   getTasksByDateSchema,
   searchTasksSchema,
   getMonthlyTaskStatsSchema,
+  getAllTasksSchema,
   type GetTasksByDateInput,
   type SearchTasksInput,
   type GetMonthlyTaskStatsInput,
+  type GetAllTasksInput,
 } from "@/lib/validations";
 import {
   getTodayInJST,
@@ -192,31 +194,89 @@ export async function searchTasks(
 }
 
 /**
- * すべてのタスクを取得します。
+ * すべてのタスクを取得します。フィルタ条件を複合指定可能。
  *
- * @param input - フィルタ条件（カテゴリID）
- * @returns すべてのタスク（displayOrder降順にソート）
+ * @param input - フィルタ条件
+ * @returns タスク一覧（displayOrder降順にソート）
  *
  * @remarks
- * - カテゴリIDが未指定の場合、すべてのタスクを取得
- * - カテゴリIDがnullの場合、カテゴリなしのタスクのみ取得
+ * - `date` 指定時: scheduledAt が一致、または completedAt/skippedAt/createdAt が JST でその日に該当するタスクを返す
+ * - `dateFrom`/`dateTo` 指定時: scheduledAt が範囲内のタスクを返す
+ * - `keyword` 指定時: タイトル・メモを大文字小文字を区別せずに検索
  * - displayOrderが大きい値ほど上に表示されます
  */
-export async function getAllTasks(input?: {
-  categoryId?: string | null;
-}): Promise<ActionResult<Task[]>> {
+export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResult<Task[]>> {
   try {
-    const user = await getRequiredUser();
+    const parsed = getAllTasksSchema.safeParse(input ?? {});
+    if (!parsed.success) {
+      return failure(parsed.error.issues[0].message, "VALIDATION_ERROR");
+    }
 
-    // WHERE句の構築
+    const user = await getRequiredUser();
+    const { categoryId, date, keyword, status, isFavorite, dateFrom, dateTo } = parsed.data;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { userId: user.id };
+    const andConditions: any[] = [];
+
+    // 単日フィルタ: scheduledAt 一致 OR completedAt/skippedAt/createdAt がその日の範囲内
+    if (date) {
+      const { start, end } = getDateRangeInJST(date);
+      const dateObj = new Date(date);
+      andConditions.push({
+        OR: [
+          { scheduledAt: dateObj },
+          { completedAt: { gte: start, lte: end } },
+          { skippedAt: { gte: start, lte: end } },
+          { createdAt: { gte: start, lte: end } },
+        ],
+      });
+    }
+
+    // キーワード検索（タイトルまたはメモに含まれる）
+    if (keyword?.trim()) {
+      andConditions.push({
+        OR: [
+          { title: { contains: keyword.trim(), mode: "insensitive" } },
+          { memo: { contains: keyword.trim(), mode: "insensitive" } },
+        ],
+      });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
+      userId: user.id,
+      ...(andConditions.length > 0 ? { AND: andConditions } : {}),
+    };
+
+    // ステータスフィルタ
+    if (status && status !== "all") {
+      where.status = status.toUpperCase();
+    }
 
     // カテゴリフィルタ
-    if (input?.categoryId !== undefined) {
-      where.categoryId = input.categoryId;
+    if (categoryId !== undefined) {
+      where.categoryId = categoryId;
     }
-    
+
+    // お気に入りフィルタ
+    if (isFavorite !== undefined) {
+      where.isFavorite = isFavorite;
+    }
+
+    // 日付範囲フィルタ（scheduledAt の範囲検索）
+    if (dateFrom || dateTo) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      where.scheduledAt = {} as any;
+      if (dateFrom) {
+        const { start } = getDateRangeInJST(dateFrom);
+        where.scheduledAt.gte = start;
+      }
+      if (dateTo) {
+        const { end } = getDateRangeInJST(dateTo);
+        where.scheduledAt.lte = end;
+      }
+    }
+
     const tasks = await prisma.task.findMany({
       where,
       include: { category: true },

@@ -8,10 +8,6 @@ export {
   useDeleteTask,
 } from "./use-today-tasks";
 
-export { useDateTasks } from "./use-date-tasks";
-
-export { useTasks, type UnifiedTasks } from "./use-tasks";
-
 export { useAllTasks } from "./use-all-tasks";
 
 export { useMonthlyTaskStats } from "./use-monthly-task-stats";
@@ -27,11 +23,5 @@ export {
   useUpdateCategorySortOrder,
   useDeleteCategory,
 } from "./use-categories";
-
-export {
-  useSearchTasks,
-  useInvalidateSearchTasks,
-  type SearchFilters,
-} from "./use-search-tasks";
 
 export { useTheme, type Theme } from "./use-theme";

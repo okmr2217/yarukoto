@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Tags, Settings, Calendar } from "lucide-react";
+import { Home, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NAV_ITEMS, NAV_GROUPS } from "@/lib/constants";
@@ -10,7 +10,6 @@ import { NAV_ITEMS, NAV_GROUPS } from "@/lib/constants";
 const iconMap = {
   Home,
   Calendar,
-  Search,
   Tags,
   Settings,
 } as const;
@@ -51,7 +50,8 @@ export function Sidebar() {
               </p>
               <div className="space-y-0.5">
                 {items.map((item) => {
-                  const Icon = iconMap[item.icon];
+                  const Icon = iconMap[item.icon as keyof typeof iconMap];
+                  if (!Icon) return null;
                   const active = isActive(item.href);
                   return (
                     <Link

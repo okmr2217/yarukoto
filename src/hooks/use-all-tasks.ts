@@ -3,22 +3,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllTasks } from "@/actions";
 import type { Task } from "@/types";
+import type { GetAllTasksInput } from "@/lib/validations";
 
 /**
- * すべてのタスクを取得するhook
- * @param categoryId カテゴリID（未指定: 全タスク、null: カテゴリなし、文字列: 指定カテゴリ）
+ * すべてのタスクを取得するhook。複合フィルタ対応。
+ * @param filters フィルタ条件（省略時は全タスクを取得）
  */
-export function useAllTasks(categoryId?: string | null) {
-  // クエリキー: undefined="all", null="none", その他=カテゴリID
-  const queryKey =
-    categoryId === undefined ? "all" : categoryId === null ? "none" : categoryId;
-
+export function useAllTasks(filters?: GetAllTasksInput) {
   return useQuery({
-    queryKey: ["allTasks", queryKey],
+    queryKey: ["allTasks", filters ?? {}],
     queryFn: async (): Promise<Task[]> => {
-      const result = await getAllTasks(
-        categoryId !== undefined ? { categoryId } : undefined,
-      );
+      const result = await getAllTasks(filters ?? {});
       if (!result.success) {
         throw new Error(result.error);
       }

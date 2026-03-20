@@ -19,12 +19,20 @@ import { NAV_ITEMS, NAV_GROUPS } from "@/lib/constants";
 const iconMap = {
   Home,
   Calendar,
-  Search,
   Tags,
   Settings,
 } as const;
 
-export function Header() {
+interface HeaderProps {
+  /** フィルタパネル開閉トグル（指定時は検索アイコンをトグルボタンとして使用） */
+  onFilterToggle?: () => void;
+  /** フィルタパネルが開いているか */
+  isFilterOpen?: boolean;
+  /** アクティブなフィルタが存在するか（インジケータ表示用） */
+  hasActiveFilters?: boolean;
+}
+
+export function Header({ onFilterToggle, isFilterOpen, hasActiveFilters }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -62,7 +70,8 @@ export function Header() {
                     </p>
                     <div className="space-y-0.5">
                       {items.map((item) => {
-                        const Icon = iconMap[item.icon];
+                        const Icon = iconMap[item.icon as keyof typeof iconMap];
+                        if (!Icon) return null;
                         const active = isActive(item.href);
                         return (
                           <Link
@@ -100,11 +109,21 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/search" aria-label="検索">
-              <Search className="h-5 w-5" />
-            </Link>
-          </Button>
+          {onFilterToggle ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onFilterToggle}
+              aria-label="フィルターを開く"
+              aria-pressed={isFilterOpen}
+              className="relative"
+            >
+              <Search className={cn("h-5 w-5", isFilterOpen && "text-primary")} />
+              {hasActiveFilters && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
+              )}
+            </Button>
+          ) : null}
           <Button variant="ghost" size="icon" asChild>
             <Link href="/settings" aria-label="設定">
               <Settings className="h-5 w-5" />

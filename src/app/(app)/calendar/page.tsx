@@ -177,7 +177,7 @@ export default function CalendarPage() {
 
   const handleSelectDate = (date: Date) => {
     const dateString = formatDateToJST(date);
-    router.push(`/dates/${dateString}`);
+    router.push(`/?date=${dateString}`);
   };
 
   return (

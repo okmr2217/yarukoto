@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateForDisplay, isTodayInJST } from "@/lib/dateUtils";
@@ -11,6 +11,7 @@ interface DateNavigationProps {
   onPrevious: () => void;
   onNext: () => void;
   onToday: () => void;
+  onClear?: () => void;
   isPast?: boolean;
   isFuture?: boolean;
 }
@@ -20,6 +21,7 @@ export function DateNavigation({
   onPrevious,
   onNext,
   onToday,
+  onClear,
   isPast = false,
   isFuture = false,
 }: DateNavigationProps) {
@@ -80,6 +82,11 @@ export function DateNavigation({
             <Calendar className={cn("h-5 w-5")} />
           </Link>
         </Button>
+        {onClear && (
+          <Button variant="ghost" size="icon" onClick={onClear} aria-label="日付フィルタを解除">
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

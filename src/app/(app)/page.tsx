@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Star } from "lucide-react";
-import { Header, CategoryFilter } from "@/components/layout";
+import { Header, CategoryFilter, DateNavigation, FilterPanel, type FilterValues } from "@/components/layout";
 import {
   TaskSection,
   TaskInputModal,
@@ -21,42 +20,110 @@ import {
   useSettings,
   useCategories,
 } from "@/hooks";
-import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
+import { getTodayInJST, addDaysJST, parseJSTDate, formatDateToJST } from "@/lib/dateUtils";
 
 export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // URLのクエリパラメータからカテゴリを取得
-  // null = すべて, "none" = カテゴリなし, それ以外 = 特定カテゴリID
+  // URLクエリパラメータからフィルタ状態を読み取る
   const selectedCategoryId = searchParams.get("category") || null;
+  const dateFilter = searchParams.get("date") || null;
+  const keyword = searchParams.get("keyword") || "";
+  const statusFilter = (searchParams.get("status") || "all") as FilterValues["status"];
+  const favoriteFilter = searchParams.get("favorite") === "true";
+  const dateFrom = searchParams.get("dateFrom") || "";
+  const dateTo = searchParams.get("dateTo") || "";
 
+  const hasActiveFilters = !!(keyword || statusFilter !== "all" || favoriteFilter || dateFrom || dateTo);
+
+  const [filterPanelOpen, setFilterPanelOpen] = useState(hasActiveFilters);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
-  // カテゴリ選択時にURLを更新
+  const today = getTodayInJST();
+
+  // URLクエリパラメータ更新ヘルパー
+  const updateSearchParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    }
+    const qs = params.toString();
+    router.push(qs ? `/?${qs}` : "/");
+  };
+
   const handleCategoryChange = (categoryId: string | null) => {
-    if (categoryId === null) {
-      router.push("/");
-    } else {
-      router.push(`/?category=${categoryId}`);
+    updateSearchParams({ category: categoryId });
+  };
+
+  // 日付ナビゲーション
+  const handleDatePrevious = () => {
+    if (!dateFilter) return;
+    updateSearchParams({ date: addDaysJST(dateFilter, -1) });
+  };
+
+  const handleDateNext = () => {
+    if (!dateFilter) return;
+    updateSearchParams({ date: addDaysJST(dateFilter, 1) });
+  };
+
+  const handleDateToday = () => {
+    updateSearchParams({ date: today });
+  };
+
+  const handleDateClear = () => {
+    updateSearchParams({ date: null });
+  };
+
+  // フィルタパネルの値変更
+  const handleFilterChange = <K extends keyof FilterValues>(key: K, value: FilterValues[K]) => {
+    if (key === "keyword") {
+      updateSearchParams({ keyword: (value as string) || null });
+    } else if (key === "status") {
+      updateSearchParams({ status: value === "all" ? null : (value as string) });
+    } else if (key === "isFavorite") {
+      updateSearchParams({ favorite: value ? "true" : null });
+    } else if (key === "dateFrom") {
+      updateSearchParams({ dateFrom: (value as string) || null });
+    } else if (key === "dateTo") {
+      updateSearchParams({ dateTo: (value as string) || null });
     }
   };
 
+  const handleClearFilters = () => {
+    updateSearchParams({ keyword: null, status: null, favorite: null, dateFrom: null, dateTo: null });
+  };
+
+  const filterValues: FilterValues = {
+    keyword,
+    status: statusFilter,
+    isFavorite: favoriteFilter,
+    dateFrom,
+    dateTo,
+  };
+
   const { settings } = useSettings();
-  // "none"の場合はnullに変換してサーバーに渡す
-  const categoryIdForQuery =
-    selectedCategoryId === "none" ? null : selectedCategoryId;
-  const {
-    data: tasks,
-    isLoading,
-    error,
-  } = useAllTasks(selectedCategoryId === null ? undefined : categoryIdForQuery);
+  const categoryIdForQuery = selectedCategoryId === "none" ? null : selectedCategoryId;
+
+  const { data: tasks, isLoading, error } = useAllTasks({
+    categoryId: selectedCategoryId === null ? undefined : categoryIdForQuery,
+    date: dateFilter || undefined,
+    keyword: keyword || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    isFavorite: favoriteFilter || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+  });
+
   const { data: categories = [] } = useCategories();
   const mutations = useTaskMutations();
 
@@ -69,11 +136,7 @@ export default function HomePage() {
     mutations.createTask.mutate(data);
   };
 
-  const handleReorder = (
-    taskId: string,
-    beforeTaskId?: string,
-    afterTaskId?: string,
-  ) => {
+  const handleReorder = (taskId: string, beforeTaskId?: string, afterTaskId?: string) => {
     mutations.reorderTasks.mutate({ taskId, beforeTaskId, afterTaskId });
   };
 
@@ -97,9 +160,7 @@ export default function HomePage() {
   const handleSkip = (id: string) => {
     if (!tasks) return;
     const task = tasks.find((t) => t.id === id);
-    if (task) {
-      setSkippingTask(task);
-    }
+    if (task) setSkippingTask(task);
   };
 
   const handleSkipConfirm = (reason?: string) => {
@@ -140,20 +201,9 @@ export default function HomePage() {
   // Nキーでタスク作成モーダルを開く
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // モディファイアキーなしでNキーを押した場合
-      if (
-        e.key === "n" &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.shiftKey &&
-        !e.altKey
-      ) {
+      if (e.key === "n" && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
         const target = e.target as HTMLElement;
-        // フォーム入力中は無効化
-        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-          return;
-        }
-
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
         e.preventDefault();
         setTaskInputOpen(true);
       }
@@ -162,6 +212,23 @@ export default function HomePage() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // 日付フィルタ時のマッチ理由を算出（クライアント側）
+  const getMatchReasons = (task: Task): string[] => {
+    if (!dateFilter) return [];
+    const reasons: string[] = [];
+    if (task.scheduledAt === dateFilter) reasons.push("📅 予定日");
+    if (task.completedAt && formatDateToJST(new Date(task.completedAt)) === dateFilter) {
+      reasons.push("✅ この日に完了");
+    }
+    if (task.skippedAt && formatDateToJST(new Date(task.skippedAt)) === dateFilter) {
+      reasons.push("⏭️ この日にやらない");
+    }
+    if (formatDateToJST(new Date(task.createdAt)) === dateFilter && task.scheduledAt !== dateFilter) {
+      reasons.push("🆕 この日に作成");
+    }
+    return reasons;
+  };
 
   if (isLoading) {
     return (
@@ -179,52 +246,39 @@ export default function HomePage() {
       <div className="flex-1 bg-background">
         <Header />
         <div className="flex items-center justify-center h-[calc(100vh-56px)] md:h-screen">
-          <div className="text-destructive">
-            エラーが発生しました: {error.message}
-          </div>
+          <div className="text-destructive">エラーが発生しました: {error.message}</div>
         </div>
       </div>
     );
   }
 
-  // ステータス別に分類
-  const applyFavoriteFilter = (list: Task[]) =>
-    showFavoritesOnly ? list.filter((t) => t.isFavorite) : list;
+  const pendingTasks = tasks?.filter((t) => t.status === "PENDING") || [];
 
-  const pendingTasks = applyFavoriteFilter(
-    tasks?.filter((task) => task.status === "PENDING") || [],
+  const completedTasks = (tasks?.filter((t) => t.status === "COMPLETED") || []).sort(
+    (a, b) =>
+      new Date(b.completedAt || b.createdAt).getTime() -
+      new Date(a.completedAt || a.createdAt).getTime(),
   );
 
-  // 完了済み: 完了日時降順（新しい順）
-  const completedTasks = applyFavoriteFilter(
-    tasks
-      ?.filter((task) => task.status === "COMPLETED")
-      .sort(
-        (a, b) =>
-          new Date(b.completedAt || b.createdAt).getTime() -
-          new Date(a.completedAt || a.createdAt).getTime(),
-      ) || [],
-  );
-
-  // やらない: スキップ日時降順（新しい順）
-  const skippedTasks = applyFavoriteFilter(
-    tasks
-      ?.filter((task) => task.status === "SKIPPED")
-      .sort(
-        (a, b) =>
-          new Date(b.skippedAt || b.createdAt).getTime() -
-          new Date(a.skippedAt || a.createdAt).getTime(),
-      ) || [],
+  const skippedTasks = (tasks?.filter((t) => t.status === "SKIPPED") || []).sort(
+    (a, b) =>
+      new Date(b.skippedAt || b.createdAt).getTime() -
+      new Date(a.skippedAt || a.createdAt).getTime(),
   );
 
   const hasNoTasks =
-    pendingTasks.length === 0 &&
-    completedTasks.length === 0 &&
-    skippedTasks.length === 0;
+    pendingTasks.length === 0 && completedTasks.length === 0 && skippedTasks.length === 0;
+
+  const isDateFilterPast = dateFilter ? dateFilter < today : false;
+  const isDateFilterFuture = dateFilter ? dateFilter > today : false;
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      <Header />
+      <Header
+        onFilterToggle={() => setFilterPanelOpen((v) => !v)}
+        isFilterOpen={filterPanelOpen}
+        hasActiveFilters={hasActiveFilters}
+      />
 
       <CategoryFilter
         categories={categories}
@@ -232,42 +286,46 @@ export default function HomePage() {
         onSelectCategory={handleCategoryChange}
       />
 
-      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
-        {/* お気に入りフィルタトグル */}
-        <div className="px-4 pt-2 flex items-center gap-2">
-          <button
-            onClick={() => setShowFavoritesOnly((v) => !v)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors",
-              showFavoritesOnly
-                ? "bg-yellow-500/10 border-yellow-500/40 text-yellow-600"
-                : "border-border text-muted-foreground hover:bg-accent",
-            )}
-            aria-pressed={showFavoritesOnly}
-          >
-            <Star
-              className="size-3.5"
-              fill={showFavoritesOnly ? "currentColor" : "none"}
-            />
-            お気に入り
-          </button>
+      {/* フィルタパネル */}
+      {filterPanelOpen && (
+        <div className="max-w-2xl w-full mx-auto">
+          <FilterPanel
+            values={filterValues}
+            onChange={handleFilterChange}
+            onClear={handleClearFilters}
+            hasActiveFilters={hasActiveFilters}
+          />
         </div>
+      )}
 
+      {/* 日付ナビゲーション（date パラメータ指定時のみ） */}
+      {dateFilter && (
+        <div className="max-w-2xl w-full mx-auto">
+          <DateNavigation
+            currentDate={parseJSTDate(dateFilter)}
+            onPrevious={handleDatePrevious}
+            onNext={handleDateNext}
+            onToday={handleDateToday}
+            onClear={handleDateClear}
+            isPast={isDateFilterPast}
+            isFuture={isDateFilterFuture}
+          />
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
         <main className="flex-1 overflow-auto">
           <div className="px-4 pt-2 pb-20 md:pb-4">
             {hasNoTasks ? (
               <div className="text-center py-12 text-muted-foreground">
-                {showFavoritesOnly ? (
-                  <p>お気に入りのタスクがありません</p>
+                {hasActiveFilters || dateFilter ? (
+                  <p>条件に一致するタスクがありません</p>
                 ) : (
                   <>
                     <p>タスクがありません</p>
                     <p className="text-sm mt-1">
-                      <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">
-                        N
-                      </kbd>{" "}
-                      キーまたは下の{" "}
-                      <span className="text-primary font-semibold">＋</span>{" "}
+                      <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">N</kbd>{" "}
+                      キーまたは下の <span className="text-primary font-semibold">＋</span>{" "}
                       ボタンから新しいタスクを追加しましょう
                     </p>
                   </>
@@ -275,17 +333,16 @@ export default function HomePage() {
               </div>
             ) : (
               <>
-                {/* 未完了タスク */}
                 <TaskSection
                   title="未完了"
                   tasks={pendingTasks}
                   handlers={taskHandlers}
                   showScheduledDate
-                  enableDragAndDrop
+                  enableDragAndDrop={!dateFilter && !hasActiveFilters}
                   onReorder={handleReorder}
+                  matchReasons={dateFilter ? pendingTasks.map(getMatchReasons) : undefined}
                 />
 
-                {/* 完了済みタスク */}
                 <TaskSection
                   title="完了済み"
                   tasks={completedTasks}
@@ -293,9 +350,9 @@ export default function HomePage() {
                   defaultCollapsed={settings.autoCollapseCompleted}
                   handlers={taskHandlers}
                   showScheduledDate
+                  matchReasons={dateFilter ? completedTasks.map(getMatchReasons) : undefined}
                 />
 
-                {/* やらないタスク */}
                 <TaskSection
                   title="やらない"
                   tasks={skippedTasks}
@@ -303,6 +360,7 @@ export default function HomePage() {
                   defaultCollapsed={settings.autoCollapseSkipped}
                   handlers={taskHandlers}
                   showScheduledDate
+                  matchReasons={dateFilter ? skippedTasks.map(getMatchReasons) : undefined}
                 />
               </>
             )}
@@ -318,6 +376,7 @@ export default function HomePage() {
         onOpenChange={setTaskInputOpen}
         onSubmit={handleCreateTask}
         categories={categories}
+        defaultDate={dateFilter || undefined}
         defaultCategoryId={
           selectedCategoryId === null || selectedCategoryId === "none"
             ? undefined
@@ -344,11 +403,7 @@ export default function HomePage() {
         isLoading={mutations.skipTask.isPending}
       />
 
-      <TaskDetailSheet
-        task={detailTask}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-      />
+      <TaskDetailSheet task={detailTask} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
   );
 }

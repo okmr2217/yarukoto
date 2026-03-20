@@ -7,8 +7,6 @@
 
 // クエリ操作（データ取得）
 export {
-  getTasksByDate,
-  searchTasks,
   getAllTasks,
   getMonthlyTaskStats,
   getTaskDetail,

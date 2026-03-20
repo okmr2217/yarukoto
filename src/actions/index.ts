@@ -1,7 +1,7 @@
 export {
-  getTasksByDate,
-  searchTasks,
   getAllTasks,
+  getMonthlyTaskStats,
+  getTaskDetail,
   createTask,
   updateTask,
   completeTask,
@@ -11,7 +11,6 @@ export {
   deleteTask,
   reorderTasks,
   toggleFavorite,
-  getMonthlyTaskStats,
 } from "./task";
 
 export {

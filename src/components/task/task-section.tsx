@@ -39,6 +39,8 @@ interface TaskSectionProps {
   enableDragAndDrop?: boolean;
   /** 並び替え完了時のコールバック */
   onReorder?: (taskId: string, beforeTaskId?: string, afterTaskId?: string) => void;
+  /** 日付フィルタ時のマッチ理由（tasks と同順で対応） */
+  matchReasons?: string[][];
 }
 
 const variantStyles = {
@@ -60,6 +62,7 @@ interface SortableTaskCardProps {
   handlers: TaskCardHandlers;
   showScheduledDate?: boolean;
   enableDragAndDrop?: boolean;
+  matchReasons?: string[];
 }
 
 function SortableTaskCard({
@@ -67,6 +70,7 @@ function SortableTaskCard({
   handlers,
   showScheduledDate,
   enableDragAndDrop,
+  matchReasons,
 }: SortableTaskCardProps) {
   const { setNodeRef, transform, transition, isDragging, listeners, attributes } =
     useSortable({ id: task.id });
@@ -89,6 +93,7 @@ function SortableTaskCard({
         enableDragAndDrop={enableDragAndDrop}
         dragHandleListeners={listeners}
         dragHandleAttributes={attributes}
+        matchReasons={matchReasons}
       />
     </div>
   );
@@ -103,6 +108,7 @@ export function TaskSection({
   showScheduledDate = false,
   enableDragAndDrop = false,
   onReorder,
+  matchReasons,
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [localTasks, setLocalTasks] = useState(tasks);
@@ -179,25 +185,27 @@ export function TaskSection({
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-2">
-                  {displayTasks.map((task) => (
+                  {displayTasks.map((task, index) => (
                     <SortableTaskCard
                       key={task.id}
                       task={task}
                       handlers={handlers}
                       showScheduledDate={showScheduledDate}
                       enableDragAndDrop={enableDragAndDrop}
+                      matchReasons={matchReasons?.[index]}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
           ) : (
-            displayTasks.map((task) => (
+            displayTasks.map((task, index) => (
               <TaskCard
                 key={task.id}
                 task={task}
                 handlers={handlers}
                 showScheduledDate={showScheduledDate}
+                matchReasons={matchReasons?.[index]}
               />
             ))
           )}

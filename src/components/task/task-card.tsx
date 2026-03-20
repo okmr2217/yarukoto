@@ -47,6 +47,8 @@ interface TaskCardProps {
   dragHandleListeners?: DraggableSyntheticListeners;
   /** ドラッグハンドル用の属性（dnd-kit） */
   dragHandleAttributes?: DraggableAttributes;
+  /** 日付フィルタ時のマッチ理由バッジ */
+  matchReasons?: string[];
 }
 
 export function TaskCard({
@@ -56,6 +58,7 @@ export function TaskCard({
   enableDragAndDrop = false,
   dragHandleListeners,
   dragHandleAttributes,
+  matchReasons,
 }: TaskCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -252,7 +255,8 @@ export function TaskCard({
 
             {((showScheduledDate && task.scheduledAt) ||
               task.category ||
-              (isSkipped && task.skipReason)) && (
+              (isSkipped && task.skipReason) ||
+              (matchReasons && matchReasons.length > 0)) && (
               <div
                 className={cn(
                   "flex items-center gap-2 flex-wrap",
@@ -260,6 +264,11 @@ export function TaskCard({
                   !hasMemo && "mt-1",
                 )}
               >
+                {matchReasons && matchReasons.length > 0 && matchReasons.map((reason) => (
+                  <span key={reason} className="text-xs text-muted-foreground">
+                    {reason}
+                  </span>
+                ))}
                 {showScheduledDate && task.scheduledAt && (
                   <>
                     {scheduledDateStatus === "today" && (
