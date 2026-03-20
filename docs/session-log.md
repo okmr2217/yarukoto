@@ -4,6 +4,41 @@
 
 ---
 
+## 2026-03-20（全タスクビュー統合 / dates・search 廃止）
+
+### やったこと
+
+- `getAllTasks` Server Action を拡張（`date`, `keyword`, `status`, `isFavorite`, `dateFrom`, `dateTo` パラメータ追加）
+  - `date` 指定時: `scheduledAt` 一致 OR `completedAt`/`skippedAt`/`createdAt` がその日の JST 範囲内の OR クエリ
+- `useAllTasks` hook を複合フィルタ対応に更新（queryKey にフィルタオブジェクトを含める）
+- `page.tsx`（ホーム画面）を全面書き換え：
+  - `?date=`, `?category=`, `?keyword=`, `?status=`, `?favorite=`, `?dateFrom=`, `?dateTo=` をURLクエリパラメータで管理
+  - `?date=` 指定時: DateNavigation 表示、× で日付フィルタ解除、マッチ理由バッジ表示（クライアント側で判定）
+  - フィルタパネル（Header の検索アイコンでトグル）：keyword/status/isFavorite/dateFrom/dateTo
+  - お気に入りフィルタを独立ボタンからフィルタパネルに統合
+  - D&D は dateFilter/hasActiveFilters がない場合のみ有効
+- `FilterPanel` コンポーネントを新規作成 (`src/components/layout/filter-panel.tsx`)
+- `Header`: 検索アイコンを `onFilterToggle` コールバックがある場合にフィルタトグルボタンへ変更。アクティブ時ドット表示
+- `DateNavigation`: `onClear` オプション prop を追加（× ボタン）
+- `TaskCard`/`TaskSection`: `matchReasons?: string[]` prop を追加してバッジ表示
+- カレンダーの日付クリックを `/?date=YYYY-MM-DD` に変更（`/dates/xxx` 廃止）
+- 削除ファイル: `dates/[date]/page.tsx`, `search/page.tsx`, `components/search/`, `use-date-tasks.ts`, `use-tasks.ts`, `use-search-tasks.ts`
+- `NAV_ITEMS` から `/search` を削除、Sidebar の Search アイコン除去
+- `use-task-mutations.ts`: `dateTasks` キャッシュ参照をすべて除去、`CacheSnapshot` を `allTasks` のみに簡略化
+
+### 技術メモ
+
+- Prisma の複合 OR/AND 条件: `andConditions[]` 配列に push して `{ AND: andConditions }` で結合するパターン
+- `matchReasons` の計算はクライアント側（`formatDateToJST(new Date(completedAt)) === dateFilter` で JST 変換）
+- `useAllTasks` の queryKey は `["allTasks", filtersObj]` — mutations の `{ queryKey: ["allTasks"] }` prefix マッチで既存の楽観的更新がすべて機能する
+
+### 次にやりたいこと
+
+- 繰り返しタスク実装の検討
+- 完了タスク折りたたみのデフォルト挙動設計
+
+---
+
 ## 2026-03-20（カテゴリ表示順並び替え機能）
 
 ### やったこと
