@@ -107,17 +107,14 @@ yarukoto/
 │   │   │   └── reset-password/
 │   │   └── (app)/
 │   │       ├── layout.tsx         # 認証済みレイアウト（Sidebar）
-│   │       ├── page.tsx           # Home（今日のタスク）
-│   │       ├── dates/[date]/
+│   │       ├── page.tsx           # 全タスクビュー（URLクエリパラメータでフィルタ管理）
 │   │       ├── calendar/
-│   │       ├── search/
 │   │       ├── categories/
 │   │       └── settings/
 │   ├── components/
 │   │   ├── auth/
-│   │   ├── layout/                # Header, Sidebar, DateNavigation, CategoryFilter
+│   │   ├── layout/                # Header, Sidebar, CategoryFilter, FilterPanel, DateNavigation
 │   │   ├── task/                  # TaskCard, TaskSection, TaskCreateDialog, TaskEditDialog, TaskDetailSheet, TaskFab
-│   │   ├── search/
 │   │   ├── category/
 │   │   └── ui/                    # Radix UI プリミティブ
 │   ├── actions/
@@ -145,11 +142,7 @@ yarukoto/
 └── docs/
     ├── project.md         # このファイル
     ├── handoff.md
-    ├── session-log.md
-    ├── requirements.md
-    ├── api-design.md
-    ├── screen-design.md
-    └── coding-guidelines.md
+    └── session-log.md
 ```
 
 ---
@@ -214,20 +207,36 @@ failure(error, code) → { success: false, error, code }
 
 ### 楽観的更新パターン（TanStack Query）
 
+- queryKey は `["allTasks", filtersObj]` — prefix `["allTasks"]` で全フィルタバリアントをまとめて無効化
+- mutations は `{ queryKey: ["allTasks"] }` prefix マッチで既存の楽観的更新がすべて機能する
+
 ```typescript
 onMutate: async (input) => {
-  await queryClient.cancelQueries({ queryKey: QUERY_KEYS.DATE_TASKS(date) });
-  const snapshot = queryClient.getQueryData(QUERY_KEYS.DATE_TASKS(date));
-  queryClient.setQueryData(QUERY_KEYS.DATE_TASKS(date), optimisticUpdate(input));
-  return { snapshot };
+  await queryClient.cancelQueries({ queryKey: ["allTasks"] });
+  const snapshot = queryClient.getQueryData<Task[]>(["allTasks", filters]);
+  queryClient.setQueryData(["allTasks", filters], optimisticUpdate(snapshot, input));
+  return { previousAllTasks: snapshot };
 },
 onError: (_, __, context) => {
-  queryClient.setQueryData(QUERY_KEYS.DATE_TASKS(date), context.snapshot);
+  queryClient.setQueryData(["allTasks", filters], context?.previousAllTasks);
 },
 onSettled: () => {
-  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DATE_TASKS(date) });
+  queryClient.invalidateQueries({ queryKey: ["allTasks"] });
 },
 ```
+
+### URL フィルタパラメータ（ホーム画面）
+
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `category` | string | カテゴリ ID でフィルタ |
+| `date` | YYYY-MM-DD | 単日フィルタ（scheduledAt 一致 OR completedAt/skippedAt/createdAt がその日の JST 範囲内） |
+| `keyword` | string | タイトル・メモの部分一致（大文字小文字無視） |
+| `status` | all / pending / completed / skipped | ステータスフィルタ |
+| `favorite` | 1 | お気に入りのみ表示 |
+
+- フィルタ有効時は D&D 無効
+- `date` フィルタ有効時はマッチ理由バッジをタスクカードに表示（クライアント側で JST 変換して判定）
 
 ### バリデーション定数
 
