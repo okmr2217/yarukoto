@@ -18,7 +18,7 @@ import type {
   UpdateTaskInput,
   SkipTaskInput,
 } from "@/lib/validations";
-import type { Task } from "@/types";
+import type { Task, Category } from "@/types";
 
 /**
  * クエリキーの型
@@ -101,6 +101,8 @@ export function useTaskMutations() {
       const snapshot = snapshotCache();
 
       const tempId = `temp-${Date.now()}`;
+      const categories = queryClient.getQueryData<Category[]>(["categories"]);
+      const foundCategory = categories?.find((c) => c.id === input.categoryId) ?? null;
       const tempTask: Task = {
         id: tempId,
         title: input.title,
@@ -114,7 +116,7 @@ export function useTaskMutations() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         categoryId: input.categoryId || null,
-        category: null,
+        category: foundCategory ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color } : null,
       };
 
       queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
@@ -148,6 +150,15 @@ export function useTaskMutations() {
       await cancelAllQueries();
       const snapshot = snapshotCache();
 
+      const categories = queryClient.getQueryData<Category[]>(["categories"]);
+      const newCategoryId = input.categoryId === undefined ? undefined : input.categoryId;
+      const newCategory =
+        newCategoryId === undefined
+          ? undefined
+          : newCategoryId === null
+            ? null
+            : (categories?.find((c) => c.id === newCategoryId) ?? undefined);
+
       updateAllTasksCache((task) =>
         task.id === input.id
           ? {
@@ -155,7 +166,13 @@ export function useTaskMutations() {
               title: input.title ?? task.title,
               memo: input.memo === undefined ? task.memo : input.memo,
               scheduledAt: input.scheduledAt === undefined ? task.scheduledAt : input.scheduledAt,
-              categoryId: input.categoryId === undefined ? task.categoryId : input.categoryId,
+              categoryId: newCategoryId === undefined ? task.categoryId : newCategoryId,
+              category:
+                newCategory === undefined
+                  ? task.category
+                  : newCategory === null
+                    ? null
+                    : { id: newCategory.id, name: newCategory.name, color: newCategory.color },
               updatedAt: new Date().toISOString(),
             }
           : task
