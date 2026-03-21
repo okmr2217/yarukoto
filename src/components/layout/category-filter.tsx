@@ -15,6 +15,8 @@ interface CategoryFilterProps {
   isFilterOpen?: boolean;
   /** アクティブなフィルタが存在するか */
   hasActiveFilters?: boolean;
+  /** カテゴリ読み込み中か */
+  isLoading?: boolean;
 }
 
 export function CategoryFilter({
@@ -24,6 +26,7 @@ export function CategoryFilter({
   onFilterToggle,
   isFilterOpen,
   hasActiveFilters,
+  isLoading,
 }: CategoryFilterProps) {
   return (
     <div className="sticky top-14 md:top-0 z-40 bg-background border-b">
@@ -37,15 +40,23 @@ export function CategoryFilter({
               onClick={() => onSelectCategory(null)}
               isSpecial
             />
-            {categories.map((category) => (
-              <CategoryChip
-                key={category.id}
-                label={category.name}
-                color={category.color}
-                active={selectedCategoryId === category.id}
-                onClick={() => onSelectCategory(category.id)}
-              />
-            ))}
+            {isLoading
+              ? [48, 72, 56, 40].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-7 rounded-full bg-muted animate-pulse flex-shrink-0"
+                    style={{ width: `${w}px` }}
+                  />
+                ))
+              : categories.map((category) => (
+                  <CategoryChip
+                    key={category.id}
+                    label={category.name}
+                    color={category.color}
+                    active={selectedCategoryId === category.id}
+                    onClick={() => onSelectCategory(category.id)}
+                  />
+                ))}
             <CategoryChip
               label="カテゴリなし"
               active={selectedCategoryId === "none"}

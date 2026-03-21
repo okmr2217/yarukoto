@@ -95,7 +95,7 @@ export default function HomePage() {
     isFavorite: favoriteFilter || undefined,
   });
 
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const mutations = useTaskMutations();
 
   const handleCreateTask = (data: {
@@ -212,6 +212,7 @@ export default function HomePage() {
           onFilterToggle={() => setFilterPanelOpen((v) => !v)}
           isFilterOpen={filterPanelOpen}
           hasActiveFilters={hasActiveFilters}
+          isLoading={categoriesLoading}
         />
         <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
           <div className="px-4 pt-2 pb-20 md:pb-4">
