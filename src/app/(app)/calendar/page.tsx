@@ -84,23 +84,23 @@ function DateCell({
       <span className="text-base mb-1">{date.getDate()}</span>
       {hasStats ? (
         <div className="flex flex-col items-center gap-1.5 w-full mt-auto mb-0.5">
-          <div className="flex items-center gap-1.5 text-xs font-medium flex-wrap justify-center">
+          <div className="flex items-center gap-1.5 font-semibold flex-wrap justify-center">
             {stats.createdCount > 0 && (
               <span className="flex items-center gap-0.5 text-muted-foreground">
-                <PenLine className="h-3 w-3" />
-                {stats.createdCount}
+                <PenLine className="h-2 w-2" />
+                <span className="text-base leading-none">{stats.createdCount}</span>
               </span>
             )}
             {stats.total > 0 && (
               <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
-                <CalendarDays className="h-3 w-3" />
-                {stats.total}
+                <CalendarDays className="h-2 w-2" />
+                <span className="text-base leading-none">{stats.total}</span>
               </span>
             )}
             {stats.completed > 0 && (
               <span className="flex items-center gap-0.5 text-green-600 dark:text-green-400">
-                <CheckCheck className="h-3 w-3" />
-                {stats.completed}
+                <CheckCheck className="h-2 w-2" />
+                <span className="text-base leading-none">{stats.completed}</span>
               </span>
             )}
           </div>
