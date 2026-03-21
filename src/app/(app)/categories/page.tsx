@@ -208,7 +208,7 @@ export default function CategoriesPage() {
 
       <div className="max-w-2xl w-full mx-auto">
         <main className="p-4">
-          <h1 className="text-xl font-semibold mb-3">カテゴリ管理</h1>
+          <h1 className="text-xl font-semibold mb-3">カテゴリ</h1>
           <p className="text-sm text-muted-foreground mb-6">
             タスクに設定するカテゴリを管理します。色を設定してタスクを視覚的に分類できます。ドラッグで表示順を並び替えられます。
           </p>

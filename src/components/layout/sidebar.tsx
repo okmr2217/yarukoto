@@ -28,7 +28,7 @@ export function Sidebar() {
     <aside className="hidden md:flex md:w-64 flex-col sticky top-0 h-screen border-r">
       {/* Logo */}
       <div className="flex items-center h-14 px-4 shrink-0">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-0.5">
           <Image
             src="/icons/icon-192x192.png"
             alt="icon"
