@@ -4,3 +4,4 @@ export { Sidebar } from "./sidebar";
 export { CategoryFilter } from "./category-filter";
 export { CategoryChip } from "./category-chip";
 export { FilterPanel, type FilterValues } from "./filter-panel";
+export { FilterArea } from "./filter-area";

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Header, CategoryFilter, FilterPanel, type FilterValues } from "@/components/layout";
+import { Header, FilterArea, type FilterValues } from "@/components/layout";
 import {
   TaskSection,
   TaskInputModal,
@@ -36,7 +36,6 @@ export default function HomePage() {
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter);
 
-  const [filterPanelOpen, setFilterPanelOpen] = useState(hasActiveFilters);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
@@ -205,14 +204,15 @@ export default function HomePage() {
     return (
       <div className="flex-1 bg-background flex flex-col">
         <Header />
-        <CategoryFilter
+        <FilterArea
           categories={categories}
           selectedCategoryId={selectedCategoryId}
           onSelectCategory={handleCategoryChange}
-          onFilterToggle={() => setFilterPanelOpen((v) => !v)}
-          isFilterOpen={filterPanelOpen}
+          categoriesLoading={categoriesLoading}
+          filterValues={filterValues}
           hasActiveFilters={hasActiveFilters}
-          isLoading={categoriesLoading}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
         />
         <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
           <div className="px-4 pt-2 pb-20 md:pb-4">
@@ -284,25 +284,16 @@ export default function HomePage() {
     <div className="flex-1 bg-background flex flex-col">
       <Header />
 
-      <CategoryFilter
+      <FilterArea
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleCategoryChange}
-        onFilterToggle={() => setFilterPanelOpen((v) => !v)}
-        isFilterOpen={filterPanelOpen}
+        categoriesLoading={categoriesLoading}
+        filterValues={filterValues}
         hasActiveFilters={hasActiveFilters}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
       />
-
-      {filterPanelOpen && (
-        <div className="max-w-2xl w-full mx-auto">
-          <FilterPanel
-            values={filterValues}
-            onChange={handleFilterChange}
-            onClear={handleClearFilters}
-            hasActiveFilters={hasActiveFilters}
-          />
-        </div>
-      )}
 
       <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
         <main className="flex-1 overflow-auto">

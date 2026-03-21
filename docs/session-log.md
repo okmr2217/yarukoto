@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-03-21（フィルタトグルのパフォーマンス改善）
+
+### やったこと
+
+- `FilterArea` コンポーネントを新規作成（`src/components/layout/filter-area.tsx`）
+  - `filterPanelOpen` state を `HomePage` から切り出し `FilterArea` 内に移動
+  - `CategoryFilter` と `FilterPanel` をまとめて管理
+  - `FilterPanel` の表示切替を `{filterPanelOpen && ...}` の条件レンダリングから `hidden` クラスの切り替えに変更（事前マウント）
+- `page.tsx` から `filterPanelOpen` state・`CategoryFilter`・`FilterPanel` の直接使用を削除し `FilterArea` に置き換え
+
+### 技術メモ
+
+- 遅延の原因は2段階あった
+  1. `FilterPanel` がアンマウント済みだったため、開くたびに初回マウントコストが発生
+  2. `filterPanelOpen` state が `HomePage` にあったため、トグルのたびに `TaskSection` 含む全子コンポーネントが再レンダリングされていた
+- state を子コンポーネントに閉じ込めることで `HomePage` の再レンダリングを根本から防止
+
+---
+
 ## 2026-03-21（ホームページ スケルトン UI）
 
 ### やったこと
