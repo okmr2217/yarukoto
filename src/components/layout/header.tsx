@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Settings, Tags, Home, Calendar } from "lucide-react";
+import { Menu, Settings, Tags, ListTodo, Calendar } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/constants";
 
 const iconMap = {
-  Home,
+  ListTodo,
   Calendar,
   Tags,
   Settings,

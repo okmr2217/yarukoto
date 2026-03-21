@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Tags, Settings, Calendar } from "lucide-react";
+import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NAV_ITEMS } from "@/lib/constants";
 
 const iconMap = {
-  Home,
+  ListTodo,
   Calendar,
   Tags,
   Settings,

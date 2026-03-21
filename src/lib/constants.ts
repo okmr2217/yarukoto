@@ -68,7 +68,7 @@ export const QUERY_KEYS = {
  * ナビゲーション項目
  */
 export const NAV_ITEMS = [
-  { href: "/", label: "ホーム", icon: "Home" },
+  { href: "/", label: "タスク", icon: "ListTodo" },
   { href: "/calendar", label: "カレンダー", icon: "Calendar" },
   { href: "/categories", label: "カテゴリ管理", icon: "Tags" },
   { href: "/settings", label: "設定", icon: "Settings" },
