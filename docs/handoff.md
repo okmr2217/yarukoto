@@ -87,6 +87,8 @@
 - lint エラーが既存ファイルに 3 件残存（`use-media-query.ts`, `use-settings.ts`, `use-theme.ts` — `react-hooks/set-state-in-effect`）。今回の変更とは無関係
 - TaskCardMeta のカテゴリはカラードットのみ（名前は title 属性で確認）。カテゴリ名の常時表示は今後の検討事項
 - D&D ハンドルはカード左端グレーストライプ方式に変更済み（`w-6 bg-muted/50`）
+- タスクカードの作成日時をタイトル行右端（☆ の左）に相対形式で常時表示
+- 予定日バッジも相対形式（昨日/N日前/明日/N日後/M/d）に変更済み
 
 ---
 

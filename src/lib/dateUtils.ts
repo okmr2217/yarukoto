@@ -1,4 +1,4 @@
-import { addDays as addDaysFns } from "date-fns";
+import { addDays as addDaysFns, differenceInSeconds, differenceInDays } from "date-fns";
 import { toZonedTime, fromZonedTime, formatInTimeZone } from "date-fns-tz";
 
 const JST_TIMEZONE = "Asia/Tokyo";
@@ -115,6 +115,46 @@ export function getScheduledDateStatus(scheduledAt: string | null | undefined): 
   if (scheduledDate.getTime() === today.getTime()) return "today";
   if (scheduledDate < today) return "overdue";
   return "future";
+}
+
+/**
+ * Twitter風の相対日時表示
+ * 60秒以内 → "N秒前"
+ * 1時間以内 → "N分前"
+ * 24時間以内 → "N時間前"
+ * 7日以内 → "N日前"
+ * それ以降 → "YYYY/MM/DD"
+ */
+export function formatRelativeDate(date: Date | string): string {
+  const target = typeof date === "string" ? new Date(date) : date;
+  const diffSec = differenceInSeconds(new Date(), target);
+
+  if (diffSec < 60) return `${diffSec}秒前`;
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}分前`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}時間前`;
+  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)}日前`;
+  return formatInTimeZone(target, JST_TIMEZONE, "yyyy/MM/dd");
+}
+
+/**
+ * 予定日（DATE型）の相対表示
+ * 過去: 昨日 / N日前 / M/d
+ * 今日: 今日
+ * 未来: 明日 / N日後 / M/d
+ */
+export function formatRelativeScheduledDate(dateStr: string): string {
+  const today = getTodayInJST();
+  if (dateStr === today) return "今日";
+
+  const todayDate = parseJSTDate(today);
+  const targetDate = parseJSTDate(dateStr);
+  const diffDays = differenceInDays(todayDate, targetDate); // 正=過去, 負=未来
+
+  if (diffDays === 1) return "昨日";
+  if (diffDays > 1 && diffDays < 7) return `${diffDays}日前`;
+  if (diffDays === -1) return "明日";
+  if (diffDays < -1 && diffDays > -7) return `${Math.abs(diffDays)}日後`;
+  return formatInTimeZone(targetDate, JST_TIMEZONE, "M/d");
 }
 
 /**

@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-03-21（作成日時・予定日の相対表示）
+
+### やったこと
+
+- `dateUtils.ts` に `formatRelativeDate`（Twitter風・datetime用）と `formatRelativeScheduledDate`（DATE型・前後両対応）を追加
+  - `formatRelativeDate`: 60秒以内/N分前/N時間前/N日前/YYYY/MM/DD
+  - `formatRelativeScheduledDate`: 昨日/N日前/M/d（過去）、明日/N日後/M/d（未来）、境界は7日
+- タスクカードのタイトル行右端（☆ の左）に作成日時を `text-xs text-muted-foreground/50` で常時表示
+- 予定日バッジ（overdue・future）の表示テキストを相対形式に変更（例: `3日前`、`明日`、`3日後`）
+
+### 技術メモ
+
+- `scheduledAt` は DATE 型（時刻なし）のため seconds ベースの `formatRelativeDate` は不適。`differenceInDays` を使った日単位の専用関数を用意
+- `parseJSTDate` でUTC正午として解釈するため、タイムゾーンによるズレが起きない
+
+---
+
 ## 2026-03-21（TaskCard メタバッジ UI 改善 / D&D ハンドル改善）
 
 ### やったこと

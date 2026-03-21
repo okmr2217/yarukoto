@@ -26,7 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
-import { getScheduledDateStatus } from "@/lib/dateUtils";
+import { getScheduledDateStatus, formatRelativeDate, formatRelativeScheduledDate } from "@/lib/dateUtils";
 
 /**
  * タスクカードのアクションハンドラー
@@ -166,8 +166,6 @@ function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReaso
   const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason) || !!task.category;
   const hasRow2 = contextReasons.length > 0;
 
-  if (!hasRow1 && !hasRow2) return null;
-
   return (
     <div className={cn("flex flex-col gap-1", hasMemo ? "mt-2" : "mt-1")}>
       {hasRow1 && (
@@ -183,13 +181,13 @@ function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReaso
               {scheduledDateStatus === "overdue" && (
                 <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
                   <AlertCircle className="h-3 w-3" />
-                  {task.scheduledAt.replace(/-/g, "/")}
+                  {formatRelativeScheduledDate(task.scheduledAt!)}
                 </span>
               )}
               {scheduledDateStatus === "future" && (
                 <span className="flex items-center gap-1 text-muted-foreground text-xs">
                   <Calendar className="h-3 w-3" />
-                  {task.scheduledAt.replace(/-/g, "/")}
+                  {formatRelativeScheduledDate(task.scheduledAt!)}
                 </span>
               )}
             </>
@@ -279,6 +277,7 @@ export function TaskCard({
                   {task.title}
                 </p>
               </div>
+              <span className="text-xs text-muted-foreground/50 flex-shrink-0 mt-0.5">{formatRelativeDate(task.createdAt)}</span>
               <TaskCardActions task={task} handlers={handlers} />
             </div>
 
