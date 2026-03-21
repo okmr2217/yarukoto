@@ -99,6 +99,25 @@ export function parseJSTDate(dateStr: string): Date {
 }
 
 /**
+ * タスクの予定日ステータスを判定
+ * @param scheduledAt - YYYY-MM-DD形式の日付文字列（nullの場合はnullを返す）
+ * @returns "today" | "overdue" | "future" | null
+ */
+export function getScheduledDateStatus(scheduledAt: string | null | undefined): "today" | "overdue" | "future" | null {
+  if (!scheduledAt) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const scheduledDate = new Date(scheduledAt);
+  scheduledDate.setHours(0, 0, 0, 0);
+
+  if (scheduledDate.getTime() === today.getTime()) return "today";
+  if (scheduledDate < today) return "overdue";
+  return "future";
+}
+
+/**
  * DateオブジェクトをJSTのDateオブジェクトに変換（表示用）
  * @param date - 変換する日付
  * @returns JSTに変換されたDateオブジェクト
