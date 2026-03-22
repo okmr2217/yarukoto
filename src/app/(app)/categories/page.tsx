@@ -66,11 +66,11 @@ function SortableCategoryRow({ category, onEdit, onDelete }: SortableCategoryRow
       style={style}
       className="flex items-center justify-between p-4 bg-card rounded-lg border border-border"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0 overflow-hidden">
         <button
           {...attributes}
           {...listeners}
-          className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+          className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0"
           aria-label="ドラッグして並び替え"
         >
           <GripVertical className="h-4 w-4" />
@@ -82,7 +82,7 @@ function SortableCategoryRow({ category, onEdit, onDelete }: SortableCategoryRow
         <div className="min-w-0">
           <span className="font-medium">{category.name}</span>
           {category.description && (
-            <p className="text-sm text-muted-foreground truncate">{category.description}</p>
+            <p className="text-xs text-muted-foreground truncate">{category.description}</p>
           )}
         </div>
       </div>
