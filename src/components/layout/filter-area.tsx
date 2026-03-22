@@ -30,7 +30,7 @@ export function FilterArea({
   const [filterPanelOpen, setFilterPanelOpen] = useState(hasActiveFilters);
 
   return (
-    <>
+    <div className="sticky top-14 md:top-0 z-40">
       <CategoryFilter
         categories={categories}
         selectedCategoryId={selectedCategoryId}
@@ -48,6 +48,6 @@ export function FilterArea({
           hasActiveFilters={hasActiveFilters}
         />
       </div>
-    </>
+    </div>
   );
 }

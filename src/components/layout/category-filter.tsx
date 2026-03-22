@@ -29,7 +29,7 @@ export function CategoryFilter({
   isLoading,
 }: CategoryFilterProps) {
   return (
-    <div className="sticky top-14 md:top-0 z-40 bg-background border-b">
+    <div className="bg-background border-b">
       <div className="flex items-center max-w-2xl mx-auto">
         {/* 横スクロール可能なカテゴリチップ */}
         <div className="flex-1 px-4 py-2 overflow-x-auto">
