@@ -76,12 +76,17 @@ function SortableCategoryRow({ category, onEdit, onDelete }: SortableCategoryRow
           <GripVertical className="h-4 w-4" />
         </button>
         <div
-          className="w-4 h-4 rounded-full"
+          className="w-4 h-4 rounded-full shrink-0"
           style={{ backgroundColor: category.color || "#6B7280" }}
         />
-        <span className="font-medium">{category.name}</span>
+        <div className="min-w-0">
+          <span className="font-medium">{category.name}</span>
+          {category.description && (
+            <p className="text-sm text-muted-foreground truncate">{category.description}</p>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         <Button variant="ghost" size="icon-sm" onClick={() => onEdit(category)} aria-label="編集">
           <Pencil className="h-4 w-4" />
         </Button>
@@ -105,7 +110,7 @@ function CategoryRowOverlay({ category }: { category: Category }) {
       <div className="flex items-center gap-3">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
         <div
-          className="w-4 h-4 rounded-full"
+          className="w-4 h-4 rounded-full shrink-0"
           style={{ backgroundColor: category.color || "#6B7280" }}
         />
         <span className="font-medium">{category.name}</span>
@@ -147,18 +152,20 @@ export default function CategoriesPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = async (data: { name: string; color: string }) => {
+  const handleSave = async (data: { name: string; color: string; description?: string }) => {
     try {
       if (editingCategory) {
         await updateCategory.mutateAsync({
           id: editingCategory.id,
           name: data.name,
           color: data.color,
+          description: data.description,
         });
       } else {
         await createCategory.mutateAsync({
           name: data.name,
           color: data.color,
+          description: data.description,
         });
       }
       setIsDialogOpen(false);

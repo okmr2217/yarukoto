@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 
@@ -28,7 +29,7 @@ interface CategoryEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category?: Category | null;
-  onSave: (data: { name: string; color: string }) => void;
+  onSave: (data: { name: string; color: string; description?: string }) => void;
   isLoading?: boolean;
 }
 
@@ -41,6 +42,7 @@ export function CategoryEditDialog({
 }: CategoryEditDialogProps) {
   const [name, setName] = useState(category?.name ?? "");
   const [color, setColor] = useState(category?.color ?? CATEGORY_COLORS[4].value);
+  const [description, setDescription] = useState(category?.description ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = !!category;
@@ -59,7 +61,7 @@ export function CategoryEditDialog({
       return;
     }
 
-    onSave({ name: trimmedName, color });
+    onSave({ name: trimmedName, color, description: description || undefined });
   };
 
   return (
@@ -87,6 +89,19 @@ export function CategoryEditDialog({
               autoFocus
             />
             {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+
+          {/* 説明文 */}
+          <div className="space-y-2">
+            <Label htmlFor="category-description">説明文</Label>
+            <Textarea
+              id="category-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="例: yarukotoリポジトリのフロントエンド改善"
+              maxLength={200}
+              rows={3}
+            />
           </div>
 
           {/* カラー */}

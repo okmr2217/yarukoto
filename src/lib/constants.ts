@@ -20,6 +20,8 @@ export const TASK_CONSTANTS = {
 export const CATEGORY_CONSTANTS = {
   /** カテゴリ名の最大文字数 */
   NAME_MAX_LENGTH: 100,
+  /** カテゴリ説明文の最大文字数 */
+  DESCRIPTION_MAX_LENGTH: 200,
 } as const;
 
 /**

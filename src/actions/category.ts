@@ -20,6 +20,7 @@ function toCategory(category: PrismaCategory): Category {
     id: category.id,
     name: category.name,
     color: category.color,
+    description: category.description,
     sortOrder: category.sortOrder,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
@@ -54,7 +55,7 @@ export async function createCategory(
     }
 
     const user = await getRequiredUser();
-    const { name, color } = parsed.data;
+    const { name, color, description } = parsed.data;
 
     // Check for duplicate name
     const existing = await prisma.category.findFirst({
@@ -77,6 +78,7 @@ export async function createCategory(
       data: {
         name: name.trim(),
         color,
+        description: description ?? null,
         sortOrder: nextSortOrder,
         userId: user.id,
       },
@@ -99,7 +101,7 @@ export async function updateCategory(
     }
 
     const user = await getRequiredUser();
-    const { id, name, color } = parsed.data;
+    const { id, name, color, description } = parsed.data;
 
     // Verify category belongs to user
     const existingCategory = await prisma.category.findFirst({
@@ -131,6 +133,7 @@ export async function updateCategory(
     const updateData: any = {};
     if (name !== undefined) updateData.name = name.trim();
     if (color !== undefined) updateData.color = color;
+    if (description !== undefined) updateData.description = description;
 
     const category = await prisma.category.update({
       where: { id },

@@ -27,14 +27,14 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, color }: { name: string; color: string }) => {
-      const result = await createCategory({ name, color });
+    mutationFn: async ({ name, color, description }: { name: string; color: string; description?: string }) => {
+      const result = await createCategory({ name, color, description });
       if (!result.success) {
         throw new Error(result.error);
       }
       return result.data.category;
     },
-    onMutate: async ({ name, color }) => {
+    onMutate: async ({ name, color, description }) => {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previous = queryClient.getQueryData<Category[]>(["categories"]);
 
@@ -44,6 +44,7 @@ export function useCreateCategory() {
         id: `temp-${Date.now()}`,
         name,
         color,
+        description: description ?? null,
         sortOrder: maxSortOrder + 1,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -74,18 +75,20 @@ export function useUpdateCategory() {
       id,
       name,
       color,
+      description,
     }: {
       id: string;
       name?: string;
       color?: string;
+      description?: string;
     }) => {
-      const result = await updateCategory({ id, name, color });
+      const result = await updateCategory({ id, name, color, description });
       if (!result.success) {
         throw new Error(result.error);
       }
       return result.data.category;
     },
-    onMutate: async ({ id, name, color }) => {
+    onMutate: async ({ id, name, color, description }) => {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previous = queryClient.getQueryData<Category[]>(["categories"]);
 
@@ -98,6 +101,7 @@ export function useUpdateCategory() {
                   ...cat,
                   name: name ?? cat.name,
                   color: color !== undefined ? color : cat.color,
+                  description: description !== undefined ? description : cat.description,
                   updatedAt: new Date().toISOString(),
                 }
               : cat,
