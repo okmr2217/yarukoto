@@ -137,7 +137,7 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
               <DropdownMenuItem
                 key={action.label}
                 onClick={actionHandlers[action.key]}
-                className={cn(action.destructive ? "text-destructive" : "", action.key === "edit" ? "sm:hidden" : "")}
+                className={cn(action.destructive ? "text-destructive" : "")}
               >
                 <span className="mr-2">
                   <action.Icon className="h-4 w-4" />
