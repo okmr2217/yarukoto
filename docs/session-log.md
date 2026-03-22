@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-03-22（タスク一覧の自動リロード）
+
+### やったこと
+
+- `use-all-tasks.ts` に `refetchInterval: 60_000`（定数 `TASK_REFETCH_INTERVAL_MS`）と `refetchOnWindowFocus: true` を追加
+- 60秒ごと＋ウィンドウフォーカス時にバックグラウンド再取得が走るようになった
+- 楽観的更新や既存フィルタ動作に影響なし（TanStack Query がキャッシュをマージするため）
+
+---
+
+## 2026-03-22（スマホ検索の IME 対応）
+
+### やったこと
+
+- `filter-panel.tsx` のキーワード入力を IME 対応に変更
+  - `localKeyword` state でローカル表示値を管理し、IME 確定後のみ親に伝播
+  - `onCompositionStart` / `onCompositionEnd` で `isComposingRef` を管理
+  - 300ms デバウンス（`KEYWORD_DEBOUNCE_MS`）で高速タイピング時の過剰リクエストを抑制
+  - フィルタクリア時の外部 keyword 変化は derived state パターン（`syncedExternalKeyword` state）で同期
+- lint の `react-hooks/set-state-in-effect` / `react-hooks/refs` を回避するため、useEffect・レンダー中 ref アクセスを使わない実装に
+
+---
+
 ## 2026-03-22（スマホサイドバーのデザイン統一）
 
 ### やったこと
