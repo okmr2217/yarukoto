@@ -175,6 +175,8 @@ function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReaso
   const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason) || !!task.category;
   const hasRow2 = contextReasons.length > 0;
 
+  if (!hasRow1 && !hasRow2) return null;
+
   return (
     <div className={cn("flex flex-col gap-1", hasMemo ? "mt-2" : "mt-1")}>
       {hasRow1 && (
