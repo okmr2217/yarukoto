@@ -118,12 +118,12 @@ export function TaskEditDialog({
           {/* カテゴリ */}
           <div className="space-y-2">
             <Label>カテゴリ</Label>
-            <div className="flex gap-1.5 overflow-x-auto pb-2">
+            <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => setCategoryId("none")}
                 className={cn(
-                  "shrink-0 px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
+                  "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
                   categoryId === "none"
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-background hover:bg-accent",
@@ -137,7 +137,7 @@ export function TaskEditDialog({
                   type="button"
                   onClick={() => setCategoryId(cat.id)}
                   className={cn(
-                    "shrink-0 px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
+                    "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
                     categoryId === cat.id
                       ? "border-primary"
                       : "border-border hover:bg-accent",
