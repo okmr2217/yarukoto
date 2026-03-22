@@ -68,7 +68,7 @@ export function CategoryFilter({
 
         {/* フィルタトグルボタン */}
         {onFilterToggle && (
-          <div className="px-2 shrink-0 border-l">
+          <div className="px-2 py-2 shrink-0 border-l">
             <button
               onClick={onFilterToggle}
               aria-label="フィルターを開く"
