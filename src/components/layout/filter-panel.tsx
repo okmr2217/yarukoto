@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
+import { useState, useRef, useCallback } from "react";
 
 export type FilterValues = {
   keyword: string;
@@ -27,8 +28,53 @@ const STATUS_OPTIONS: { value: FilterValues["status"]; label: string }[] = [
   { value: "skipped", label: "やらない" },
 ];
 
+const KEYWORD_DEBOUNCE_MS = 300;
+
 export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: FilterPanelProps) {
   const today = getTodayInJST();
+  const [localKeyword, setLocalKeyword] = useState(values.keyword);
+  const [syncedExternalKeyword, setSyncedExternalKeyword] = useState(values.keyword);
+  const isComposingRef = useRef(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 外部から keyword が変化した場合（例：フィルタクリア）に同期（derived state パターン）
+  if (values.keyword !== syncedExternalKeyword) {
+    setSyncedExternalKeyword(values.keyword);
+    setLocalKeyword(values.keyword);
+  }
+
+  const commitKeyword = useCallback(
+    (value: string) => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
+        onChange("keyword", value);
+      }, KEYWORD_DEBOUNCE_MS);
+    },
+    [onChange],
+  );
+
+  const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalKeyword(value);
+    if (!isComposingRef.current) {
+      commitKeyword(value);
+    }
+  };
+
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+    isComposingRef.current = false;
+    commitKeyword(e.currentTarget.value);
+  };
+
+  const handleKeywordClear = () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    setLocalKeyword("");
+    onChange("keyword", "");
+  };
 
   const handlePrevDay = () => {
     onChange("date", addDaysJST(values.date || today, -1));
@@ -49,14 +95,16 @@ export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: Fil
           <Input
             type="text"
             placeholder="キーワードを入力..."
-            value={values.keyword}
-            onChange={(e) => onChange("keyword", e.target.value)}
+            value={localKeyword}
+            onChange={handleKeywordChange}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
             className="pl-8 pr-7 h-7 text-xs"
           />
-          {values.keyword && (
+          {localKeyword && (
             <button
               type="button"
-              onClick={() => onChange("keyword", "")}
+              onClick={handleKeywordClear}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X className="size-3.5" />
