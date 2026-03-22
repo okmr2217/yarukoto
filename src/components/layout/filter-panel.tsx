@@ -85,7 +85,7 @@ export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: Fil
   };
 
   return (
-    <div className="bg-muted/30 border-b px-4 py-3">
+    <div className="bg-muted border-b px-4 py-3">
       <div className="grid grid-cols-[5rem_1fr] gap-x-4 gap-y-2.5 items-center">
 
         {/* キーワード */}
