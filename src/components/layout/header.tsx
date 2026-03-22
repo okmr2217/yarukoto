@@ -42,13 +42,17 @@ export function Header() {
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72">
-            <SheetHeader>
-              <SheetTitle className="text-primary font-logo">
-                Yarukoto
-              </SheetTitle>
+          <SheetContent side="left" className="w-64 p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>メニュー</SheetTitle>
             </SheetHeader>
-            <nav className="mt-4 space-y-0.5 px-2">
+            <div className="flex items-center h-14 px-4 border-b shrink-0">
+              <Link href="/" className="flex items-center gap-0.5" onClick={() => setOpen(false)}>
+                <Image src="/icons/icon-192x192.png" alt="icon" width={32} height={32} />
+                <span className="text-xl font-medium font-logo">Yarukoto</span>
+              </Link>
+            </div>
+            <nav className="px-3 py-4 space-y-0.5">
               {NAV_ITEMS.map((item) => {
                 const Icon = iconMap[item.icon as keyof typeof iconMap];
                 if (!Icon) return null;
@@ -61,7 +65,7 @@ export function Header() {
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                       active
-                        ? "bg-primary text-primary-foreground font-medium"
+                        ? "font-bold text-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
                   >
