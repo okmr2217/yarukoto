@@ -185,7 +185,8 @@ function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReaso
   // "予定日" は scheduledDateStatus バッジで表示するため除外
   const contextReasons = matchReasons?.filter((r) => r !== "予定日") ?? [];
 
-  const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason) || !!task.category;
+  // カテゴリドットは上段に移動したためここでは除外
+  const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason);
   const hasRow2 = contextReasons.length > 0;
 
   if (!hasRow1 && !hasRow2) return null;
@@ -215,13 +216,6 @@ function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReaso
                 </span>
               )}
             </>
-          )}
-          {task.category && task.category.color && (
-            <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: task.category.color }}
-              title={task.category.name}
-            />
           )}
           {isSkipped && task.skipReason && (
             <span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full">
@@ -285,40 +279,51 @@ export function TaskCard({
         </div>
       )}
       <div className="flex-1 p-3">
-        <div className="flex items-start gap-3">
+        {/* 上段：チェックボックス・カテゴリドット・時間・アクション */}
+        <div className="flex items-center gap-2">
           <StopPropagation>
             <Checkbox
               checked={isCompleted}
               onCheckedChange={handleCheckChange}
               disabled={isSkipped}
-              className="mt-[5px]"
             />
           </StopPropagation>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-2">
-              <p className={cn("text-sm flex-1 min-w-0 mt-[3px]", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
-                {task.title}
-              </p>
-              <div className="flex items-center gap-1 self-start flex-shrink-0">
-                <span className="text-xs text-muted-foreground/50">{formatRelativeDate(task.createdAt)}</span>
-                <TaskCardActions task={task} handlers={handlers} />
-              </div>
-            </div>
-
-            {hasMemo && (
-              <div className="text-xs text-muted-foreground whitespace-pre-wrap pb-1.5">
-                <LinkText text={task.memo!} />
-              </div>
-            )}
-
-            <TaskCardMeta
-              task={task}
-              showScheduledDate={showScheduledDate}
-              scheduledDateStatus={scheduledDateStatus}
-              matchReasons={matchReasons}
-              hasMemo={hasMemo}
+          {task.category?.color && (
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: task.category.color }}
+              title={task.category.name}
             />
+          )}
+          <div className="flex-1" />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className="text-xs text-muted-foreground/50">{formatRelativeDate(task.createdAt)}</span>
+            <TaskCardActions task={task} handlers={handlers} />
           </div>
+        </div>
+
+        {/* 区切り線 */}
+        <div className="border-t border-border/40 my-1.5" />
+
+        {/* 下段：タスク名・メモ・メタ情報 */}
+        <div className="pl-6">
+          <p className={cn("text-sm", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
+            {task.title}
+          </p>
+
+          {hasMemo && (
+            <div className="text-xs text-muted-foreground whitespace-pre-wrap pb-1.5 mt-1">
+              <LinkText text={task.memo!} />
+            </div>
+          )}
+
+          <TaskCardMeta
+            task={task}
+            showScheduledDate={showScheduledDate}
+            scheduledDateStatus={scheduledDateStatus}
+            matchReasons={matchReasons}
+            hasMemo={hasMemo}
+          />
         </div>
       </div>
     </div>

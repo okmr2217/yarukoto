@@ -82,10 +82,10 @@ export function TaskEditDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col">
-          <div className="overflow-y-auto px-4 py-6 space-y-6">
+          <div className="overflow-y-auto p-4 space-y-5">
             {/* タスク名 */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-task-title">タスク名</Label>
+            <div>
+              <Label htmlFor="edit-task-title" className="block mb-1">タスク名</Label>
               <Textarea
                 ref={titleTextareaRef}
                 id="edit-task-title"
@@ -110,9 +110,70 @@ export function TaskEditDialog({
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
 
+            {/* カテゴリ */}
+            <div>
+              <Label className="block mb-1">カテゴリ</Label>
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCategoryId("none")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-full text-xs border-2 transition-colors",
+                    categoryId === "none"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background hover:bg-accent",
+                  )}
+                >
+                  なし
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategoryId(cat.id)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
+                      categoryId === cat.id
+                        ? "border-primary"
+                        : "border-border hover:bg-accent",
+                    )}
+                    style={{
+                      backgroundColor:
+                        categoryId === cat.id && cat.color
+                          ? `${cat.color}20`
+                          : undefined,
+                      borderColor:
+                        categoryId === cat.id && cat.color
+                          ? cat.color
+                          : undefined,
+                    }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: cat.color || "#6B7280" }}
+                    />
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* メモ */}
+            <div>
+              <Label htmlFor="edit-task-memo" className="block mb-1">メモ</Label>
+              <Textarea
+                id="edit-task-memo"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="タスクの詳細やメモ"
+                rows={3}
+                className="resize-none overflow-y-auto max-h-32"
+              />
+            </div>
+
             {/* 予定日 */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-task-date">予定日</Label>
+            <div>
+              <Label htmlFor="edit-task-date" className="block mb-1">予定日</Label>
               <div className="flex gap-2">
                 <Input
                   id="edit-task-date"
@@ -132,66 +193,6 @@ export function TaskEditDialog({
                   </Button>
                 )}
               </div>
-            </div>
-
-            {/* カテゴリ */}
-            <div className="space-y-2">
-              <Label>カテゴリ</Label>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setCategoryId("none")}
-                  className={cn(
-                    "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
-                    categoryId === "none"
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background hover:bg-accent",
-                  )}
-                >
-                  なし
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategoryId(cat.id)}
-                    className={cn(
-                      "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
-                      categoryId === cat.id
-                        ? "border-primary"
-                        : "border-border hover:bg-accent",
-                    )}
-                    style={{
-                      backgroundColor:
-                        categoryId === cat.id && cat.color
-                          ? `${cat.color}20`
-                          : undefined,
-                      borderColor:
-                        categoryId === cat.id && cat.color
-                          ? cat.color
-                          : undefined,
-                    }}
-                  >
-                    <div
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: cat.color || "#6B7280" }}
-                    />
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* メモ */}
-            <div className="space-y-2">
-              <Label htmlFor="edit-task-memo">メモ</Label>
-              <Textarea
-                id="edit-task-memo"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder="タスクの詳細やメモ"
-                rows={3}
-              />
             </div>
           </div>
 
