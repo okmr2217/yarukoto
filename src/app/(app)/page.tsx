@@ -371,7 +371,6 @@ export default function HomePage() {
         onOpenChange={setTaskInputOpen}
         onSubmit={handleCreateTask}
         categories={categories}
-        defaultDate={dateFilter || undefined}
         defaultCategoryId={
           selectedCategoryIds.length === 1 && selectedCategoryIds[0] !== "none"
             ? selectedCategoryIds[0]
