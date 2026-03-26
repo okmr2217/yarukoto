@@ -8,8 +8,8 @@ import { useFilterPanel } from "./filter-panel-context";
 
 interface FilterAreaProps {
   categories: Category[];
-  selectedCategoryId: string | null;
-  onSelectCategory: (categoryId: string | null) => void;
+  selectedCategoryIds: string[];
+  onToggleCategory: (categoryId: string | null) => void;
   categoriesLoading: boolean;
   filterValues: FilterValues;
   hasActiveFilters: boolean;
@@ -19,8 +19,8 @@ interface FilterAreaProps {
 
 export function FilterArea({
   categories,
-  selectedCategoryId,
-  onSelectCategory,
+  selectedCategoryIds,
+  onToggleCategory,
   categoriesLoading,
   filterValues,
   hasActiveFilters,
@@ -33,8 +33,8 @@ export function FilterArea({
     <div className="sticky top-14 md:top-0 z-40">
       <CategoryFilter
         categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={onSelectCategory}
+        selectedCategoryIds={selectedCategoryIds}
+        onToggleCategory={onToggleCategory}
         onFilterToggle={toggleFilterPanel}
         isFilterOpen={filterPanelOpen}
         hasActiveFilters={hasActiveFilters}

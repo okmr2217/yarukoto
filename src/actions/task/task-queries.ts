@@ -212,7 +212,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     }
 
     const user = await getRequiredUser();
-    const { categoryId, date, keyword, status, isFavorite } = parsed.data;
+    const { categoryIds, date, keyword, status, isFavorite } = parsed.data;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const andConditions: any[] = [];
@@ -241,20 +241,31 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
       });
     }
 
+    // カテゴリフィルタ（複数選択 OR 検索）
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let categoryFilter: any = undefined;
+    if (categoryIds && categoryIds.length > 0) {
+      const hasNone = categoryIds.includes("none");
+      const regularIds = categoryIds.filter((id) => id !== "none");
+      if (hasNone && regularIds.length > 0) {
+        andConditions.push({ OR: [{ categoryId: { in: regularIds } }, { categoryId: null }] });
+      } else if (hasNone) {
+        categoryFilter = null;
+      } else {
+        categoryFilter = { in: regularIds };
+      }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       userId: user.id,
       ...(andConditions.length > 0 ? { AND: andConditions } : {}),
+      ...(categoryFilter !== undefined ? { categoryId: categoryFilter } : {}),
     };
 
     // ステータスフィルタ
     if (status && status !== "all") {
       where.status = status.toUpperCase();
-    }
-
-    // カテゴリフィルタ
-    if (categoryId !== undefined) {
-      where.categoryId = categoryId;
     }
 
     // お気に入りフィルタ

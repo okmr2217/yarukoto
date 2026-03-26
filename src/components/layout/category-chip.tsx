@@ -48,7 +48,7 @@ export function CategoryChip({
         opacity: active ? 1 : 0.7,
       }}
     >
-      🏷️ {label}
+      {label}
     </button>
   );
 }

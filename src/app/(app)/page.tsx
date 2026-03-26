@@ -28,7 +28,8 @@ export default function HomePage() {
   const searchParams = useSearchParams();
 
   // URLクエリパラメータからフィルタ状態を読み取る
-  const selectedCategoryId = searchParams.get("category") || null;
+  const categoryParam = searchParams.get("category") || "";
+  const selectedCategoryIds = categoryParam ? categoryParam.split(",") : [];
   const dateFilter = searchParams.get("date") || "";
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "all") as FilterValues["status"];
@@ -56,8 +57,16 @@ export default function HomePage() {
     router.push(qs ? `/?${qs}` : "/");
   };
 
-  const handleCategoryChange = (categoryId: string | null) => {
-    updateSearchParams({ category: categoryId });
+  const handleToggleCategory = (categoryId: string | null) => {
+    if (categoryId === null) {
+      // 「すべて」→ 全選択解除
+      updateSearchParams({ category: null });
+      return;
+    }
+    const next = selectedCategoryIds.includes(categoryId)
+      ? selectedCategoryIds.filter((id) => id !== categoryId)
+      : [...selectedCategoryIds, categoryId];
+    updateSearchParams({ category: next.length > 0 ? next.join(",") : null });
   };
 
   const handleFilterChange = <K extends keyof FilterValues>(key: K, value: FilterValues[K]) => {
@@ -84,10 +93,9 @@ export default function HomePage() {
   };
 
   const { settings } = useSettings();
-  const categoryIdForQuery = selectedCategoryId === "none" ? null : selectedCategoryId;
 
   const { data: tasks, isLoading, error } = useAllTasks({
-    categoryId: selectedCategoryId === null ? undefined : categoryIdForQuery,
+    categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
     date: dateFilter || undefined,
     keyword: keyword || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -211,8 +219,8 @@ export default function HomePage() {
         <Header />
         <FilterArea
           categories={categories}
-          selectedCategoryId={selectedCategoryId}
-          onSelectCategory={handleCategoryChange}
+          selectedCategoryIds={selectedCategoryIds}
+          onToggleCategory={handleToggleCategory}
           categoriesLoading={categoriesLoading}
           filterValues={filterValues}
           hasActiveFilters={hasActiveFilters}
@@ -291,8 +299,8 @@ export default function HomePage() {
 
       <FilterArea
         categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={handleCategoryChange}
+        selectedCategoryIds={selectedCategoryIds}
+        onToggleCategory={handleToggleCategory}
         categoriesLoading={categoriesLoading}
         filterValues={filterValues}
         hasActiveFilters={hasActiveFilters}
@@ -365,9 +373,9 @@ export default function HomePage() {
         categories={categories}
         defaultDate={dateFilter || undefined}
         defaultCategoryId={
-          selectedCategoryId === null || selectedCategoryId === "none"
-            ? undefined
-            : selectedCategoryId
+          selectedCategoryIds.length === 1 && selectedCategoryIds[0] !== "none"
+            ? selectedCategoryIds[0]
+            : undefined
         }
         isLoading={mutations.createTask.isPending}
       />

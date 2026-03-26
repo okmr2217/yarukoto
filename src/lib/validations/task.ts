@@ -85,7 +85,7 @@ export const getMonthlyTaskStatsSchema = z.object({
 });
 
 export const getAllTasksSchema = z.object({
-  categoryId: z.string().nullable().optional(),
+  categoryIds: z.array(z.string()).optional(),
   date: dateStringSchema.optional(),
   keyword: z.string().optional(),
   status: z.enum(["all", "pending", "completed", "skipped"]).optional(),

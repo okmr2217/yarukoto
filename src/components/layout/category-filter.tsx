@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
   categories: Category[];
-  selectedCategoryId: string | null;
-  onSelectCategory: (categoryId: string | null) => void;
+  selectedCategoryIds: string[];
+  onToggleCategory: (categoryId: string | null) => void;
   /** フィルタパネル開閉トグル */
   onFilterToggle?: () => void;
   /** フィルタパネルが開いているか */
@@ -21,8 +21,8 @@ interface CategoryFilterProps {
 
 export function CategoryFilter({
   categories,
-  selectedCategoryId,
-  onSelectCategory,
+  selectedCategoryIds,
+  onToggleCategory,
   onFilterToggle,
   isFilterOpen,
   hasActiveFilters,
@@ -36,8 +36,8 @@ export function CategoryFilter({
           <div className="flex flex-wrap gap-2">
             <CategoryChip
               label="すべて"
-              active={selectedCategoryId === null}
-              onClick={() => onSelectCategory(null)}
+              active={selectedCategoryIds.length === 0}
+              onClick={() => onToggleCategory(null)}
               isSpecial
             />
             {isLoading
@@ -53,14 +53,14 @@ export function CategoryFilter({
                     key={category.id}
                     label={category.name}
                     color={category.color}
-                    active={selectedCategoryId === category.id}
-                    onClick={() => onSelectCategory(category.id)}
+                    active={selectedCategoryIds.includes(category.id)}
+                    onClick={() => onToggleCategory(category.id)}
                   />
                 ))}
             <CategoryChip
               label="カテゴリなし"
-              active={selectedCategoryId === "none"}
-              onClick={() => onSelectCategory("none")}
+              active={selectedCategoryIds.includes("none")}
+              onClick={() => onToggleCategory("none")}
               isSpecial
             />
           </div>
