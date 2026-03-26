@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Task } from "@/types";
 import {
   Pencil,
@@ -278,8 +279,8 @@ export function TaskCard({
           <GripVertical className="h-4 w-4" />
         </div>
       )}
-      <div className="flex-1 p-3">
-        {/* 上段：チェックボックス・カテゴリドット・時間・アクション */}
+      <div className="flex-1 px-3 py-1.5">
+        {/* 上段：チェックボックス・時間・アクション */}
         <div className="flex items-center gap-2">
           <StopPropagation>
             <Checkbox
@@ -288,31 +289,35 @@ export function TaskCard({
               disabled={isSkipped}
             />
           </StopPropagation>
-          {task.category?.color && (
-            <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ backgroundColor: task.category.color }}
-              title={task.category.name}
-            />
-          )}
+          <span className="text-xs text-muted-foreground/50">{formatRelativeDate(task.createdAt)}</span>
           <div className="flex-1" />
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <span className="text-xs text-muted-foreground/50">{formatRelativeDate(task.createdAt)}</span>
-            <TaskCardActions task={task} handlers={handlers} />
-          </div>
+          <TaskCardActions task={task} handlers={handlers} />
         </div>
 
         {/* 区切り線 */}
-        <div className="border-t border-border/40 my-1.5" />
+        <div className="border-t border-border/40 my-0.5" />
 
         {/* 下段：タスク名・メモ・メタ情報 */}
-        <div className="pl-6">
-          <p className={cn("text-sm", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
-            {task.title}
-          </p>
+        <div className="pl-6 pt-1 pb-0.5">
+          <div className="flex items-start gap-1.5">
+            {task.category?.color && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.75 cursor-default"
+                    style={{ backgroundColor: task.category.color }}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>{task.category.name}</TooltipContent>
+              </Tooltip>
+            )}
+            <p className={cn("text-sm font-medium", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
+              {task.title}
+            </p>
+          </div>
 
           {hasMemo && (
-            <div className="text-xs text-muted-foreground whitespace-pre-wrap pb-1.5 mt-1">
+            <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-1.5">
               <LinkText text={task.memo!} />
             </div>
           )}
