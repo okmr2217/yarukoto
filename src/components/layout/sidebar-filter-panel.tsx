@@ -1,13 +1,12 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { getTodayInJST } from "@/lib/dateUtils";
 import { useFilterPanel } from "./filter-panel-context";
+import { cn } from "@/lib/utils";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
 
@@ -82,117 +81,132 @@ function SidebarFilterPanelInner() {
     updateSearchParams({ keyword: null });
   };
 
+  const handleClearFilters = () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    setLocalKeyword("");
+    updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
+  };
+
   return (
-    <div className="border-t px-3 pt-2 pb-3 space-y-3">
-      {/* セクションラベル */}
-      <span className="block text-[11px] font-medium text-muted-foreground/70 tracking-wider pt-1">フィルター</span>
-
-      {/* キーワード */}
-      <div className="space-y-1">
-        <span className="text-xs text-muted-foreground">キーワード</span>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="キーワードを入力..."
-            value={localKeyword}
-            onChange={handleKeywordChange}
-            onCompositionStart={() => { isComposingRef.current = true; }}
-            onCompositionEnd={handleCompositionEnd}
-            className="pl-8 pr-7 h-7 text-xs border-0 bg-muted/60 focus-visible:ring-1"
-          />
-          {localKeyword && (
+    <div className="border-t px-3 pt-2 pb-3">
+      <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-3">
+        {/* ヘッダー */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-muted-foreground/80 tracking-wider">絞り込み条件</span>
+          {hasActiveFilters && (
             <button
               type="button"
-              onClick={handleKeywordClear}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={handleClearFilters}
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
             >
-              <X className="size-3.5" />
+              <X className="size-3" />
+              クリア
             </button>
           )}
         </div>
-      </div>
 
-      {/* ステータス */}
-      <div className="space-y-1">
-        <span className="text-xs text-muted-foreground">ステータス</span>
-        <div className="flex flex-wrap gap-1">
-          {STATUS_OPTIONS.map((option) => (
-            <Button
-              key={option.value}
-              type="button"
-              variant={statusFilter === option.value ? "default" : "outline"}
-              size="sm"
-              className="h-6 text-xs px-2"
-              onClick={() => updateSearchParams({ status: option.value === "all" ? null : option.value })}
-            >
-              {option.label}
-            </Button>
-          ))}
+        {/* キーワード */}
+        <div className="space-y-1">
+          <span className="text-[11px] text-muted-foreground/70">キーワード</span>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="キーワードを入力..."
+              value={localKeyword}
+              onChange={handleKeywordChange}
+              onCompositionStart={() => { isComposingRef.current = true; }}
+              onCompositionEnd={handleCompositionEnd}
+              className="pl-8 pr-7 h-8 text-xs border-border/60 bg-background focus-visible:ring-1 rounded-md"
+            />
+            {localKeyword && (
+              <button
+                type="button"
+                onClick={handleKeywordClear}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* 日付 */}
-      <div className="space-y-1">
-        <span className="text-xs text-muted-foreground">日付</span>
-        <div className="flex items-center gap-1">
-          <Input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => updateSearchParams({ date: e.target.value || null })}
-            className="h-7 text-xs flex-1 min-w-0"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs shrink-0"
-            onClick={() => updateSearchParams({ date: today })}
-            disabled={dateFilter === today}
-          >
-            今日
-          </Button>
-          {dateFilter && (
+        {/* ステータス */}
+        <div className="space-y-1">
+          <span className="text-[11px] text-muted-foreground/70">ステータス</span>
+          <div className="flex h-8 rounded-md border border-border/60 overflow-hidden divide-x divide-border/60 text-xs bg-background">
+            {STATUS_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={cn(
+                  "flex-1 px-1 whitespace-nowrap overflow-hidden transition-colors",
+                  statusFilter === option.value
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted",
+                )}
+                onClick={() => updateSearchParams({ status: option.value === "all" ? null : option.value })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 日付 */}
+        <div className="space-y-1">
+          <span className="text-[11px] text-muted-foreground/70">日付</span>
+          <div className="flex items-center gap-1">
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => updateSearchParams({ date: e.target.value || null })}
+              className="h-8 text-xs flex-1 min-w-0 border-border/60 bg-background rounded-md"
+            />
             <button
               type="button"
-              onClick={() => updateSearchParams({ date: null })}
-              className="text-muted-foreground hover:text-foreground shrink-0"
-              aria-label="日付フィルタを解除"
+              className={cn(
+                "shrink-0 h-8 px-2.5 text-xs rounded-md border border-border/60 bg-background transition-colors",
+                dateFilter === today
+                  ? "text-muted-foreground/40 cursor-default"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+              onClick={() => updateSearchParams({ date: today })}
+              disabled={dateFilter === today}
             >
-              <X className="size-3.5" />
+              今日
             </button>
-          )}
+            {dateFilter && (
+              <button
+                type="button"
+                onClick={() => updateSearchParams({ date: null })}
+                className="text-muted-foreground hover:text-foreground shrink-0"
+                aria-label="日付フィルタを解除"
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* お気に入り */}
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="sidebar-filter-favorite"
-          checked={favoriteFilter}
-          onCheckedChange={(checked) => updateSearchParams({ favorite: checked ? "true" : null })}
-        />
-        <label htmlFor="sidebar-filter-favorite" className="text-xs cursor-pointer flex items-center gap-1">
-          <Star className="size-3.5 text-yellow-500" fill="currentColor" />
+        {/* お気に入り */}
+        <button
+          type="button"
+          onClick={() => updateSearchParams({ favorite: favoriteFilter ? null : "true" })}
+          className={cn(
+            "w-full flex items-center gap-2 px-2.5 h-8 rounded-md border text-xs transition-colors",
+            favoriteFilter
+              ? "bg-yellow-50 border-yellow-300 text-yellow-700 font-medium dark:bg-yellow-950/30 dark:border-yellow-700 dark:text-yellow-400"
+              : "border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          <Star
+            className={cn("size-3.5 shrink-0", favoriteFilter ? "text-yellow-500" : "text-muted-foreground/50")}
+            fill={favoriteFilter ? "currentColor" : "none"}
+          />
           お気に入りのみ
-        </label>
+        </button>
       </div>
-
-      {/* クリア */}
-      {hasActiveFilters && (
-        <div className="pt-1 border-t border-border/50">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => updateSearchParams({ keyword: null, status: null, favorite: null, date: null })}
-            className="w-full text-muted-foreground h-7 text-xs"
-          >
-            <X className="size-3.5 mr-1" />
-            フィルターをクリア
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
