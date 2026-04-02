@@ -5,9 +5,7 @@ import { usePathname } from "next/navigation";
 import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { Suspense } from "react";
 import { NAV_ITEMS } from "@/lib/constants";
-import { SidebarFilterPanel } from "./sidebar-filter-panel";
 import { useAllTasks } from "@/hooks";
 
 const iconMap = {
@@ -73,10 +71,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* フィルターパネル（ホームページのみ・PC表示） */}
-      <Suspense fallback={null}>
-        <SidebarFilterPanel />
-      </Suspense>
     </aside>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Header, FilterArea, type FilterValues } from "@/components/layout";
+import { Header, FilterArea, SearchColumn, type FilterValues } from "@/components/layout";
 import {
   TaskSection,
   TaskInputModal,
@@ -217,25 +217,35 @@ export default function HomePage() {
     return (
       <div className="flex-1 bg-background flex flex-col">
         <Header />
-        <FilterArea
-          categories={categories}
-          selectedCategoryIds={selectedCategoryIds}
-          onToggleCategory={handleToggleCategory}
-          categoriesLoading={categoriesLoading}
-          filterValues={filterValues}
-          hasActiveFilters={hasActiveFilters}
-          onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
-        />
-        <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
-          <div className="px-4 pt-2 pb-20 md:pb-4">
-            {/* セクションヘッダー */}
+        <div className="md:hidden">
+          <FilterArea
+            categories={categories}
+            selectedCategoryIds={selectedCategoryIds}
+            onToggleCategory={handleToggleCategory}
+            categoriesLoading={categoriesLoading}
+            filterValues={filterValues}
+            hasActiveFilters={hasActiveFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
+        </div>
+        <div className="flex flex-1">
+          {/* PC: 検索カラム */}
+          <div className="hidden md:flex flex-col w-64 border-r sticky top-0 h-screen">
+            <SearchColumn
+              categories={categories}
+              categoriesLoading={categoriesLoading}
+              selectedCategoryIds={selectedCategoryIds}
+              onToggleCategory={handleToggleCategory}
+            />
+          </div>
+          {/* タスク一覧 */}
+          <div className="flex-1 min-w-0 px-4 pt-2 pb-20 md:pb-4">
             <div className="flex items-center gap-1 py-2 mb-1">
               <div className="h-4 w-4 rounded bg-muted animate-pulse" />
               <div className="h-4 w-12 rounded bg-muted animate-pulse" />
               <div className="h-3 w-6 rounded bg-muted animate-pulse ml-1" />
             </div>
-            {/* カードスケルトン */}
             <div className="rounded-lg border border-border overflow-hidden bg-card">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i}>
@@ -297,72 +307,88 @@ export default function HomePage() {
     <div className="flex-1 bg-background flex flex-col">
       <Header />
 
-      <FilterArea
-        categories={categories}
-        selectedCategoryIds={selectedCategoryIds}
-        onToggleCategory={handleToggleCategory}
-        categoriesLoading={categoriesLoading}
-        filterValues={filterValues}
-        hasActiveFilters={hasActiveFilters}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
-      />
+      {/* モバイル: カテゴリ＋フィルタエリア */}
+      <div className="md:hidden">
+        <FilterArea
+          categories={categories}
+          selectedCategoryIds={selectedCategoryIds}
+          onToggleCategory={handleToggleCategory}
+          categoriesLoading={categoriesLoading}
+          filterValues={filterValues}
+          hasActiveFilters={hasActiveFilters}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
-        <main className="flex-1 overflow-auto">
-          <div className="px-4 pt-2 pb-20 md:pb-4">
-            {hasNoTasks ? (
-              <div className="text-center py-12 text-muted-foreground">
-                {hasActiveFilters ? (
-                  <p>条件に一致するタスクがありません</p>
-                ) : (
-                  <>
-                    <p>タスクがありません</p>
-                    <p className="text-sm mt-1">
-                      <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">N</kbd>{" "}
-                      キーまたは下の <span className="text-primary font-semibold">＋</span>{" "}
-                      ボタンから新しいタスクを追加しましょう
-                    </p>
-                  </>
-                )}
-              </div>
-            ) : (
-              <>
-                <TaskSection
-                  title="未完了"
-                  tasks={pendingTasks}
-                  handlers={taskHandlers}
-                  showScheduledDate
-                  enableDragAndDrop={!hasActiveFilters}
-                  onReorder={handleReorder}
-                  matchReasons={dateFilter ? pendingTasks.map(getMatchReasons) : undefined}
-                />
+      <div className="flex flex-1 min-h-0">
+        {/* PC: 検索・絞り込みカラム */}
+        <div className="hidden md:flex flex-col w-64 border-r sticky top-0 h-screen overflow-y-auto">
+          <SearchColumn
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            selectedCategoryIds={selectedCategoryIds}
+            onToggleCategory={handleToggleCategory}
+          />
+        </div>
 
-                <TaskSection
-                  title="完了済み"
-                  tasks={completedTasks}
-                  variant="completed"
-                  defaultCollapsed={settings.autoCollapseCompleted}
-                  handlers={taskHandlers}
-                  showScheduledDate
-                  matchReasons={dateFilter ? completedTasks.map(getMatchReasons) : undefined}
-                />
+        {/* タスク一覧エリア */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1">
+            <div className="px-4 pt-2 pb-20 md:pb-4">
+              {hasNoTasks ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  {hasActiveFilters ? (
+                    <p>条件に一致するタスクがありません</p>
+                  ) : (
+                    <>
+                      <p>タスクがありません</p>
+                      <p className="text-sm mt-1">
+                        <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">N</kbd>{" "}
+                        キーまたは下の <span className="text-primary font-semibold">＋</span>{" "}
+                        ボタンから新しいタスクを追加しましょう
+                      </p>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <TaskSection
+                    title="未完了"
+                    tasks={pendingTasks}
+                    handlers={taskHandlers}
+                    showScheduledDate
+                    enableDragAndDrop={!hasActiveFilters}
+                    onReorder={handleReorder}
+                    matchReasons={dateFilter ? pendingTasks.map(getMatchReasons) : undefined}
+                  />
 
-                <TaskSection
-                  title="やらない"
-                  tasks={skippedTasks}
-                  variant="skipped"
-                  defaultCollapsed={settings.autoCollapseSkipped}
-                  handlers={taskHandlers}
-                  showScheduledDate
-                  matchReasons={dateFilter ? skippedTasks.map(getMatchReasons) : undefined}
-                />
-              </>
-            )}
-          </div>
-        </main>
+                  <TaskSection
+                    title="完了済み"
+                    tasks={completedTasks}
+                    variant="completed"
+                    defaultCollapsed={settings.autoCollapseCompleted}
+                    handlers={taskHandlers}
+                    showScheduledDate
+                    matchReasons={dateFilter ? completedTasks.map(getMatchReasons) : undefined}
+                  />
 
-        <TaskFab onClick={() => setTaskInputOpen(true)} />
+                  <TaskSection
+                    title="やらない"
+                    tasks={skippedTasks}
+                    variant="skipped"
+                    defaultCollapsed={settings.autoCollapseSkipped}
+                    handlers={taskHandlers}
+                    showScheduledDate
+                    matchReasons={dateFilter ? skippedTasks.map(getMatchReasons) : undefined}
+                  />
+                </>
+              )}
+            </div>
+          </main>
+
+          <TaskFab onClick={() => setTaskInputOpen(true)} />
+        </div>
       </div>
 
       <TaskInputModal
