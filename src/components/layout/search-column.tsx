@@ -118,10 +118,11 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
   const noneActive = selectedCategoryIds.includes("none");
 
   return (
-    <div className="flex flex-col py-4 px-3 gap-5 overflow-y-auto">
+    <div className="px-3 py-3">
+      <div className="flex flex-col gap-2 border border-border rounded-lg p-3">
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-foreground/70 tracking-wide">絞り込み</span>
+        <span className="text-xs font-semibold text-muted-foreground tracking-wide">絞り込み</span>
         {hasActiveFilters && (
           <button
             type="button"
@@ -157,11 +158,11 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
           )}
         </button>
 
-        {/* 通常カテゴリ */}
-        <div className="space-y-1">
+        {/* 通常カテゴリ + カテゴリなし — 2列グリッド */}
+        <div className="grid grid-cols-2 gap-1">
           {categoriesLoading
-            ? [80, 64, 96].map((w, i) => (
-                <div key={i} className="h-7 rounded-md bg-muted animate-pulse" style={{ width: `${w}%` }} />
+            ? [80, 64, 96, 72].map((w, i) => (
+                <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
               ))
             : categories.map((category) => {
                 const count = pendingCountByCategory[category.id] ?? 0;
@@ -181,7 +182,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                     type="button"
                     onClick={() => onToggleCategory(category.id)}
                     className={cn(
-                      "w-full flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors",
+                      "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
                       active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
                     style={active ? activeStyle : inactiveStyle}
@@ -194,30 +195,30 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                   </button>
                 );
               })}
-        </div>
 
-        {/* カテゴリなし — 空リングで「色なし」を示す */}
-        <button
-          type="button"
-          onClick={() => onToggleCategory("none")}
-          className={cn(
-            "w-full flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors mt-1.5 border-t border-dashed border-border/40 pt-2",
-            noneActive
-              ? "text-foreground font-semibold"
-              : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent",
-          )}
-        >
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={cn(
-                "w-1.5 h-1.5 rounded-full shrink-0 border",
-                noneActive ? "border-foreground/50" : "border-muted-foreground/30",
-              )}
-            />
-            <span>カテゴリなし</span>
-          </div>
-          {noneCount > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-60">{noneCount}</span>}
-        </button>
+          {/* カテゴリなし — 空リングで「色なし」を示す */}
+          <button
+            type="button"
+            onClick={() => onToggleCategory("none")}
+            className={cn(
+              "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 border",
+              noneActive
+                ? "border-border text-foreground font-semibold bg-accent"
+                : "border-border/40 text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent",
+            )}
+          >
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full shrink-0 border",
+                  noneActive ? "border-foreground/50" : "border-muted-foreground/30",
+                )}
+              />
+              <span className="truncate">カテゴリなし</span>
+            </div>
+            {noneCount > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-60">{noneCount}</span>}
+          </button>
+        </div>
       </section>
 
       {/* キーワード */}
@@ -294,12 +295,10 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
           >
             <ChevronRight className="size-3.5" />
           </button>
-        </div>
-        <div className="flex items-center gap-1 mt-1">
           <button
             type="button"
             className={cn(
-              "flex-1 h-7 text-xs rounded-md border border-input bg-background transition-colors",
+              "shrink-0 h-8 px-2 text-xs rounded-md border border-input bg-background transition-colors",
               dateFilter === today
                 ? "text-muted-foreground/40 cursor-default"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -313,7 +312,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
             <button
               type="button"
               onClick={() => updateSearchParams({ date: null })}
-              className="text-muted-foreground hover:text-foreground"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
               aria-label="日付フィルタを解除"
             >
               <X className="size-3.5" />
@@ -324,6 +323,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
 
       {/* お気に入り */}
       <section>
+        <SectionLabel>お気に入り</SectionLabel>
         <button
           type="button"
           onClick={() => updateSearchParams({ favorite: favoriteFilter ? null : "true" })}
@@ -341,6 +341,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
           お気に入りのみ
         </button>
       </section>
+      </div>
     </div>
   );
 }

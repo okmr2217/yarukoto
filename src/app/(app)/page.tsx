@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Header, FilterArea, SearchColumn, type FilterValues } from "@/components/layout";
+import { Header, FilterArea, type FilterValues } from "@/components/layout";
 import {
   TaskSection,
   TaskInputModal,
@@ -230,15 +230,6 @@ export default function HomePage() {
           />
         </div>
         <div className="flex flex-1">
-          {/* PC: 検索カラム */}
-          <div className="hidden md:flex flex-col w-64 border-r sticky top-0 h-screen">
-            <SearchColumn
-              categories={categories}
-              categoriesLoading={categoriesLoading}
-              selectedCategoryIds={selectedCategoryIds}
-              onToggleCategory={handleToggleCategory}
-            />
-          </div>
           {/* タスク一覧 */}
           <div className="flex-1 min-w-0 px-4 pt-2 pb-20 md:pb-4">
             <div className="flex items-center gap-1 py-2 mb-1">
@@ -322,16 +313,6 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-1 min-h-0">
-        {/* PC: 検索・絞り込みカラム */}
-        <div className="hidden md:flex flex-col w-64 border-r sticky top-0 h-screen overflow-y-auto">
-          <SearchColumn
-            categories={categories}
-            categoriesLoading={categoriesLoading}
-            selectedCategoryIds={selectedCategoryIds}
-            onToggleCategory={handleToggleCategory}
-          />
-        </div>
-
         {/* タスク一覧エリア */}
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1">

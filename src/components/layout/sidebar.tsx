@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NAV_ITEMS } from "@/lib/constants";
-import { useAllTasks } from "@/hooks";
+import { useAllTasks, useCategories } from "@/hooks";
+import { SearchColumn } from "./search-column";
 
 const iconMap = {
   ListTodo,
@@ -17,8 +18,32 @@ const iconMap = {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: pendingTasks } = useAllTasks({ status: "pending" });
   const pendingCount = pendingTasks?.length ?? 0;
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+
+  const categoryParam = searchParams.get("category") || "";
+  const selectedCategoryIds = categoryParam ? categoryParam.split(",") : [];
+
+  const handleToggleCategory = (categoryId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (categoryId === null) {
+      params.delete("category");
+    } else {
+      const next = selectedCategoryIds.includes(categoryId)
+        ? selectedCategoryIds.filter((id) => id !== categoryId)
+        : [...selectedCategoryIds, categoryId];
+      if (next.length > 0) {
+        params.set("category", next.join(","));
+      } else {
+        params.delete("category");
+      }
+    }
+    const qs = params.toString();
+    router.push(qs ? `/?${qs}` : "/");
+  };
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -28,7 +53,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 flex-col sticky top-0 h-screen border-r overflow-y-auto">
+    <aside className="hidden md:flex md:w-[300px] flex-col sticky top-0 h-screen overflow-y-auto">
       {/* Logo */}
       <div className="flex items-center h-14 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-0.5">
@@ -43,7 +68,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="px-3 py-4 space-y-1">
+      <nav className="px-3 py-3 space-y-1 shrink-0">
         {NAV_ITEMS.map((item) => {
           const Icon = iconMap[item.icon as keyof typeof iconMap];
           if (!Icon) return null;
@@ -71,6 +96,15 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* タスク一覧ページのみ絞り込みパネルを表示 */}
+      {pathname === "/" && (
+        <SearchColumn
+          categories={categories}
+          categoriesLoading={categoriesLoading}
+          selectedCategoryIds={selectedCategoryIds}
+          onToggleCategory={handleToggleCategory}
+        />
+      )}
     </aside>
   );
 }
