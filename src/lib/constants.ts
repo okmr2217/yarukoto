@@ -17,6 +17,16 @@ export const TASK_CONSTANTS = {
 /**
  * カテゴリ関連の定数
  */
+
+/**
+ * カテゴリフィルターで「全て解除」状態を表すURLパラメータのセンチネル値。
+ * 通常のカテゴリIDはUUIDなので "-" と衝突しない。
+ * - category パラメータ absent（null）= デフォルト全選択 = 全タスク表示
+ * - category = CATEGORY_DESELECTED_SENTINEL = 全解除 = タスク非表示
+ * - category = "id1,id2,none" = 指定カテゴリのみ表示
+ */
+export const CATEGORY_DESELECTED_SENTINEL = "-";
+
 export const CATEGORY_CONSTANTS = {
   /** カテゴリ名の最大文字数 */
   NAME_MAX_LENGTH: 100,

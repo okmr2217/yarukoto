@@ -20,6 +20,7 @@ import {
   useSettings,
   useCategories,
 } from "@/hooks";
+import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
 
@@ -37,14 +38,15 @@ export default function HomePage() {
   const searchParams = useSearchParams();
 
   // URLクエリパラメータからフィルタ状態を読み取る
-  const categoryParam = searchParams.get("category") || "";
-  const selectedCategoryIds = categoryParam ? categoryParam.split(",") : [];
+  const categoryParam = searchParams.get("category");
+  const isDefaultAllSelected = categoryParam === null;
+  const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
   const dateFilter = searchParams.get("date") || "";
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "all") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
 
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter);
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter || !isDefaultAllSelected);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
@@ -68,19 +70,25 @@ export default function HomePage() {
   };
 
   const handleToggleCategory = (categoryId: string) => {
-    const next = selectedCategoryIds.includes(categoryId)
-      ? selectedCategoryIds.filter((id) => id !== categoryId)
-      : [...selectedCategoryIds, categoryId];
-    updateSearchParams({ category: next.length > 0 ? next.join(",") : null });
+    const next = effectiveSelectedIds.includes(categoryId)
+      ? effectiveSelectedIds.filter((id) => id !== categoryId)
+      : [...effectiveSelectedIds, categoryId];
+
+    if (next.length === 0) {
+      updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+    } else {
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateSearchParams({ category: isAllSelected ? null : next.join(",") });
+    }
   };
 
   const handleSelectAllCategories = () => {
-    const allIds = categories.map((c) => c.id);
-    updateSearchParams({ category: allIds.length > 0 ? allIds.join(",") : null });
+    updateSearchParams({ category: null }); // null = デフォルト全選択
   };
 
   const handleDeselectAllCategories = () => {
-    updateSearchParams({ category: null });
+    updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
   };
 
   const handleApplyFilters = (values: FilterValues) => {
@@ -106,15 +114,25 @@ export default function HomePage() {
 
   const { settings } = useSettings();
 
-  const { data: tasks, isLoading, error } = useAllTasks({
-    categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
-    date: dateFilter || undefined,
-    keyword: keyword || undefined,
-    status: statusFilter !== "all" ? statusFilter : undefined,
-    isFavorite: favoriteFilter || undefined,
-  });
-
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+
+  // カテゴリの表示状態（チップのアクティブ状態に使用）
+  const effectiveSelectedIds = isDefaultAllSelected
+    ? [...categories.map((c) => c.id), "none"]
+    : isAllDeselected
+    ? []
+    : (categoryParam?.split(",") ?? []);
+
+  const { data: tasks, isLoading, error } = useAllTasks(
+    {
+      categoryIds: isDefaultAllSelected ? undefined : effectiveSelectedIds,
+      date: dateFilter || undefined,
+      keyword: keyword || undefined,
+      status: statusFilter !== "all" ? statusFilter : undefined,
+      isFavorite: favoriteFilter || undefined,
+    },
+    { enabled: !isAllDeselected },
+  );
   const mutations = useTaskMutations();
 
   const handleCreateTask = (data: {
@@ -228,18 +246,18 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="flex-1 bg-background flex flex-col">
-        <div className="md:hidden">
+        <div className="md:hidden sticky top-0 z-10">
           <FilterArea
             categories={categories}
-            selectedCategoryIds={selectedCategoryIds}
+            selectedCategoryIds={effectiveSelectedIds}
             onToggleCategory={handleToggleCategory}
             onSelectAll={handleSelectAllCategories}
             onDeselectAll={handleDeselectAllCategories}
             categoriesLoading={categoriesLoading}
           />
         </div>
-        <div className="flex flex-1">
-          <div className="px-4 pt-2 pb-24 md:pb-4">
+        <div className="flex flex-1 min-h-0">
+          <div className="flex-1 min-w-0 px-4 pt-2 pb-24 md:pb-4">
             <div className="flex items-center gap-1 py-2 mb-1">
               <div className="h-4 w-4 rounded bg-muted animate-pulse" />
               <div className="h-4 w-12 rounded bg-muted animate-pulse" />
@@ -304,10 +322,10 @@ export default function HomePage() {
   return (
     <div className="flex-1 bg-background flex flex-col">
       {/* モバイル: カテゴリフィルタエリア */}
-      <div className="md:hidden">
+      <div className="md:hidden sticky top-0 z-10">
         <FilterArea
           categories={categories}
-          selectedCategoryIds={selectedCategoryIds}
+          selectedCategoryIds={effectiveSelectedIds}
           onToggleCategory={handleToggleCategory}
           onSelectAll={handleSelectAllCategories}
           onDeselectAll={handleDeselectAllCategories}
@@ -397,8 +415,8 @@ export default function HomePage() {
         onSubmit={handleCreateTask}
         categories={categories}
         defaultCategoryId={
-          selectedCategoryIds.length === 1 && selectedCategoryIds[0] !== "none"
-            ? selectedCategoryIds[0]
+          !isDefaultAllSelected && !isAllDeselected && effectiveSelectedIds.length === 1 && effectiveSelectedIds[0] !== "none"
+            ? effectiveSelectedIds[0]
             : undefined
         }
         isLoading={mutations.createTask.isPending}

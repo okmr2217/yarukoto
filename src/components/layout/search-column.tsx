@@ -8,6 +8,7 @@ import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import { useAllTasks } from "@/hooks";
 import type { Category } from "@/types";
 import { cn } from "@/lib/utils";
+import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
 
@@ -24,7 +25,7 @@ interface SearchColumnProps {
   categories: Category[];
   categoriesLoading: boolean;
   selectedCategoryIds: string[];
-  onToggleCategory: (categoryId: string | null) => void;
+  onToggleCategory: (categoryId: string) => void;
 }
 
 /** 各サブセクションの小見出し */
@@ -45,7 +46,10 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "all") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter || selectedCategoryIds.length > 0);
+  const categoryParam = searchParams.get("category");
+  const isDefaultAllSelected = categoryParam === null;
+  const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter || !isDefaultAllSelected);
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const [syncedKeyword, setSyncedKeyword] = useState(keyword);
@@ -112,16 +116,15 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
     updateSearchParams({ keyword: null, status: null, favorite: null, date: null, category: null });
   };
 
-  const allSelected = !categoriesLoading && categories.length > 0 && categories.every((c) => selectedCategoryIds.includes(c.id));
-  const noneSelected = selectedCategoryIds.length === 0;
+  const allSelected = !categoriesLoading && isDefaultAllSelected;
+  const noneSelected = isAllDeselected;
 
   const handleSelectAll = () => {
-    const allIds = categories.map((c) => c.id);
-    updateSearchParams({ category: allIds.length > 0 ? allIds.join(",") : null });
+    updateSearchParams({ category: null }); // null = デフォルト全選択
   };
 
   const handleDeselectAll = () => {
-    updateSearchParams({ category: null });
+    updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
   };
 
   return (
@@ -176,37 +179,59 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
             ? [80, 64, 96, 72].map((w, i) => (
                 <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
               ))
-            : categories.map((category) => {
-                const count = pendingCountByCategory[category.id] ?? 0;
-                const active = selectedCategoryIds.includes(category.id);
-                const color = category.color;
+            : (
+              <>
+                {categories.map((category) => {
+                  const count = pendingCountByCategory[category.id] ?? 0;
+                  const active = selectedCategoryIds.includes(category.id);
+                  const color = category.color;
 
-                const activeStyle = color
-                  ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
-                  : undefined;
-                const inactiveStyle = color
-                  ? { backgroundColor: `${color}14`, color: `${color}aa` }
-                  : undefined;
+                  const activeStyle = color
+                    ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
+                    : undefined;
+                  const inactiveStyle = color
+                    ? { backgroundColor: `${color}14`, color: `${color}aa` }
+                    : undefined;
 
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => onToggleCategory(category.id)}
-                    className={cn(
-                      "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
-                      active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                    )}
-                    style={active ? activeStyle : inactiveStyle}
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
-                      <span className="truncate">{category.name}</span>
-                    </div>
-                    {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => onToggleCategory(category.id)}
+                      className={cn(
+                        "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
+                        active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      )}
+                      style={active ? activeStyle : inactiveStyle}
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
+                        <span className="truncate">{category.name}</span>
+                      </div>
+                      {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                    </button>
+                  );
+                })}
+                {/* カテゴリなし */}
+                {(() => {
+                  const count = pendingCountByCategory["none"] ?? 0;
+                  const active = selectedCategoryIds.includes("none");
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => onToggleCategory("none")}
+                      className={cn(
+                        "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
+                        active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      )}
+                    >
+                      <span className="truncate">カテゴリなし</span>
+                      {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                    </button>
+                  );
+                })()}
+              </>
+            )}
         </div>
       </section>
 

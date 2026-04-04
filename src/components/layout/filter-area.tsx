@@ -14,7 +14,7 @@ interface FilterAreaProps {
 
 export function FilterArea({ categories, selectedCategoryIds, onToggleCategory, onSelectAll, onDeselectAll, categoriesLoading }: FilterAreaProps) {
   return (
-    <div className="sticky top-0 z-10">
+    <div>
       <CategoryFilter
         categories={categories}
         selectedCategoryIds={selectedCategoryIds}

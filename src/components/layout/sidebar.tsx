@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { NAV_ITEMS } from "@/lib/constants";
+import { NAV_ITEMS, CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import { useAllTasks, useCategories } from "@/hooks";
 import { SearchColumn } from "./search-column";
 
@@ -24,25 +24,38 @@ export function Sidebar() {
   const pendingCount = pendingTasks?.length ?? 0;
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
-  const categoryParam = searchParams.get("category") || "";
-  const selectedCategoryIds = categoryParam ? categoryParam.split(",") : [];
+  const categoryParam = searchParams.get("category");
+  const isDefaultAllSelected = categoryParam === null;
+  const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
+  const effectiveSelectedIds = isDefaultAllSelected
+    ? [...categories.map((c) => c.id), "none"]
+    : isAllDeselected
+    ? []
+    : (categoryParam?.split(",") ?? []);
 
-  const handleToggleCategory = (categoryId: string | null) => {
+  const updateCategoryParam = (value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (categoryId === null) {
+    if (value === null) {
       params.delete("category");
     } else {
-      const next = selectedCategoryIds.includes(categoryId)
-        ? selectedCategoryIds.filter((id) => id !== categoryId)
-        : [...selectedCategoryIds, categoryId];
-      if (next.length > 0) {
-        params.set("category", next.join(","));
-      } else {
-        params.delete("category");
-      }
+      params.set("category", value);
     }
     const qs = params.toString();
     router.push(qs ? `/?${qs}` : "/");
+  };
+
+  const handleToggleCategory = (categoryId: string) => {
+    const next = effectiveSelectedIds.includes(categoryId)
+      ? effectiveSelectedIds.filter((id) => id !== categoryId)
+      : [...effectiveSelectedIds, categoryId];
+
+    if (next.length === 0) {
+      updateCategoryParam(CATEGORY_DESELECTED_SENTINEL);
+    } else {
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateCategoryParam(isAllSelected ? null : next.join(","));
+    }
   };
 
   const isActive = (href: string) => {
@@ -101,7 +114,7 @@ export function Sidebar() {
         <SearchColumn
           categories={categories}
           categoriesLoading={categoriesLoading}
-          selectedCategoryIds={selectedCategoryIds}
+          selectedCategoryIds={effectiveSelectedIds}
           onToggleCategory={handleToggleCategory}
         />
       )}

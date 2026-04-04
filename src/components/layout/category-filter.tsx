@@ -15,14 +15,15 @@ interface CategoryFilterProps {
 
 export function CategoryFilter({ categories, selectedCategoryIds, onToggleCategory, onSelectAll, onDeselectAll, isLoading }: CategoryFilterProps) {
   const noneSelected = selectedCategoryIds.length === 0;
-  const allSelected = !isLoading && categories.length > 0 && categories.every((c) => selectedCategoryIds.includes(c.id));
+  const allSelected =
+    !isLoading &&
+    categories.length > 0 &&
+    categories.every((c) => selectedCategoryIds.includes(c.id)) &&
+    selectedCategoryIds.includes("none");
 
   return (
     <div className="bg-background border-b">
-      <div
-        className="flex items-center gap-2 px-4 py-2 overflow-x-auto"
-        style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
-      >
+      <div className="flex flex-wrap items-center gap-2 px-4 py-2">
         <button
           onClick={onDeselectAll}
           className={cn(
@@ -46,15 +47,25 @@ export function CategoryFilter({ categories, selectedCategoryIds, onToggleCatego
           ? [48, 72, 56, 40].map((w, i) => (
               <div key={i} className="h-7 rounded-full bg-muted animate-pulse shrink-0" style={{ width: `${w}px` }} />
             ))
-          : categories.map((category) => (
+          : (
+            <>
+              {categories.map((category) => (
+                <CategoryChip
+                  key={category.id}
+                  label={category.name}
+                  color={category.color}
+                  active={selectedCategoryIds.includes(category.id)}
+                  onClick={() => onToggleCategory(category.id)}
+                />
+              ))}
               <CategoryChip
-                key={category.id}
-                label={category.name}
-                color={category.color}
-                active={selectedCategoryIds.includes(category.id)}
-                onClick={() => onToggleCategory(category.id)}
+                label="カテゴリなし"
+                active={selectedCategoryIds.includes("none")}
+                onClick={() => onToggleCategory("none")}
+                isSpecial
               />
-            ))}
+            </>
+          )}
       </div>
     </div>
   );
