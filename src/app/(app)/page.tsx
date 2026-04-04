@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Header, FilterArea, type FilterValues } from "@/components/layout";
+import { FilterArea, FilterFab, FilterBottomSheet, type FilterValues } from "@/components/layout";
 import {
   TaskSection,
   TaskInputModal,
@@ -23,6 +23,15 @@ import {
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
 
+function countActiveFilters(values: FilterValues): number {
+  let count = 0;
+  if (values.keyword) count++;
+  if (values.status !== "all") count++;
+  if (values.date) count++;
+  if (values.isFavorite) count++;
+  return count;
+}
+
 export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,6 +51,7 @@ export default function HomePage() {
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   // URLクエリパラメータ更新ヘルパー
   const updateSearchParams = (updates: Record<string, string | null>) => {
@@ -59,7 +69,6 @@ export default function HomePage() {
 
   const handleToggleCategory = (categoryId: string | null) => {
     if (categoryId === null) {
-      // 「すべて」→ 全選択解除
       updateSearchParams({ category: null });
       return;
     }
@@ -69,16 +78,14 @@ export default function HomePage() {
     updateSearchParams({ category: next.length > 0 ? next.join(",") : null });
   };
 
-  const handleFilterChange = <K extends keyof FilterValues>(key: K, value: FilterValues[K]) => {
-    if (key === "keyword") {
-      updateSearchParams({ keyword: (value as string) || null });
-    } else if (key === "status") {
-      updateSearchParams({ status: value === "all" ? null : (value as string) });
-    } else if (key === "isFavorite") {
-      updateSearchParams({ favorite: value ? "true" : null });
-    } else if (key === "date") {
-      updateSearchParams({ date: (value as string) || null });
-    }
+  const handleApplyFilters = (values: FilterValues) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (values.keyword) params.set("keyword", values.keyword); else params.delete("keyword");
+    if (values.status !== "all") params.set("status", values.status); else params.delete("status");
+    if (values.date) params.set("date", values.date); else params.delete("date");
+    if (values.isFavorite) params.set("favorite", "true"); else params.delete("favorite");
+    const qs = params.toString();
+    router.push(qs ? `/?${qs}` : "/");
   };
 
   const handleClearFilters = () => {
@@ -216,22 +223,16 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="flex-1 bg-background flex flex-col">
-        <Header />
         <div className="md:hidden">
           <FilterArea
             categories={categories}
             selectedCategoryIds={selectedCategoryIds}
             onToggleCategory={handleToggleCategory}
             categoriesLoading={categoriesLoading}
-            filterValues={filterValues}
-            hasActiveFilters={hasActiveFilters}
-            onFilterChange={handleFilterChange}
-            onClearFilters={handleClearFilters}
           />
         </div>
         <div className="flex flex-1">
-          {/* タスク一覧 */}
-          <div className="flex-1 min-w-0 px-4 pt-2 pb-20 md:pb-4">
+          <div className="px-4 pt-2 pb-24 md:pb-4">
             <div className="flex items-center gap-1 py-2 mb-1">
               <div className="h-4 w-4 rounded bg-muted animate-pulse" />
               <div className="h-4 w-12 rounded bg-muted animate-pulse" />
@@ -269,8 +270,7 @@ export default function HomePage() {
   if (error) {
     return (
       <div className="flex-1 bg-background">
-        <Header />
-        <div className="flex items-center justify-center h-[calc(100vh-56px)] md:h-screen">
+        <div className="flex items-center justify-center h-screen">
           <div className="text-destructive">エラーが発生しました: {error.message}</div>
         </div>
       </div>
@@ -296,27 +296,20 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      <Header />
-
-      {/* モバイル: カテゴリ＋フィルタエリア */}
+      {/* モバイル: カテゴリフィルタエリア */}
       <div className="md:hidden">
         <FilterArea
           categories={categories}
           selectedCategoryIds={selectedCategoryIds}
           onToggleCategory={handleToggleCategory}
           categoriesLoading={categoriesLoading}
-          filterValues={filterValues}
-          hasActiveFilters={hasActiveFilters}
-          onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
         />
       </div>
 
       <div className="flex flex-1 min-h-0">
-        {/* タスク一覧エリア */}
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1">
-            <div className="px-4 pt-2 pb-20 md:pb-4">
+            <div className="px-4 pt-2 pb-24 md:pb-4">
               {hasNoTasks ? (
                 <div className="text-center py-12 text-muted-foreground">
                   {hasActiveFilters ? (
@@ -371,6 +364,22 @@ export default function HomePage() {
           <TaskFab onClick={() => setTaskInputOpen(true)} />
         </div>
       </div>
+
+      {/* モバイル: フィルター FAB */}
+      <FilterFab
+        onClick={() => setFilterSheetOpen(true)}
+        activeFilterCount={countActiveFilters(filterValues)}
+      />
+
+      {/* モバイル: フィルター ボトムシート（開くたびに現在のフィルタ値でリセット） */}
+      <FilterBottomSheet
+        key={filterSheetOpen ? "filter-open" : "filter-closed"}
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        filterValues={filterValues}
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
+      />
 
       <TaskInputModal
         key={taskInputOpen ? "task-input-open" : "task-input-closed"}

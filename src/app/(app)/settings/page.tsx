@@ -39,7 +39,6 @@ import {
 import { signOut, useSession, changePassword } from "@/lib/auth-client";
 import { deleteAccount, changeEmail } from "@/actions";
 import { useSettings, useTheme } from "@/hooks";
-import { Header } from "@/components/layout";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -155,10 +154,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <Header />
-
-      <div className="max-w-2xl w-full mx-auto">
-        <main className="p-4 space-y-6">
+      <main className="p-4 space-y-6">
           <div>
             <h1 className="text-xl font-semibold mb-3">設定</h1>
             <p className="text-sm text-muted-foreground">
@@ -489,8 +485,7 @@ export default function SettingsPage() {
           <div className="text-center text-sm text-muted-foreground">
             バージョン: {process.env.NEXT_PUBLIC_APP_VERSION}
           </div>
-        </main>
-      </div>
+      </main>
     </div>
   );
 }

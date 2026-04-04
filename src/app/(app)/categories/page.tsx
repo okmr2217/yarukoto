@@ -21,7 +21,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/layout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -282,10 +281,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <Header />
-
-      <div className="max-w-2xl w-full mx-auto">
-        <main className="p-4">
+      <main className="p-4">
           <h1 className="text-xl font-semibold mb-3">カテゴリ</h1>
           <p className="text-sm text-muted-foreground mb-6">
             タスクに設定するカテゴリを管理します。色を設定してタスクを視覚的に分類できます。ドラッグで表示順を並び替えられます。
@@ -365,8 +361,7 @@ export default function CategoriesPage() {
               )}
             </>
           )}
-        </main>
-      </div>
+      </main>
 
       {/* Edit Dialog */}
       <CategoryEditDialog

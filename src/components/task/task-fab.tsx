@@ -22,7 +22,7 @@ export function TaskFab({ onClick, className }: TaskFabProps) {
           onClick={onClick}
           size="icon"
           className={cn(
-            "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50",
+            "fixed bottom-[76px] right-4 md:bottom-6 md:right-6 h-14 w-14 rounded-full shadow-lg z-40",
             "hover:scale-110 transition-transform",
             className,
           )}
