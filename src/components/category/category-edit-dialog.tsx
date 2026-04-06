@@ -16,13 +16,22 @@ import type { Category } from "@/types";
 
 // カラーパレット
 const CATEGORY_COLORS = [
-  { name: "赤", value: "#EF4444" },
-  { name: "オレンジ", value: "#F97316" },
-  { name: "黄", value: "#EAB308" },
-  { name: "緑", value: "#22C55E" },
-  { name: "青", value: "#3B82F6" },
-  { name: "紫", value: "#A855F7" },
-  { name: "グレー", value: "#6B7280" },
+  { name: "レッド",      value: "#EF4444" },
+  { name: "ローズ",      value: "#F43F5E" },
+  { name: "ピンク",      value: "#EC4899" },
+  { name: "オレンジ",    value: "#F97316" },
+  { name: "アンバー",    value: "#F59E0B" },
+  { name: "イエロー",    value: "#EAB308" },
+  { name: "ライム",      value: "#84CC16" },
+  { name: "グリーン",    value: "#22C55E" },
+  { name: "エメラルド",  value: "#10B981" },
+  { name: "ティール",    value: "#14B8A6" },
+  { name: "スカイ",      value: "#0EA5E9" },
+  { name: "ブルー",      value: "#3B82F6" },
+  { name: "インディゴ",  value: "#6366F1" },
+  { name: "バイオレット",value: "#8B5CF6" },
+  { name: "スレート",    value: "#64748B" },
+  { name: "ストーン",    value: "#78716C" },
 ];
 
 interface CategoryEditDialogProps {
