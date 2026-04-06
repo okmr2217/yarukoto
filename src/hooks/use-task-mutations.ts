@@ -199,13 +199,32 @@ export function useTaskMutations() {
       await cancelAllQueries();
       const snapshot = snapshotCache();
 
+      const allTasks = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
+      let taskTitle: string | undefined;
+      for (const [, tasks] of allTasks) {
+        const found = tasks?.find((t) => t.id === id);
+        if (found) {
+          taskTitle = found.title;
+          break;
+        }
+      }
+
       updateAllTasksCache((task) =>
         task.id === id
           ? { ...task, status: "COMPLETED" as const, completedAt: new Date().toISOString() }
           : task
       );
 
-      return snapshot;
+      return { ...snapshot, taskTitle };
+    },
+    onSuccess: (_data, id, context) => {
+      const title = context?.taskTitle;
+      toast.success(title ? `"${title}" を完了しました` : "タスクを完了しました", {
+        action: {
+          label: "元に戻す",
+          onClick: () => uncomplete.mutate(id),
+        },
+      });
     },
     onError: (_err, _id, context) => {
       if (context) rollbackCache(context);
