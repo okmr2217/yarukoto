@@ -329,7 +329,7 @@ export function TaskCard({
                 <TooltipContent>{task.category.name}</TooltipContent>
               </Tooltip>
             )}
-            <p className={cn("text-sm font-medium", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
+            <p className={cn("text-sm font-medium", (isCompleted || isSkipped) && "text-muted-foreground")}>
               {task.title}
             </p>
           </div>
