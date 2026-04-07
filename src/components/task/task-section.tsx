@@ -24,7 +24,7 @@ import type { Task } from "@/types";
 
 interface TaskSectionProps {
   /** セクションタイトル */
-  title: string;
+  title?: string;
   /** タイトルの補足説明（日付フィルター時などに表示） */
   subtitle?: string;
   /** 表示するタスクリスト */
@@ -37,12 +37,14 @@ interface TaskSectionProps {
   handlers: TaskCardHandlers;
   /** 予定日を表示するか */
   showScheduledDate?: boolean;
-  /** ドラッグ&ドロップを有効にするか（未完了タスクのみ） */
+  /** ドラッグ&ドロップを有効にするか */
   enableDragAndDrop?: boolean;
   /** 並び替え完了時のコールバック */
   onReorder?: (taskId: string, beforeTaskId?: string, afterTaskId?: string) => void;
   /** 日付フィルタ時のマッチ理由（tasks と同順で対応） */
   matchReasons?: string[][];
+  /** セクションヘッダーを非表示にする（フラット表示用） */
+  hideHeader?: boolean;
 }
 
 const variantStyles = {
@@ -112,8 +114,9 @@ export function TaskSection({
   enableDragAndDrop = false,
   onReorder,
   matchReasons,
+  hideHeader = false,
 }: TaskSectionProps) {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed && !hideHeader);
   const [localTasks, setLocalTasks] = useState(tasks);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
   const prevTasksRef = useRef(tasks);
@@ -183,28 +186,30 @@ export function TaskSection({
 
   return (
     <div className={cn("mb-4", variantStyles[variant])}>
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="flex items-center gap-1 w-full py-2 text-left"
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        )}
-        <span className={cn("text-sm font-medium", titleStyles[variant])}>
-          {title}
-        </span>
-        <span className="text-xs text-muted-foreground ml-1">
-          ({tasks.length})
-        </span>
-        {subtitle && (
-          <span className="text-xs text-muted-foreground ml-1.5">
-            — {subtitle}
+      {!hideHeader && (
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="flex items-center gap-1 w-full py-2 text-left"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+          <span className={cn("text-sm font-medium", titleStyles[variant])}>
+            {title}
           </span>
-        )}
-      </button>
-      {!isCollapsed && (
+          <span className="text-xs text-muted-foreground ml-1">
+            ({tasks.length})
+          </span>
+          {subtitle && (
+            <span className="text-xs text-muted-foreground ml-1.5">
+              — {subtitle}
+            </span>
+          )}
+        </button>
+      )}
+      {(!isCollapsed || hideHeader) && (
         <div className="rounded-lg border border-border overflow-hidden bg-card">
           {enableDragAndDrop ? (
             <DndContext

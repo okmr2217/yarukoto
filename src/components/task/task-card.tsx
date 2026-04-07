@@ -282,7 +282,7 @@ export function TaskCard({
   };
 
   return (
-    <div className={cn("flex group transition-colors duration-300", isFlashing && "bg-success/10")}>
+    <div className={cn("flex group hover:bg-accent/40 transition-colors duration-150", isFlashing && "bg-success/10")}>
       {enableDragAndDrop && (
         <div
           className="flex items-center justify-center w-6 flex-shrink-0 bg-muted/50 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50"

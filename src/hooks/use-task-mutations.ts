@@ -17,6 +17,7 @@ import type {
   CreateTaskInput,
   UpdateTaskInput,
   SkipTaskInput,
+  GetAllTasksInput,
 } from "@/lib/validations";
 import type { Task, Category } from "@/types";
 
@@ -72,7 +73,7 @@ export function useTaskMutations() {
   };
 
   /**
-   * allTasksキャッシュ内のタスクを更新
+   * allTasksキャッシュ内のタスクを更新（ステータスフィルタを考慮しない更新用）
    */
   const updateAllTasksCache = (updater: (task: Task) => Task | null) => {
     queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
@@ -86,6 +87,24 @@ export function useTaskMutations() {
       }
       return updated;
     });
+  };
+
+  /**
+   * allTasksキャッシュ内のタスクを、各クエリのフィルタ条件を考慮して更新
+   * ステータス変化を伴う操作（完了・スキップ等）に使用
+   */
+  const updateAllTasksCacheWithFilters = (updater: (task: Task, filters: GetAllTasksInput) => Task | null) => {
+    const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
+    for (const [queryKey, data] of queries) {
+      if (!data) continue;
+      const filters = ((queryKey as unknown[])[1] as GetAllTasksInput) ?? {};
+      const updated: Task[] = [];
+      for (const task of data) {
+        const result = updater(task, filters);
+        if (result !== null) updated.push(result);
+      }
+      queryClient.setQueryData(queryKey, updated);
+    }
   };
 
   const create = useMutation({
@@ -119,10 +138,14 @@ export function useTaskMutations() {
         category: foundCategory ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color } : null,
       };
 
-      queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
-        if (!old) return old;
-        return [tempTask, ...old];
-      });
+      // 新規タスクは PENDING なので、PENDING を含むキャッシュにのみ追加
+      const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
+      for (const [queryKey, data] of queries) {
+        if (!data) continue;
+        const filters = ((queryKey as unknown[])[1] as GetAllTasksInput) ?? {};
+        if (filters.status && filters.status !== "pending") continue;
+        queryClient.setQueryData(queryKey, [tempTask, ...data]);
+      }
 
       return { ...snapshot, tempId };
     },
@@ -209,11 +232,13 @@ export function useTaskMutations() {
         }
       }
 
-      updateAllTasksCache((task) =>
-        task.id === id
-          ? { ...task, status: "COMPLETED" as const, completedAt: new Date().toISOString() }
-          : task
-      );
+      updateAllTasksCacheWithFilters((task, filters) => {
+        if (task.id !== id) return task;
+        const updated = { ...task, status: "COMPLETED" as const, completedAt: new Date().toISOString() };
+        // pending フィルタのキャッシュからは除外（完了タスクは pending に含まれない）
+        if (filters.status === "pending") return null;
+        return updated;
+      });
 
       return { ...snapshot, taskTitle };
     },
@@ -244,11 +269,13 @@ export function useTaskMutations() {
       await cancelAllQueries();
       const snapshot = snapshotCache();
 
-      updateAllTasksCache((task) =>
-        task.id === id
-          ? { ...task, status: "PENDING" as const, completedAt: null }
-          : task
-      );
+      updateAllTasksCacheWithFilters((task, filters) => {
+        if (task.id !== id) return task;
+        const updated = { ...task, status: "PENDING" as const, completedAt: null };
+        // completed フィルタのキャッシュからは除外
+        if (filters.status === "completed") return null;
+        return updated;
+      });
 
       return snapshot;
     },
@@ -270,16 +297,18 @@ export function useTaskMutations() {
       await cancelAllQueries();
       const snapshot = snapshotCache();
 
-      updateAllTasksCache((task) =>
-        task.id === input.id
-          ? {
-              ...task,
-              status: "SKIPPED" as const,
-              skippedAt: new Date().toISOString(),
-              skipReason: input.reason || null,
-            }
-          : task
-      );
+      updateAllTasksCacheWithFilters((task, filters) => {
+        if (task.id !== input.id) return task;
+        const updated = {
+          ...task,
+          status: "SKIPPED" as const,
+          skippedAt: new Date().toISOString(),
+          skipReason: input.reason || null,
+        };
+        // pending フィルタのキャッシュからは除外
+        if (filters.status === "pending") return null;
+        return updated;
+      });
 
       return snapshot;
     },
@@ -301,11 +330,13 @@ export function useTaskMutations() {
       await cancelAllQueries();
       const snapshot = snapshotCache();
 
-      updateAllTasksCache((task) =>
-        task.id === id
-          ? { ...task, status: "PENDING" as const, skippedAt: null, skipReason: null }
-          : task
-      );
+      updateAllTasksCacheWithFilters((task, filters) => {
+        if (task.id !== id) return task;
+        const updated = { ...task, status: "PENDING" as const, skippedAt: null, skipReason: null };
+        // skipped フィルタのキャッシュからは除外
+        if (filters.status === "skipped") return null;
+        return updated;
+      });
 
       return snapshot;
     },

@@ -17,7 +17,6 @@ import type { TaskDetail } from "@/types";
 import {
   useAllTasks,
   useTaskMutations,
-  useSettings,
   useCategories,
 } from "@/hooks";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
@@ -27,7 +26,7 @@ import { formatDateToJST } from "@/lib/dateUtils";
 function countActiveFilters(values: FilterValues): number {
   let count = 0;
   if (values.keyword) count++;
-  if (values.status !== "all") count++;
+  if (values.status !== "pending") count++;
   if (values.date) count++;
   if (values.isFavorite) count++;
   return count;
@@ -43,10 +42,10 @@ export default function HomePage() {
   const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
   const dateFilter = searchParams.get("date") || "";
   const keyword = searchParams.get("keyword") || "";
-  const statusFilter = (searchParams.get("status") || "all") as FilterValues["status"];
+  const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
 
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter || !isDefaultAllSelected);
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || !isDefaultAllSelected);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
@@ -94,7 +93,7 @@ export default function HomePage() {
   const handleApplyFilters = (values: FilterValues) => {
     const params = new URLSearchParams(searchParams.toString());
     if (values.keyword) params.set("keyword", values.keyword); else params.delete("keyword");
-    if (values.status !== "all") params.set("status", values.status); else params.delete("status");
+    if (values.status !== "pending") params.set("status", values.status); else params.delete("status");
     if (values.date) params.set("date", values.date); else params.delete("date");
     if (values.isFavorite) params.set("favorite", "true"); else params.delete("favorite");
     const qs = params.toString();
@@ -111,8 +110,6 @@ export default function HomePage() {
     isFavorite: favoriteFilter,
     date: dateFilter,
   };
-
-  const { settings } = useSettings();
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
@@ -133,6 +130,22 @@ export default function HomePage() {
     },
     { enabled: !isAllDeselected },
   );
+
+  // ステータスに応じたクライアント側ソート
+  const sortedTasks = (() => {
+    if (!tasks) return [];
+    if (statusFilter === "completed") {
+      return [...tasks].sort(
+        (a, b) => new Date(b.completedAt || b.createdAt).getTime() - new Date(a.completedAt || a.createdAt).getTime(),
+      );
+    }
+    if (statusFilter === "skipped") {
+      return [...tasks].sort(
+        (a, b) => new Date(b.skippedAt || b.createdAt).getTime() - new Date(a.skippedAt || a.createdAt).getTime(),
+      );
+    }
+    return tasks; // "all" / "pending": サーバー側の displayOrder 降順をそのまま使用
+  })();
   const mutations = useTaskMutations();
 
   const handleCreateTask = (data: {
@@ -278,11 +291,6 @@ export default function HomePage() {
         <div className="flex flex-1 min-h-0">
           <div className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 px-4 pt-2 pb-24 md:pb-4">
-              <div className="flex items-center gap-1 py-2 mb-1">
-                <div className="h-4 w-4 rounded bg-muted animate-pulse" />
-                <div className="h-4 w-12 rounded bg-muted animate-pulse" />
-                <div className="h-3 w-6 rounded bg-muted animate-pulse ml-1" />
-              </div>
               <div className="rounded-lg border border-border overflow-hidden bg-card">
                 {[0, 1, 2, 3].map((i) => (
                   <div key={i}>
@@ -352,22 +360,7 @@ export default function HomePage() {
     );
   }
 
-  const pendingTasks = tasks?.filter((t) => t.status === "PENDING") || [];
-
-  const completedTasks = (tasks?.filter((t) => t.status === "COMPLETED") || []).sort(
-    (a, b) =>
-      new Date(b.completedAt || b.createdAt).getTime() -
-      new Date(a.completedAt || a.createdAt).getTime(),
-  );
-
-  const skippedTasks = (tasks?.filter((t) => t.status === "SKIPPED") || []).sort(
-    (a, b) =>
-      new Date(b.skippedAt || b.createdAt).getTime() -
-      new Date(a.skippedAt || a.createdAt).getTime(),
-  );
-
-  const hasNoTasks =
-    pendingTasks.length === 0 && completedTasks.length === 0 && skippedTasks.length === 0;
+  const hasNoTasks = sortedTasks.length === 0;
 
   return (
     <div className="flex-1 bg-background flex flex-col">
@@ -403,40 +396,15 @@ export default function HomePage() {
                   )}
                 </div>
               ) : (
-                <>
-                  <TaskSection
-                    title="未完了"
-                    subtitle={dateFilter ? "その日に予定・作成" : undefined}
-                    tasks={pendingTasks}
-                    handlers={taskHandlers}
-                    showScheduledDate
-                    enableDragAndDrop={!hasActiveFilters}
-                    onReorder={handleReorder}
-                    matchReasons={dateFilter ? pendingTasks.map(getMatchReasons) : undefined}
-                  />
-
-                  <TaskSection
-                    title="完了済み"
-                    subtitle={dateFilter ? "その日に完了" : undefined}
-                    tasks={completedTasks}
-                    variant="completed"
-                    defaultCollapsed={settings.autoCollapseCompleted}
-                    handlers={taskHandlers}
-                    showScheduledDate
-                    matchReasons={dateFilter ? completedTasks.map(getMatchReasons) : undefined}
-                  />
-
-                  <TaskSection
-                    title="やらない"
-                    subtitle={dateFilter ? "その日にやらないにした" : undefined}
-                    tasks={skippedTasks}
-                    variant="skipped"
-                    defaultCollapsed={settings.autoCollapseSkipped}
-                    handlers={taskHandlers}
-                    showScheduledDate
-                    matchReasons={dateFilter ? skippedTasks.map(getMatchReasons) : undefined}
-                  />
-                </>
+                <TaskSection
+                  hideHeader
+                  tasks={sortedTasks}
+                  handlers={taskHandlers}
+                  showScheduledDate
+                  enableDragAndDrop
+                  onReorder={handleReorder}
+                  matchReasons={dateFilter ? sortedTasks.map(getMatchReasons) : undefined}
+                />
               )}
             </div>
           </main>

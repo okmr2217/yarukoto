@@ -31,7 +31,7 @@ interface SearchColumnProps {
 /** 各サブセクションの小見出し */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="block text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-1.5">
+    <span className="block text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-0.5">
       {children}
     </span>
   );
@@ -44,12 +44,12 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
 
   const dateFilter = searchParams.get("date") || "";
   const keyword = searchParams.get("keyword") || "";
-  const statusFilter = (searchParams.get("status") || "all") as StatusFilter;
+  const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
   const categoryParam = searchParams.get("category");
   const isDefaultAllSelected = categoryParam === null;
   const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "all" || favoriteFilter || !isDefaultAllSelected);
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || !isDefaultAllSelected);
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const [syncedKeyword, setSyncedKeyword] = useState(keyword);
@@ -129,7 +129,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
 
   return (
     <div className="px-3 py-3">
-      <div className="flex flex-col gap-2 border border-border rounded-lg p-3">
+      <div className="flex flex-col gap-4 border border-border rounded-lg p-3">
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-muted-foreground tracking-wide">絞り込み</span>
@@ -275,7 +275,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                   ? "bg-primary text-primary-foreground font-medium"
                   : "text-muted-foreground hover:bg-muted",
               )}
-              onClick={() => updateSearchParams({ status: option.value === "all" ? null : option.value })}
+              onClick={() => updateSearchParams({ status: option.value === "pending" ? null : option.value })}
             >
               {option.label}
             </button>
