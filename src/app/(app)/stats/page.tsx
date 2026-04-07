@@ -225,7 +225,7 @@ export default function StatsPage() {
   return (
     <div className="flex-1 bg-background flex flex-col">
       <div className="flex-1 overflow-auto">
-        <div className="p-4">
+        <div className="px-4 pt-4 pb-20 md:pb-4">
           <h1 className="text-lg font-semibold mb-1.5">統計</h1>
           <p className="text-xs text-muted-foreground mb-4">タスクの傾向を確認できます。</p>
 

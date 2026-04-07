@@ -147,7 +147,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <main className="p-4 space-y-4">
+      <main className="px-4 pt-4 pb-20 md:pb-4 space-y-4">
           <div>
             <h1 className="text-lg font-semibold mb-1.5">設定</h1>
             <p className="text-xs text-muted-foreground">

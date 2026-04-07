@@ -280,7 +280,7 @@ export default function HomePage() {
         </div>
         <div className="flex flex-1 min-h-0">
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex-1 px-4 pt-2 pb-24 md:pb-4">
+            <div className="flex-1 px-4 pt-2 pb-20 md:pb-4">
               <div className="rounded-lg border border-border overflow-hidden bg-card">
                 {[0, 1, 2, 3].map((i) => (
                   <div key={i}>
@@ -365,7 +365,7 @@ export default function HomePage() {
       <div className="flex flex-1 min-h-0">
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1">
-            <div className="px-4 pt-2 pb-24 md:pb-4">
+            <div className="px-4 pt-2 pb-20 md:pb-4">
               {hasNoTasks ? (
                 <div className="text-center py-12 text-muted-foreground">
                   {hasActiveFilters ? (
