@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Settings, Tags, ListTodo, BarChart2 } from "lucide-react";
+import { Menu, Settings, Tags, ListTodo, BarChart2, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,6 +20,7 @@ const iconMap = {
   BarChart2,
   Tags,
   Settings,
+  HelpCircle,
 } as const;
 
 export function Header() {
@@ -52,7 +53,7 @@ export function Header() {
                 <span className="text-xl font-medium font-logo">Yarukoto</span>
               </Link>
             </div>
-            <nav className="px-3 py-4 space-y-0.5">
+            <nav className="px-2 py-3 space-y-0.5">
               {NAV_ITEMS.map((item) => {
                 const Icon = iconMap[item.icon as keyof typeof iconMap];
                 if (!Icon) return null;
@@ -63,13 +64,13 @@ export function Header() {
                     href={item.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                      "flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors",
                       active
                         ? "font-bold text-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
                   >
-                    <Icon className="h-5 w-5 shrink-0 translate-y-px" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span>{item.label}</span>
                   </Link>
                 );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ListTodo, Tags, Settings, BarChart2 } from "lucide-react";
+import { ListTodo, Tags, Settings, BarChart2, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NAV_ITEMS, CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
@@ -14,6 +14,7 @@ const iconMap = {
   BarChart2,
   Tags,
   Settings,
+  HelpCircle,
 } as const;
 
 export function Sidebar() {
@@ -66,20 +67,20 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex md:w-[300px] flex-col sticky top-0 h-screen overflow-y-auto">
       {/* Logo */}
-      <div className="flex items-center h-14 px-4 shrink-0">
+      <div className="flex items-center h-12 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-0.5">
           <Image
             src="/icons/icon-192x192.png"
             alt="icon"
-            width={32}
-            height={32}
+            width={28}
+            height={28}
           />
-          <span className="text-xl font-medium font-logo">Yarukoto</span>
+          <span className="text-lg font-medium font-logo">Yarukoto</span>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="px-3 py-3 space-y-1 shrink-0">
+      <nav className="px-2 py-2 space-y-0.5 shrink-0">
         {NAV_ITEMS.map((item) => {
           const Icon = iconMap[item.icon as keyof typeof iconMap];
           if (!Icon) return null;
@@ -89,13 +90,13 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150",
+                "flex items-center gap-3 px-3 py-1.5 rounded-md text-sm transition-all duration-150",
                 active
-                  ? "bg-primary/10 text-primary font-semibold"
+                  ? "text-foreground font-semibold"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
             >
-              <Icon className="h-5 w-5 shrink-0 translate-y-px" />
+              <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>
             </Link>
           );

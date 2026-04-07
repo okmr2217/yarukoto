@@ -84,4 +84,5 @@ export const NAV_ITEMS = [
   { href: "/stats", label: "統計", icon: "BarChart2" },
   { href: "/categories", label: "カテゴリ", icon: "Tags" },
   { href: "/settings", label: "設定", icon: "Settings" },
+  { href: "/help", label: "ヘルプ", icon: "HelpCircle" },
 ] as const;

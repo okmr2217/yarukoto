@@ -44,6 +44,7 @@ export default function HomePage() {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
+  const sortOrder = (searchParams.get("sort") || "displayOrder") as "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || !isDefaultAllSelected);
 
@@ -117,20 +118,19 @@ export default function HomePage() {
     { enabled: !isAllDeselected },
   );
 
-  // ステータスに応じたクライアント側ソート
+  // 並び順に応じたクライアント側ソート
   const sortedTasks = (() => {
     if (!tasks) return [];
-    if (statusFilter === "completed") {
-      return [...tasks].sort(
-        (a, b) => new Date(b.completedAt || b.createdAt).getTime() - new Date(a.completedAt || a.createdAt).getTime(),
-      );
+    if (sortOrder === "createdAt") {
+      return [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    if (statusFilter === "skipped") {
-      return [...tasks].sort(
-        (a, b) => new Date(b.skippedAt || b.createdAt).getTime() - new Date(a.skippedAt || a.createdAt).getTime(),
-      );
+    if (sortOrder === "completedAt") {
+      return [...tasks].sort((a, b) => new Date(b.completedAt || b.createdAt).getTime() - new Date(a.completedAt || a.createdAt).getTime());
     }
-    return tasks; // "all" / "pending": サーバー側の displayOrder 降順をそのまま使用
+    if (sortOrder === "skippedAt") {
+      return [...tasks].sort((a, b) => new Date(b.skippedAt || b.createdAt).getTime() - new Date(a.skippedAt || a.createdAt).getTime());
+    }
+    return tasks; // displayOrder: サーバー側の displayOrder 降順をそのまま使用
   })();
   const mutations = useTaskMutations();
 
@@ -383,7 +383,7 @@ export default function HomePage() {
                   tasks={sortedTasks}
                   handlers={taskHandlers}
                   showScheduledDate
-                  enableDragAndDrop
+                  enableDragAndDrop={sortOrder === "displayOrder"}
                   onReorder={handleReorder}
                   matchReasons={dateFilter ? sortedTasks.map(getMatchReasons) : undefined}
                 />

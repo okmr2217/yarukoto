@@ -10,12 +10,20 @@ import { useAllTasks } from "@/hooks";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
+type SortOrder = "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "すべて" },
   { value: "pending", label: "未完了" },
   { value: "completed", label: "完了" },
   { value: "skipped", label: "やらない" },
+];
+
+const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+  { value: "displayOrder", label: "表示順" },
+  { value: "createdAt", label: "作成日時" },
+  { value: "completedAt", label: "完了日時" },
+  { value: "skippedAt", label: "やらない日時" },
 ];
 
 const KEYWORD_DEBOUNCE_MS = 300;
@@ -42,6 +50,7 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
+  const sortOrder = (searchParams.get("sort") || "displayOrder") as SortOrder;
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter);
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
@@ -287,6 +296,29 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
                   </span>
                 )}
               </button>
+            </section>
+
+            {/* 並び順 */}
+            <section>
+              <SectionLabel>並び順</SectionLabel>
+              <div className="grid grid-cols-2 gap-1">
+                {SORT_OPTIONS.map((option) => {
+                  const active = sortOrder === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={cn(
+                        "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+                        active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                      onClick={() => updateSearchParams({ sort: option.value === "displayOrder" ? null : option.value })}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
             </section>
           </div>
         </div>

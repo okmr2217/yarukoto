@@ -11,12 +11,20 @@ import { cn } from "@/lib/utils";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
+type SortOrder = "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "すべて" },
   { value: "pending", label: "未完了" },
   { value: "completed", label: "完了" },
   { value: "skipped", label: "やらない" },
+];
+
+const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+  { value: "displayOrder", label: "表示順" },
+  { value: "createdAt", label: "作成日時" },
+  { value: "completedAt", label: "完了日時" },
+  { value: "skippedAt", label: "やらない日時" },
 ];
 
 const KEYWORD_DEBOUNCE_MS = 300;
@@ -31,7 +39,7 @@ interface SearchColumnProps {
 /** 各サブセクションの小見出し */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="block text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-0.5">
+    <span className="block text-xs font-semibold text-muted-foreground tracking-wide mb-1">
       {children}
     </span>
   );
@@ -46,11 +54,10 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
+  const sortOrder = (searchParams.get("sort") || "displayOrder") as SortOrder;
   const categoryParam = searchParams.get("category");
   const isDefaultAllSelected = categoryParam === null;
   const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || !isDefaultAllSelected);
-
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const [syncedKeyword, setSyncedKeyword] = useState(keyword);
   const isComposingRef = useRef(false);
@@ -135,12 +142,6 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
     updateSearchParams({ keyword: null });
   };
 
-  const handleClearFilters = () => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    setLocalKeyword("");
-    updateSearchParams({ keyword: null, status: null, favorite: null, date: null, category: null });
-  };
-
   const allSelected = !categoriesLoading && isDefaultAllSelected;
   const noneSelected = isAllDeselected;
 
@@ -153,27 +154,11 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
   };
 
   return (
-    <div className="px-3 py-3">
-      <div className="flex flex-col gap-4 border border-border rounded-lg p-3">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground tracking-wide">絞り込み</span>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={handleClearFilters}
-            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
-          >
-            <X className="size-3" />
-            クリア
-          </button>
-        )}
-      </div>
-
+    <div className="px-4 py-2 flex flex-col gap-4">
       {/* カテゴリ */}
       <section>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-semibold text-muted-foreground/60 tracking-wider">カテゴリ</span>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-semibold text-muted-foreground tracking-wide">カテゴリ</span>
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -390,7 +375,29 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
           )}
         </button>
       </section>
-      </div>
+
+      {/* 並び替え */}
+      <section>
+        <SectionLabel>並び替え</SectionLabel>
+        <div className="grid grid-cols-2 gap-1">
+          {SORT_OPTIONS.map((option) => {
+            const active = sortOrder === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={cn(
+                  "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+                  active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+                onClick={() => updateSearchParams({ sort: option.value === "displayOrder" ? null : option.value })}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
