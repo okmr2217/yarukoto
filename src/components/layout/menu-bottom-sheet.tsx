@@ -34,7 +34,7 @@ export function MenuBottomSheet({ open, onClose }: MenuBottomSheetProps) {
         <div className="px-4 pb-4">
           <p className="text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-2">メニュー</p>
           <nav className="space-y-1">
-            {MENU_ITEMS.map(({ href, label, icon: Icon }) => (
+            {MENU_ITEMS.map(({ href, label, description, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
@@ -43,8 +43,8 @@ export function MenuBottomSheet({ open, onClose }: MenuBottomSheetProps) {
               >
                 <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="flex flex-col">
-                  <span className="text-sm text-foreground">{label}</span>
-                  <span className="text-xs text-muted-foreground">{description}</span>
+                  <span className="text-sm font-medium text-foreground">{label}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5">{description}</span>
                 </span>
               </Link>
             ))}
