@@ -8,6 +8,7 @@ interface CategoryChipProps {
   onClick: () => void;
   color?: string | null;
   isSpecial?: boolean; // For "すべて" and "カテゴリなし"
+  count?: number;
 }
 
 export function CategoryChip({
@@ -16,6 +17,7 @@ export function CategoryChip({
   onClick,
   color,
   isSpecial = false,
+  count,
 }: CategoryChipProps) {
   // Special chips (すべて, カテゴリなし) - Gray style
   if (isSpecial) {
@@ -23,32 +25,41 @@ export function CategoryChip({
       <button
         onClick={onClick}
         className={cn(
-          "text-xs px-2 py-1 rounded whitespace-nowrap transition-all",
+          "text-xs px-2.5 py-1.5 rounded flex items-center gap-1 whitespace-nowrap transition-all",
           active
             ? "bg-muted text-foreground font-semibold"
             : "bg-muted/50 text-muted-foreground hover:bg-muted/70",
         )}
       >
         {label}
+        {count !== undefined && count > 0 && (
+          <span className="tabular-nums opacity-60">{count}</span>
+        )}
       </button>
     );
   }
 
-  // Regular category chips - Same style as TaskCard
+  // Regular category chips - Same style as SearchColumn
+  const activeStyle = color
+    ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
+    : undefined;
+  const inactiveStyle = color
+    ? { backgroundColor: `${color}14`, color: `${color}aa`, boxShadow: `inset 0 0 0 1.5px transparent` }
+    : undefined;
+
   return (
     <button
       onClick={onClick}
       className={cn(
-        "text-xs px-2 py-1 rounded whitespace-nowrap transition-all",
-        active && "font-semibold",
+        "text-xs px-2.5 py-1.5 rounded flex items-center gap-1 whitespace-nowrap transition-all",
+        active ? "font-semibold" : color ? "" : "bg-muted/50 text-muted-foreground hover:bg-muted/70",
       )}
-      style={{
-        backgroundColor: color ? `${color}20` : "hsl(var(--muted))",
-        color: color || "hsl(var(--muted-foreground))",
-        opacity: active ? 1 : 0.7,
-      }}
+      style={active ? activeStyle : inactiveStyle}
     >
       {label}
+      {count !== undefined && count > 0 && (
+        <span className="tabular-nums opacity-60">{count}</span>
+      )}
     </button>
   );
 }

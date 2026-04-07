@@ -2,6 +2,7 @@
 
 import type { Category } from "@/types";
 import { CategoryChip } from "./category-chip";
+import { useAllTasks } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
@@ -21,13 +22,25 @@ export function CategoryFilter({ categories, selectedCategoryIds, onToggleCatego
     categories.every((c) => selectedCategoryIds.includes(c.id)) &&
     selectedCategoryIds.includes("none");
 
+  const { data: allPendingTasks } = useAllTasks({ status: "pending" });
+
+  const pendingCountByCategory = (() => {
+    if (!allPendingTasks) return {} as Record<string, number>;
+    const counts: Record<string, number> = {};
+    for (const task of allPendingTasks) {
+      const key = task.categoryId ?? "none";
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  })();
+
   return (
     <div className="bg-background border-b">
-      <div className="flex flex-wrap items-center gap-2 px-4 py-2">
+      <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
         <button
           onClick={onDeselectAll}
           className={cn(
-            "text-xs px-2 py-1 rounded whitespace-nowrap transition-all shrink-0",
+            "text-xs px-2.5 py-1.5 rounded whitespace-nowrap transition-all shrink-0",
             noneSelected ? "bg-muted text-foreground font-semibold" : "bg-muted/50 text-muted-foreground hover:bg-muted/70",
           )}
         >
@@ -36,7 +49,7 @@ export function CategoryFilter({ categories, selectedCategoryIds, onToggleCatego
         <button
           onClick={onSelectAll}
           className={cn(
-            "text-xs px-2 py-1 rounded whitespace-nowrap transition-all shrink-0",
+            "text-xs px-2.5 py-1.5 rounded whitespace-nowrap transition-all shrink-0",
             allSelected ? "bg-muted text-foreground font-semibold" : "bg-muted/50 text-muted-foreground hover:bg-muted/70",
           )}
         >
@@ -56,6 +69,7 @@ export function CategoryFilter({ categories, selectedCategoryIds, onToggleCatego
                   color={category.color}
                   active={selectedCategoryIds.includes(category.id)}
                   onClick={() => onToggleCategory(category.id)}
+                  count={pendingCountByCategory[category.id]}
                 />
               ))}
               <CategoryChip
@@ -63,6 +77,7 @@ export function CategoryFilter({ categories, selectedCategoryIds, onToggleCatego
                 active={selectedCategoryIds.includes("none")}
                 onClick={() => onToggleCategory("none")}
                 isSpecial
+                count={pendingCountByCategory["none"]}
               />
             </>
           )}
