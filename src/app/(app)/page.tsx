@@ -10,7 +10,7 @@ import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { parseCategoryParam, categoryFilterToParam, resolveCategoryIds, type CategoryFilter } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
-import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
+import type { SortOrder } from "@/lib/filter-types";
 
 function countActiveFilters(values: FilterValues, categoryActive: boolean): number {
   let count = 0;
@@ -32,10 +32,7 @@ export default function HomePage() {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const viewMode = (searchParams.get("view") || "list") as ViewMode;
-  const [listSort, setListSort] = useState<ListSortOrder>("displayOrder");
-  const [prevStatusFilter, setPrevStatusFilter] = useState(statusFilter);
-  const [scheduledSort, setScheduledSort] = useState<ScheduledSortOrder>("scheduledAt_asc");
+  const sort = (searchParams.get("sort") || "displayOrder") as SortOrder;
 
   // 他ページから戻ったとき、直前の検索条件を復元する
   useEffect(() => {
@@ -54,12 +51,6 @@ export default function HomePage() {
       sessionStorage.removeItem("task-filter-params");
     }
   }, [searchParams]);
-
-  if (prevStatusFilter !== statusFilter) {
-    setPrevStatusFilter(statusFilter);
-    const derived = statusFilter === "completed" ? "createdAt" : "displayOrder";
-    if (listSort !== derived) setListSort(derived);
-  }
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
@@ -119,21 +110,17 @@ export default function HomePage() {
 
   const sortedTasks = (() => {
     if (!tasks) return [];
-    if (viewMode === "schedule") {
-      const sorted = [...tasks];
-      if (scheduledSort === "createdAt") {
-        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      }
-      const asc = scheduledSort !== "scheduledAt_desc";
-      return sorted.sort((a, b) => {
+    if (sort === "createdAt") {
+      return [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    if (sort === "scheduledAt_asc" || sort === "scheduledAt_desc") {
+      const asc = sort === "scheduledAt_asc";
+      return [...tasks].sort((a, b) => {
         if (!a.scheduledAt && !b.scheduledAt) return 0;
         if (!a.scheduledAt) return 1;
         if (!b.scheduledAt) return -1;
         return asc ? a.scheduledAt.localeCompare(b.scheduledAt) : b.scheduledAt.localeCompare(a.scheduledAt);
       });
-    }
-    if (listSort === "createdAt") {
-      return [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
     return tasks;
   })();
@@ -234,17 +221,15 @@ export default function HomePage() {
   const defaultCategoryId =
     categoryFilter.type === "category" && categoryFilter.categoryId !== "none" ? categoryFilter.categoryId : undefined;
 
+  const onSortChange = (s: SortOrder) => updateSearchParams({ sort: s === "displayOrder" ? null : s });
+
   const sidebarProps = {
     categories,
     categoriesLoading,
     categoryFilter,
     onCategoryFilterChange: handleCategoryFilterChange,
-    viewMode,
-    onViewModeChange: (mode: ViewMode) => updateSearchParams({ view: mode === "list" ? null : mode }),
-    listSort,
-    onListSortChange: setListSort,
-    scheduledSort,
-    onScheduledSortChange: setScheduledSort,
+    sort,
+    onSortChange,
   };
 
   const bottomSheetProps = {
@@ -254,12 +239,8 @@ export default function HomePage() {
     categoriesLoading,
     categoryFilter,
     onCategoryFilterChange: handleCategoryFilterChange,
-    viewMode,
-    onViewModeChange: (mode: ViewMode) => updateSearchParams({ view: mode === "list" ? null : mode }),
-    listSort,
-    onListSortChange: setListSort,
-    scheduledSort,
-    onScheduledSortChange: setScheduledSort,
+    sort,
+    onSortChange,
   };
 
   return (
@@ -313,7 +294,7 @@ export default function HomePage() {
                   tasks={sortedTasks}
                   handlers={taskHandlers}
                   showScheduledDate
-                  enableDragAndDrop={viewMode === "list" && listSort === "displayOrder"}
+                  enableDragAndDrop={sort === "displayOrder"}
                   onReorder={handleReorder}
                   matchReasons={dateFilter ? sortedTasks.map(getMatchReasons) : undefined}
                 />

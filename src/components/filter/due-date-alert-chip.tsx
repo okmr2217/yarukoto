@@ -13,7 +13,7 @@ export function DueDateAlertChip({ className }: { className?: string }) {
   return (
     <div className={cn("relative group", className)}>
       <Link
-        href="/?view=schedule"
+        href="/?sort=scheduledAt_asc"
         className={cn(
           "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border",
           "bg-background hover:bg-muted transition-colors text-xs",
@@ -62,7 +62,7 @@ export function DueDateAlertChip({ className }: { className?: string }) {
               <span className="font-medium text-amber-600 dark:text-amber-400">{todayCount}件</span>
             </div>
           )}
-          <p className="text-muted-foreground/70 pt-1 mt-1 border-t border-border">クリックで予定ビューを表示</p>
+          <p className="text-muted-foreground/70 pt-1 mt-1 border-t border-border">クリックで予定日順に表示</p>
         </div>
       </div>
     </div>

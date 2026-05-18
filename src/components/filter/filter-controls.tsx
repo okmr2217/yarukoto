@@ -7,12 +7,9 @@ import { addDaysJST } from "@/lib/dateUtils";
 import { FilterSectionInfo } from "./filter-section-info";
 import {
   type StatusFilter,
-  type ViewMode,
-  type ListSortOrder,
-  type ScheduledSortOrder,
+  type SortOrder,
   STATUS_OPTIONS,
-  LIST_SORT_OPTIONS,
-  SCHEDULED_SORT_OPTIONS,
+  SORT_OPTIONS,
 } from "@/lib/filter-types";
 import type { Task } from "@/types";
 
@@ -47,40 +44,6 @@ export function FilterStatusChips({ statusFilter, statusCounts, allFilteredTasks
           </button>
         );
       })}
-    </div>
-  );
-}
-
-interface FilterViewModeToggleProps {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-}
-
-export function FilterViewModeToggle({ viewMode, onViewModeChange }: FilterViewModeToggleProps) {
-  return (
-    <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
-      <button
-        type="button"
-        aria-pressed={viewMode === "list"}
-        className={cn(
-          "flex-1 flex items-center justify-center py-1.5 transition-colors",
-          viewMode === "list" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
-        )}
-        onClick={() => onViewModeChange("list")}
-      >
-        一覧
-      </button>
-      <button
-        type="button"
-        aria-pressed={viewMode === "schedule"}
-        className={cn(
-          "flex-1 flex items-center justify-center py-1.5 transition-colors",
-          viewMode === "schedule" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
-        )}
-        onClick={() => onViewModeChange("schedule")}
-      >
-        予定
-      </button>
     </div>
   );
 }
@@ -175,55 +138,32 @@ export function FilterFavoriteToggle({ favoriteFilter, favoriteCount, onUpdate }
 }
 
 interface FilterSortChipsProps {
-  viewMode: ViewMode;
-  listSort: ListSortOrder;
-  scheduledSort: ScheduledSortOrder;
-  onListSortChange: (sort: ListSortOrder) => void;
-  onScheduledSortChange: (sort: ScheduledSortOrder) => void;
+  sort: SortOrder;
+  onSortChange: (sort: SortOrder) => void;
 }
 
-export function FilterSortChips({ viewMode, listSort, scheduledSort, onListSortChange, onScheduledSortChange }: FilterSortChipsProps) {
+export function FilterSortChips({ sort, onSortChange }: FilterSortChipsProps) {
   return (
     <div className="grid grid-cols-2 gap-1">
-      {viewMode === "list"
-        ? LIST_SORT_OPTIONS.map((option) => {
-            const active = listSort === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={active}
-                className={cn(
-                  "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                  active
-                    ? "bg-primary text-primary-foreground font-medium border-primary"
-                    : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-                onClick={() => onListSortChange(option.value)}
-              >
-                {option.label}
-              </button>
-            );
-          })
-        : SCHEDULED_SORT_OPTIONS.map((option) => {
-            const active = scheduledSort === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={active}
-                className={cn(
-                  "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                  active
-                    ? "bg-primary text-primary-foreground font-medium border-primary"
-                    : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-                onClick={() => onScheduledSortChange(option.value)}
-              >
-                {option.label}
-              </button>
-            );
-          })}
+      {SORT_OPTIONS.map((option) => {
+        const active = sort === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            className={cn(
+              "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+              active
+                ? "bg-primary text-primary-foreground font-medium border-primary"
+                : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+            onClick={() => onSortChange(option.value)}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

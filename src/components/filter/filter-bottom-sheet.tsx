@@ -3,9 +3,9 @@
 import { X } from "lucide-react";
 import type { Category } from "@/types";
 import type { CategoryFilter } from "@/lib/category-filter";
-import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
+import type { SortOrder } from "@/lib/filter-types";
 import { useFilterState } from "@/hooks/useFilterState";
-import { StatusSection, ViewSection, DateSection, CategorySection, KeywordSection, FavoriteSection, SortSection } from "./filter-sections";
+import { StatusSection, DateSection, CategorySection, KeywordSection, FavoriteSection, SortSection } from "./filter-sections";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -22,12 +22,8 @@ interface FilterBottomSheetProps {
   categoriesLoading: boolean;
   categoryFilter: CategoryFilter;
   onCategoryFilterChange: (filter: CategoryFilter) => void;
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-  listSort: ListSortOrder;
-  onListSortChange: (sort: ListSortOrder) => void;
-  scheduledSort: ScheduledSortOrder;
-  onScheduledSortChange: (sort: ScheduledSortOrder) => void;
+  sort: SortOrder;
+  onSortChange: (sort: SortOrder) => void;
 }
 
 export function FilterBottomSheet({
@@ -37,12 +33,8 @@ export function FilterBottomSheet({
   categoriesLoading,
   categoryFilter,
   onCategoryFilterChange,
-  viewMode,
-  onViewModeChange,
-  listSort,
-  onListSortChange,
-  scheduledSort,
-  onScheduledSortChange,
+  sort,
+  onSortChange,
 }: FilterBottomSheetProps) {
   const state = useFilterState(categories, categoryFilter, onCategoryFilterChange);
 
@@ -80,14 +72,7 @@ export function FilterBottomSheet({
               countByGroup={state.countByGroup}
             />
             <div className="border-t border-border/50" />
-            <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
-            <SortSection
-              viewMode={viewMode}
-              listSort={listSort}
-              onListSortChange={onListSortChange}
-              scheduledSort={scheduledSort}
-              onScheduledSortChange={onScheduledSortChange}
-            />
+            <SortSection sort={sort} onSortChange={onSortChange} />
           </div>
         </ResponsiveDialogBody>
 

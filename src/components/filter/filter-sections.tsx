@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { FilterSectionInfo } from "./filter-section-info";
 import {
   FilterStatusChips,
-  FilterViewModeToggle,
   FilterDateNav,
   FilterFavoriteToggle,
   FilterSortChips,
@@ -13,7 +12,7 @@ import {
 import { CategorySelectFilter } from "@/components/category";
 import type { useFilterState } from "@/hooks/useFilterState";
 import type { Category } from "@/types";
-import { type ViewMode, type ListSortOrder, type ScheduledSortOrder, LIST_SORT_OPTIONS, SCHEDULED_SORT_OPTIONS } from "@/lib/filter-types";
+import { type SortOrder, SORT_OPTIONS } from "@/lib/filter-types";
 import type { CategoryFilter } from "@/lib/category-filter";
 
 type FilterState = ReturnType<typeof useFilterState>;
@@ -51,17 +50,6 @@ export function StatusSection({ state }: { state: FilterState }) {
         allFilteredTasks={state.allFilteredTasks}
         onUpdate={state.updateSearchParams}
       />
-    </section>
-  );
-}
-
-export function ViewSection({ viewMode, onViewModeChange }: { viewMode: ViewMode; onViewModeChange: (mode: ViewMode) => void }) {
-  return (
-    <section>
-      <SectionLabel tooltip="表示形式を切り替えます。「一覧」は日付セクション別のリスト表示、「予定」は予定日が設定されたタスクを日付順に表示します。">
-        ビュー
-      </SectionLabel>
-      <FilterViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
     </section>
   );
 }
@@ -171,41 +159,18 @@ export function FavoriteSection({ state }: { state: FilterState }) {
   );
 }
 
-export function SortSection({
-  viewMode,
-  listSort,
-  onListSortChange,
-  scheduledSort,
-  onScheduledSortChange,
-}: {
-  viewMode: ViewMode;
-  listSort: ListSortOrder;
-  onListSortChange: (sort: ListSortOrder) => void;
-  scheduledSort: ScheduledSortOrder;
-  onScheduledSortChange: (sort: ScheduledSortOrder) => void;
-}) {
-  const badge = (() => {
-    if (viewMode === "list") {
-      return listSort !== "displayOrder" ? LIST_SORT_OPTIONS.find((o) => o.value === listSort)?.label : undefined;
-    }
-    return scheduledSort !== "scheduledAt_asc" ? SCHEDULED_SORT_OPTIONS.find((o) => o.value === scheduledSort)?.label : undefined;
-  })();
+export function SortSection({ sort, onSortChange }: { sort: SortOrder; onSortChange: (sort: SortOrder) => void }) {
+  const badge = sort !== "displayOrder" ? SORT_OPTIONS.find((o) => o.value === sort)?.label : undefined;
 
   return (
     <section>
       <SectionLabel
-        tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「作成日時」は新しい順に並びます。"
+        tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「予定日」は予定日の近い順に並びます。"
         badge={badge}
       >
         並び順
       </SectionLabel>
-      <FilterSortChips
-        viewMode={viewMode}
-        listSort={listSort}
-        scheduledSort={scheduledSort}
-        onListSortChange={onListSortChange}
-        onScheduledSortChange={onScheduledSortChange}
-      />
+      <FilterSortChips sort={sort} onSortChange={onSortChange} />
     </section>
   );
 }
