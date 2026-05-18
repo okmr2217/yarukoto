@@ -1,9 +1,8 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
-import { FilterKeywordInput } from "./filter-controls";
 
 interface MobileTaskBarProps {
   activeFilterCount: number;
@@ -18,35 +17,46 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
   );
 
   return (
-    <div className="md:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm px-3 py-2">
-      <div className="flex items-center gap-2">
-        <div className="flex-1 min-w-0">
-          <FilterKeywordInput
-            localKeyword={localKeyword}
-            isComposingRef={isComposingRef}
-            onKeywordChange={handleKeywordChange}
-            onCompositionEnd={handleCompositionEnd}
-            onKeywordClear={handleKeywordClear}
-            placeholder="タスク名・メモで検索..."
-          />
-        </div>
+    <div className="md:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm flex items-center gap-1 px-2 h-11">
+      <Search className="shrink-0 size-4 text-muted-foreground ml-1" />
+      <input
+        type="text"
+        placeholder="タスク名・メモで検索..."
+        value={localKeyword}
+        onChange={handleKeywordChange}
+        onCompositionStart={() => {
+          isComposingRef.current = true;
+        }}
+        onCompositionEnd={handleCompositionEnd}
+        className="flex-1 min-w-0 h-full bg-transparent text-sm placeholder:text-muted-foreground outline-none"
+      />
+      {localKeyword && (
         <button
           type="button"
-          onClick={onFilterOpen}
-          className={cn(
-            "relative shrink-0 h-8 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
-            activeFilterCount > 0 && "border-primary/40 text-primary",
-          )}
-          aria-label="フィルターを開く"
+          onClick={handleKeywordClear}
+          className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="検索をクリア"
         >
-          <SlidersHorizontal className="size-3.5" />
-          {activeFilterCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
-              {activeFilterCount}
-            </span>
-          )}
+          <X className="size-3.5" />
         </button>
-      </div>
+      )}
+      <div className="shrink-0 w-px h-4 bg-border mx-0.5" />
+      <button
+        type="button"
+        onClick={onFilterOpen}
+        className={cn(
+          "relative shrink-0 h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
+          activeFilterCount > 0 && "text-primary",
+        )}
+        aria-label="フィルターを開く"
+      >
+        <SlidersHorizontal className="size-3.5" />
+        {activeFilterCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
+            {activeFilterCount}
+          </span>
+        )}
+      </button>
     </div>
   );
 }
