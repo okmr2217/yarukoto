@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ListTodo, Tags, Settings, BarChart2, HelpCircle } from "lucide-react";
-import Image from "next/image";
 import { NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { DueDateAlertChip } from "@/components/filter";
@@ -25,11 +24,10 @@ export function PCHeader() {
   };
 
   return (
-    <header className="hidden md:block sticky top-0 z-40 h-12 bg-white border-b shrink-0">
+    <header className="hidden md:block sticky top-0 z-40 h-12 bg-muted/60 backdrop-blur-sm border-b shrink-0">
       <div className="max-w-265 mx-auto h-full px-4 flex items-end gap-12">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1.5 shrink-0 self-center">
-          <Image src="/icon-192.png" alt="icon" width={32} height={32} />
+        <Link href="/" className="flex items-center shrink-0 self-center">
           <span className="text-xl font-medium font-logo">Yarukoto</span>
         </Link>
 
