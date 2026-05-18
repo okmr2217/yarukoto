@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 import type { CategoryFilter } from "@/lib/category-filter";
 import type { SortOrder } from "@/lib/filter-types";
 import { useFilterState } from "@/hooks/useFilterState";
-import { StatusSection, DateSection, CategorySection, KeywordSection, FavoriteSection, SortSection } from "./filter-sections";
+import { StatusSection, KeywordSection, CategorySection } from "./filter-sections";
+import { FilterDetailDialog } from "./filter-detail-dialog";
 
 export type { SortOrder };
 
@@ -26,15 +30,15 @@ export function FilterSidebar({
   onSortChange,
 }: FilterSidebarProps) {
   const state = useFilterState(categories, categoryFilter, onCategoryFilterChange);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const detailActiveCount = [!!state.dateFilter, state.favoriteFilter].filter(Boolean).length;
 
   return (
     <aside className="hidden md:flex flex-col w-75 shrink-0 sticky top-12 h-[calc(100vh-3rem)] overflow-hidden">
-      {/* 上部: スクロールしない固定セクション群 */}
       <div className="shrink-0 flex flex-col gap-3 px-4 pt-3 pb-2">
         <StatusSection state={state} />
-        <DateSection state={state} />
         <KeywordSection state={state} />
-        <FavoriteSection state={state} />
         <CategorySection
           categories={categories}
           categoriesLoading={categoriesLoading}
@@ -44,8 +48,31 @@ export function FilterSidebar({
           countByGroup={state.countByGroup}
         />
         <div className="border-t border-border/50" />
-        <SortSection sort={sort} onSortChange={onSortChange} />
+        <button
+          type="button"
+          onClick={() => setDetailOpen(true)}
+          className={cn(
+            "flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors self-start",
+            detailActiveCount > 0 && "text-primary hover:text-primary/80",
+          )}
+        >
+          <SlidersHorizontal className="size-3" />
+          詳細フィルター
+          {detailActiveCount > 0 && (
+            <span className="min-w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
+              {detailActiveCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      <FilterDetailDialog
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        state={state}
+        sort={sort}
+        onSortChange={onSortChange}
+      />
     </aside>
   );
 }

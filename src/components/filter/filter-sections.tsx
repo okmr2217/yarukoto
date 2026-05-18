@@ -13,7 +13,7 @@ import { CategorySelectFilter } from "@/components/category";
 import type { useFilterState } from "@/hooks/useFilterState";
 import type { Category } from "@/types";
 import { type SortOrder, SORT_OPTIONS } from "@/lib/filter-types";
-import type { CategoryFilter } from "@/lib/category-filter";
+import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 
 type FilterState = ReturnType<typeof useFilterState>;
 
@@ -28,7 +28,7 @@ interface SectionLabelProps {
 
 export function SectionLabel({ children, tooltip, badge, noMargin = false }: SectionLabelProps) {
   return (
-    <div className={cn("flex items-center gap-1 text-xs font-semibold text-muted-foreground tracking-wide", !noMargin && "mb-1")}>
+    <div className={cn("flex items-center gap-1 text-xs font-medium text-muted-foreground tracking-wide", !noMargin && "mb-1")}>
       {children}
       {tooltip && <FilterSectionInfo content={tooltip} />}
       {badge && <span className="ml-auto font-normal text-[10px] text-primary/90 max-w-[7rem] truncate">{badge}</span>}
@@ -90,25 +90,27 @@ export function CategorySection({
   countByCategory: Record<string, number>;
   countByGroup: Record<string, number>;
 }) {
+  const badge = (() => {
+    if (categoryFilter.type === "category") {
+      const name = categories.find((c) => c.id === categoryFilter.categoryId)?.name;
+      return name ? (name.length > 8 ? `${name.slice(0, 8)}…` : name) : undefined;
+    }
+    if (categoryFilter.type === "group") {
+      if (categoryFilter.groupId === UNGROUPED_VIRTUAL_ID) return "グループなし";
+      const name = categories.find((c) => c.groupId === categoryFilter.groupId)?.group?.name;
+      return name ? (name.length > 8 ? `${name.slice(0, 8)}…` : name) : undefined;
+    }
+    return undefined;
+  })();
+
   return (
     <section>
-      <div className="flex items-center justify-between mb-1">
-        <SectionLabel
-          noMargin
-          tooltip="1つ選択できます。グループ名をクリックするとそのグループ全体、カテゴリ名をクリックすると個別絞り込みができます。再クリックで解除。"
-        >
-          カテゴリ
-        </SectionLabel>
-        {categoryFilter.type !== "all" && (
-          <button
-            type="button"
-            onClick={() => onCategoryFilterChange({ type: "all" })}
-            className="text-[11px] px-1.5 py-0.5 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
-          >
-            選択解除
-          </button>
-        )}
-      </div>
+      <SectionLabel
+        tooltip="1つ選択できます。グループ名をクリックするとそのグループ全体、カテゴリ名をクリックすると個別絞り込みができます。再クリックで解除。"
+        badge={badge}
+      >
+        カテゴリ
+      </SectionLabel>
       <CategorySelectFilter
         categories={categories}
         categoriesLoading={categoriesLoading}

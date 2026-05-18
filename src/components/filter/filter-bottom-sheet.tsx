@@ -5,7 +5,7 @@ import type { Category } from "@/types";
 import type { CategoryFilter } from "@/lib/category-filter";
 import type { SortOrder } from "@/lib/filter-types";
 import { useFilterState } from "@/hooks/useFilterState";
-import { StatusSection, DateSection, CategorySection, KeywordSection, FavoriteSection, SortSection } from "./filter-sections";
+import { StatusSection, DateSection, CategorySection, FavoriteSection, SortSection } from "./filter-sections";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -61,7 +61,6 @@ export function FilterBottomSheet({
           <div className="flex flex-col gap-4 pb-4">
             <StatusSection state={state} />
             <DateSection state={state} />
-            <KeywordSection state={state} />
             <FavoriteSection state={state} />
             <CategorySection
               categories={categories}

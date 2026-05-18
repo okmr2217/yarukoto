@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FilterFab, FilterBottomSheet, FilterSidebar, DueDateAlertChip, type FilterValues } from "@/components/filter";
-import { MobileHeader } from "@/components/layout/mobile-header";
+import { MobileTaskBar, FilterBottomSheet, FilterSidebar, type FilterValues } from "@/components/filter";
 import { TaskSection, TaskCreateModal, TaskFab, TaskDetailModal, SkipReasonDialog } from "@/components/task";
 import { useAllTasks, useTaskMutations, useCategories, useGroups, useRecentCategories } from "@/hooks";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -12,9 +11,8 @@ import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
 import type { SortOrder } from "@/lib/filter-types";
 
-function countActiveFilters(values: FilterValues, categoryActive: boolean): number {
+function countBottomSheetFilters(values: FilterValues, categoryActive: boolean): number {
   let count = 0;
-  if (values.keyword) count++;
   if (values.status !== "pending") count++;
   if (values.date) count++;
   if (values.isFavorite) count++;
@@ -248,7 +246,10 @@ export default function HomePage() {
       <div className="flex flex-1 min-h-0">
         <FilterSidebar {...sidebarProps} />
         <div className="flex-1 flex flex-col min-w-0">
-          <MobileHeader title="タスク" actions={<DueDateAlertChip />} />
+          <MobileTaskBar
+            activeFilterCount={countBottomSheetFilters(filterValues, categoryFilter.type !== "all")}
+            onFilterOpen={() => setFilterSheetOpen(true)}
+          />
           <main className="flex-1">
             <div className="px-4 pt-2 pb-20 md:pb-4">
               {isLoading ? (
@@ -306,7 +307,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues, categoryFilter.type !== "all")} />
       <FilterBottomSheet {...bottomSheetProps} />
 
       <TaskCreateModal
