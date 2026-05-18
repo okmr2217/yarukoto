@@ -47,10 +47,10 @@ export function useDebouncedKeyword(keyword: string, updateSearchParams: (update
     [commitKeyword],
   );
 
-  const handleKeywordClear = useCallback(() => {
+  const handleKeywordClear = useCallback((extraUpdates?: Record<string, string | null>) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     setLocalKeyword("");
-    updateSearchParams({ keyword: null });
+    updateSearchParams({ keyword: null, ...extraUpdates });
   }, [updateSearchParams]);
 
   return {

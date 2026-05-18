@@ -33,7 +33,7 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
       {localKeyword && (
         <button
           type="button"
-          onClick={handleKeywordClear}
+          onClick={() => handleKeywordClear()}
           className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="検索をクリア"
         >
@@ -51,11 +51,6 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
         aria-label="フィルターを開く"
       >
         <SlidersHorizontal className="size-4" />
-        {activeFilterCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
-            {activeFilterCount}
-          </span>
-        )}
       </button>
     </div>
   );

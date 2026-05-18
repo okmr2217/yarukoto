@@ -50,8 +50,7 @@ export function useFilterState(
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
   const handleClearFilters = () => {
-    handleKeywordClear();
-    updateSearchParams({ status: null, favorite: null, date: null });
+    handleKeywordClear({ status: null, favorite: null, date: null });
     onCategoryFilterChange?.({ type: "all" });
   };
 
