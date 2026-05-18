@@ -27,6 +27,7 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
             onKeywordChange={handleKeywordChange}
             onCompositionEnd={handleCompositionEnd}
             onKeywordClear={handleKeywordClear}
+            placeholder="タスク名・メモで検索..."
           />
         </div>
         <button

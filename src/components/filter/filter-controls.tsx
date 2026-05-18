@@ -175,6 +175,7 @@ interface FilterKeywordInputProps {
   onCompositionEnd: (e: React.CompositionEvent<HTMLInputElement>) => void;
   onKeywordClear: () => void;
   tooltip?: string;
+  placeholder?: string;
 }
 
 export function FilterKeywordInput({
@@ -184,6 +185,7 @@ export function FilterKeywordInput({
   onCompositionEnd,
   onKeywordClear,
   tooltip,
+  placeholder = "キーワード...",
 }: FilterKeywordInputProps) {
   return (
     <>
@@ -197,7 +199,7 @@ export function FilterKeywordInput({
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
         <Input
           type="text"
-          placeholder="キーワード..."
+          placeholder={placeholder}
           value={localKeyword}
           onChange={onKeywordChange}
           onCompositionStart={() => {
