@@ -44,7 +44,7 @@ export function FilterBottomSheet({
   scheduledSort,
   onScheduledSortChange,
 }: FilterBottomSheetProps) {
-  const state = useFilterState(categories, categoryFilter);
+  const state = useFilterState(categories, categoryFilter, onCategoryFilterChange);
 
   return (
     <ResponsiveDialog open={open} onOpenChange={(o) => !o && onClose()}>

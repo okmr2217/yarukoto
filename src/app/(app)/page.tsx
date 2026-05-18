@@ -7,17 +7,18 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { TaskSection, TaskCreateModal, TaskFab, TaskDetailModal, SkipReasonDialog } from "@/components/task";
 import { useAllTasks, useTaskMutations, useCategories, useGroups, useRecentCategories } from "@/hooks";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
-import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
+import { parseCategoryParam, categoryFilterToParam, resolveCategoryIds, type CategoryFilter } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
 import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
 
-function countActiveFilters(values: FilterValues): number {
+function countActiveFilters(values: FilterValues, categoryActive: boolean): number {
   let count = 0;
   if (values.keyword) count++;
   if (values.status !== "pending") count++;
   if (values.date) count++;
   if (values.isFavorite) count++;
+  if (categoryActive) count++;
   return count;
 }
 
@@ -77,16 +78,7 @@ export default function HomePage() {
   const { data: groups = [] } = useGroups();
   const { recordRecentCategory } = useRecentCategories();
 
-  const taskCategoryIds = (() => {
-    if (categoryFilter.type === "all") return undefined;
-    if (categoryFilter.type === "group") {
-      if (categoryFilter.groupId === UNGROUPED_VIRTUAL_ID) {
-        return categories.filter((c) => !c.groupId).map((c) => c.id);
-      }
-      return categories.filter((c) => c.groupId === categoryFilter.groupId).map((c) => c.id);
-    }
-    return [categoryFilter.categoryId];
-  })();
+  const taskCategoryIds = resolveCategoryIds(categoryFilter, categories);
 
   const handleCategoryFilterChange = useCallback(
     (filter: CategoryFilter) => {
@@ -315,7 +307,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
+      <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues, categoryFilter.type !== "all")} />
       <FilterBottomSheet {...bottomSheetProps} />
 
       <TaskCreateModal

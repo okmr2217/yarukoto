@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { KEYWORD_DEBOUNCE_MS } from "@/lib/filter-types";
 
 export function useDebouncedKeyword(keyword: string, updateSearchParams: (updates: Record<string, string | null>) => void) {
@@ -13,6 +13,12 @@ export function useDebouncedKeyword(keyword: string, updateSearchParams: (update
     setSyncedKeyword(keyword);
     setLocalKeyword(keyword);
   }
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
 
   const commitKeyword = useCallback(
     (value: string) => {

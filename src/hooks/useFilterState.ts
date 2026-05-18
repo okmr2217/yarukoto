@@ -4,9 +4,13 @@ import { useAllTasks, useCategoryTaskCounts } from "@/hooks";
 import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
 import type { StatusFilter } from "@/lib/filter-types";
 import type { Category } from "@/types";
-import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
+import { type CategoryFilter, resolveCategoryIds } from "@/lib/category-filter";
 
-export function useFilterState(categories: Category[], categoryFilter: CategoryFilter) {
+export function useFilterState(
+  categories: Category[],
+  categoryFilter: CategoryFilter,
+  onCategoryFilterChange?: (filter: CategoryFilter) => void,
+) {
   const { dateFilter, keyword, statusFilter, favoriteFilter, updateSearchParams, today } = useFilterSearchParams();
 
   const { localKeyword, isComposingRef, handleKeywordChange, handleCompositionEnd, handleKeywordClear } = useDebouncedKeyword(
@@ -14,17 +18,7 @@ export function useFilterState(categories: Category[], categoryFilter: CategoryF
     updateSearchParams,
   );
 
-  // カテゴリフィルターから categoryIds を解決
-  const taskCategoryIds = (() => {
-    if (categoryFilter.type === "all") return undefined;
-    if (categoryFilter.type === "group") {
-      if (categoryFilter.groupId === UNGROUPED_VIRTUAL_ID) {
-        return categories.filter((c) => !c.groupId).map((c) => c.id);
-      }
-      return categories.filter((c) => c.groupId === categoryFilter.groupId).map((c) => c.id);
-    }
-    return [categoryFilter.categoryId];
-  })();
+  const taskCategoryIds = resolveCategoryIds(categoryFilter, categories);
 
   // カテゴリ別・グループ別カウント用（カテゴリフィルター以外を適用した状態）
   const { data: categoryCounts } = useCategoryTaskCounts({
@@ -53,11 +47,12 @@ export function useFilterState(categories: Category[], categoryFilter: CategoryF
     return { all: allFilteredTasks.length, pending, completed, skipped };
   })();
 
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter);
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
   const handleClearFilters = () => {
     handleKeywordClear();
     updateSearchParams({ status: null, favorite: null, date: null });
+    onCategoryFilterChange?.({ type: "all" });
   };
 
   return {

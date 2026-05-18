@@ -6,6 +6,7 @@ import { useGroups, useGroupExpanded } from "@/hooks";
 import type { Category } from "@/types";
 import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import { categoryTreeItemStyle } from "@/lib/category-color";
+import { CategoryChip } from "@/components/category";
 
 interface FilterCategoryTreeProps {
   categories: Category[];
@@ -14,6 +15,27 @@ interface FilterCategoryTreeProps {
   onCategoryFilterChange: (filter: CategoryFilter) => void;
   countByCategory: Record<string, number>;
   countByGroup: Record<string, number>;
+}
+
+interface CategoryItemProps {
+  cat: Category;
+  categoryFilter: CategoryFilter;
+  onCategoryFilterChange: (filter: CategoryFilter) => void;
+  countByCategory: Record<string, number>;
+}
+
+function CategoryItem({ cat, categoryFilter, onCategoryFilterChange, countByCategory }: CategoryItemProps) {
+  const count = countByCategory[cat.id] ?? 0;
+  if (count === 0) return null;
+  const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === cat.id;
+  return (
+    <CategoryChip
+      cat={cat}
+      selected={isCatSelected}
+      onSelect={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
+      count={count}
+    />
+  );
 }
 
 export function FilterCategoryTree({
@@ -51,41 +73,6 @@ export function FilterCategoryTree({
       </div>
     );
   }
-
-  const CategoryItem = ({ cat, indent = false }: { cat: Category; indent?: boolean }) => {
-    const count = countByCategory[cat.id] ?? 0;
-    if (count === 0) return null;
-    const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === cat.id;
-    const catColor = cat.color;
-    return (
-      <button
-        key={cat.id}
-        type="button"
-        onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
-        aria-pressed={isCatSelected}
-        className={cn(
-          "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-all min-w-0 text-left",
-          isCatSelected ? "font-medium text-foreground" : catColor ? "hover:opacity-90" : "text-muted-foreground hover:bg-accent/40",
-          !isCatSelected && "px-1.5",
-          indent && "pr-1.5",
-        )}
-        style={
-          isCatSelected && catColor
-            ? { ...categoryTreeItemStyle(catColor), paddingLeft: "calc(6px - 3px)" }
-            : catColor
-              ? { backgroundColor: `${catColor}20`, color: catColor }
-              : {}
-        }
-      >
-        <span
-          className={cn("w-1.5 h-1.5 rounded-full shrink-0", catColor ? "" : "bg-muted-foreground opacity-40")}
-          style={catColor ? { backgroundColor: catColor } : {}}
-        />
-        <span className="truncate flex-1">{cat.name}</span>
-        <span className="text-[10px] tabular-nums shrink-0 opacity-70">{count}</span>
-      </button>
-    );
-  };
 
   return (
     <div>
@@ -140,7 +127,7 @@ export function FilterCategoryTree({
               {expanded && (
                 <div className="ml-3">
                   {groupCats.map((cat) => (
-                    <CategoryItem key={cat.id} cat={cat} indent />
+                    <CategoryItem key={cat.id} cat={cat} categoryFilter={categoryFilter} onCategoryFilterChange={onCategoryFilterChange} countByCategory={countByCategory} />
                   ))}
                 </div>
               )}
@@ -195,7 +182,7 @@ export function FilterCategoryTree({
               {isExpanded(UNGROUPED_VIRTUAL_ID) && (
                 <div className="ml-3">
                   {groupedCategories.ungrouped.map((cat) => (
-                    <CategoryItem key={cat.id} cat={cat} indent />
+                    <CategoryItem key={cat.id} cat={cat} categoryFilter={categoryFilter} onCategoryFilterChange={onCategoryFilterChange} countByCategory={countByCategory} />
                   ))}
                 </div>
               )}
@@ -206,7 +193,7 @@ export function FilterCategoryTree({
       {groupedCategories.ungrouped.length > 0 && !hasGroups && (
         <div className="mt-0.5">
           {groupedCategories.ungrouped.map((cat) => (
-            <CategoryItem key={cat.id} cat={cat} />
+            <CategoryItem key={cat.id} cat={cat} categoryFilter={categoryFilter} onCategoryFilterChange={onCategoryFilterChange} countByCategory={countByCategory} />
           ))}
         </div>
       )}

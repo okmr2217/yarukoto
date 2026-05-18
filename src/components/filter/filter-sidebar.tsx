@@ -33,7 +33,7 @@ export function FilterSidebar({
   scheduledSort,
   onScheduledSortChange,
 }: FilterSidebarProps) {
-  const state = useFilterState(categories, categoryFilter);
+  const state = useFilterState(categories, categoryFilter, onCategoryFilterChange);
 
   return (
     <aside className="hidden md:flex flex-col w-75 shrink-0 sticky top-12 h-[calc(100vh-3rem)] overflow-hidden">
