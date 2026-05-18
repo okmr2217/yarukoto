@@ -71,6 +71,14 @@ export function FilterBottomSheet({
             <DateSection state={state} />
             <KeywordSection state={state} />
             <FavoriteSection state={state} />
+            <CategorySection
+              categories={categories}
+              categoriesLoading={categoriesLoading}
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={onCategoryFilterChange}
+              countByCategory={state.countByCategory}
+              countByGroup={state.countByGroup}
+            />
             <div className="border-t border-border/50" />
             <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
             <SortSection
@@ -79,15 +87,6 @@ export function FilterBottomSheet({
               onListSortChange={onListSortChange}
               scheduledSort={scheduledSort}
               onScheduledSortChange={onScheduledSortChange}
-            />
-            <div className="border-t border-border/50" />
-            <CategorySection
-              categories={categories}
-              categoriesLoading={categoriesLoading}
-              categoryFilter={categoryFilter}
-              onCategoryFilterChange={onCategoryFilterChange}
-              countByCategory={state.countByCategory}
-              countByGroup={state.countByGroup}
             />
           </div>
         </ResponsiveDialogBody>

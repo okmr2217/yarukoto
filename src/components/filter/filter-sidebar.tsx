@@ -43,6 +43,14 @@ export function FilterSidebar({
         <DateSection state={state} />
         <KeywordSection state={state} />
         <FavoriteSection state={state} />
+        <CategorySection
+          categories={categories}
+          categoriesLoading={categoriesLoading}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={onCategoryFilterChange}
+          countByCategory={state.countByCategory}
+          countByGroup={state.countByGroup}
+        />
         <div className="border-t border-border/50" />
         <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
         <SortSection
@@ -51,18 +59,6 @@ export function FilterSidebar({
           onListSortChange={onListSortChange}
           scheduledSort={scheduledSort}
           onScheduledSortChange={onScheduledSortChange}
-        />
-      </div>
-
-      {/* カテゴリ: 残りの高さを使い内部スクロール */}
-      <div className="flex flex-col flex-1 min-h-0 px-4 pb-3">
-        <CategorySection
-          categories={categories}
-          categoriesLoading={categoriesLoading}
-          categoryFilter={categoryFilter}
-          onCategoryFilterChange={onCategoryFilterChange}
-          countByCategory={state.countByCategory}
-          countByGroup={state.countByGroup}
         />
       </div>
     </aside>

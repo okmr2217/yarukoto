@@ -13,9 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CategoryPickerDialog } from "./category-picker-dialog";
+import { CategorySelectModal } from "@/components/category";
 import { DatePickerDialog } from "./date-picker-dialog";
-import { useRecentCategories } from "@/hooks";
 import type { Category, Group } from "@/types";
 import { cn } from "@/lib/utils";
 import { formatRelativeScheduledDate } from "@/lib/dateUtils";
@@ -49,8 +48,6 @@ export function TaskCreateModal({
   defaultCategoryId,
   isLoading = false,
 }: TaskCreateModalProps) {
-  const { getRecentIds } = useRecentCategories();
-
   const getInitialCategoryId = (): string | null => {
     if (defaultCategoryId && defaultCategoryId !== "none") return defaultCategoryId;
     return null;
@@ -62,8 +59,6 @@ export function TaskCreateModal({
   const [memo, setMemo] = useState("");
   const [categorySubOpen, setCategorySubOpen] = useState(false);
   const [dateSubOpen, setDateSubOpen] = useState(false);
-  const [recentIds] = useState(() => getRecentIds());
-
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const memoRef = useRef<HTMLTextAreaElement>(null);
 
@@ -210,15 +205,13 @@ export function TaskCreateModal({
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      <CategoryPickerDialog
+      <CategorySelectModal
         open={categorySubOpen}
         onOpenChange={setCategorySubOpen}
         categories={categories}
         groups={groups}
-        selectedCategoryId={categoryId}
-        onChange={setCategoryId}
-        mode="create"
-        recentCategoryIds={recentIds}
+        value={categoryId}
+        onSelect={setCategoryId}
       />
 
       <DatePickerDialog

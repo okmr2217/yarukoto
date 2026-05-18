@@ -14,10 +14,9 @@ import {
 } from "@/components/ui/responsive-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CategoryPickerDialog } from "./category-picker-dialog";
+import { CategorySelectModal } from "@/components/category";
 import { DatePickerDialog } from "./date-picker-dialog";
 import { useTaskMutations } from "@/hooks/use-task-mutations";
-import { useRecentCategories } from "@/hooks";
 import type { Task, Category, Group } from "@/types";
 import { formatDateTimeForDisplay, formatRelativeScheduledDate } from "@/lib/dateUtils";
 import { resizeTitle, resizeMemo } from "@/lib/textarea-resize";
@@ -57,8 +56,6 @@ export function TaskDetailModal({
   const memoRef = useRef<HTMLTextAreaElement>(null);
 
   const { updateTask } = useTaskMutations();
-  const { getRecentIds } = useRecentCategories();
-  const [recentIds] = useState(() => getRecentIds());
 
   // Sync local state when task changes (during-render pattern)
   if (prevTaskId !== task?.id) {
@@ -313,15 +310,13 @@ export function TaskDetailModal({
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      <CategoryPickerDialog
+      <CategorySelectModal
         open={categorySubOpen}
         onOpenChange={setCategorySubOpen}
         categories={categories}
         groups={groups}
-        selectedCategoryId={task.categoryId}
-        onChange={(id) => saveField("categoryId", id)}
-        mode="edit"
-        recentCategoryIds={recentIds}
+        value={task.categoryId}
+        onSelect={(id) => saveField("categoryId", id)}
       />
 
       <DatePickerDialog
