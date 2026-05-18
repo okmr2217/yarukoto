@@ -3,7 +3,6 @@
 import { SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
-import { DueDateAlertChip } from "./due-date-alert-chip";
 import { FilterKeywordInput } from "./filter-controls";
 
 interface MobileTaskBarProps {
@@ -19,8 +18,7 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
   );
 
   return (
-    <div className="md:hidden px-3 pt-2 pb-1.5 flex flex-col gap-1.5">
-      <DueDateAlertChip />
+    <div className="md:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm px-3 py-2">
       <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0">
           <FilterKeywordInput
