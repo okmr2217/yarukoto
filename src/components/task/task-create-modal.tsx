@@ -10,15 +10,16 @@ import {
   ResponsiveDialogBody,
   ResponsiveDialogFooter,
 } from "@/components/ui/responsive-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CategorySelector } from "./category-selector";
+import { CategoryPickerDialog } from "./category-picker-dialog";
+import { DatePickerDialog } from "./date-picker-dialog";
 import { useRecentCategories } from "@/hooks";
 import type { Category, Group } from "@/types";
 import { cn } from "@/lib/utils";
-import { getTodayInJST, addDaysJST, formatRelativeScheduledDate } from "@/lib/dateUtils";
+import { formatRelativeScheduledDate } from "@/lib/dateUtils";
+import { resizeTitle, resizeMemo } from "@/lib/textarea-resize";
 
 export interface TaskCreateData {
   title: string;
@@ -36,14 +37,6 @@ interface TaskCreateModalProps {
   defaultDate?: string;
   defaultCategoryId?: string | null;
   isLoading?: boolean;
-}
-
-const MEMO_MAX_H = 144; // ~6 rows
-
-function resizeMemo(el: HTMLTextAreaElement) {
-  el.style.height = "auto";
-  el.style.height = `${Math.min(el.scrollHeight, MEMO_MAX_H)}px`;
-  el.style.overflowY = el.scrollHeight > MEMO_MAX_H ? "auto" : "hidden";
 }
 
 export function TaskCreateModal({
@@ -73,7 +66,6 @@ export function TaskCreateModal({
 
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const memoRef = useRef<HTMLTextAreaElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -99,8 +91,6 @@ export function TaskCreateModal({
     onOpenChange(false);
   };
 
-  const todayString = getTodayInJST();
-  const tomorrowString = addDaysJST(todayString, 1);
   const selectedCategory = categories.find((c) => c.id === categoryId) ?? null;
   const categoryBgHex = selectedCategory?.group?.color ?? selectedCategory?.color;
 
@@ -130,8 +120,7 @@ export function TaskCreateModal({
                   ref={titleRef}
                   value={title}
                   onChange={(e) => {
-                    e.target.style.height = "auto";
-                    e.target.style.height = `${e.target.scrollHeight}px`;
+                    resizeTitle(e.target);
                     setTitle(e.target.value);
                   }}
                   onKeyDown={(e) => {
@@ -221,86 +210,23 @@ export function TaskCreateModal({
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      {/* カテゴリ選択サブモーダル */}
-      <Dialog open={categorySubOpen} onOpenChange={setCategorySubOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>カテゴリ</DialogTitle>
-            <DialogDescription className="sr-only">カテゴリを選択してください。</DialogDescription>
-          </DialogHeader>
-          <CategorySelector
-            categories={categories}
-            groups={groups}
-            selectedCategoryId={categoryId}
-            onChange={(id) => {
-              setCategoryId(id);
-              setCategorySubOpen(false);
-            }}
-            mode="create"
-            recentCategoryIds={recentIds}
-          />
-        </DialogContent>
-      </Dialog>
+      <CategoryPickerDialog
+        open={categorySubOpen}
+        onOpenChange={setCategorySubOpen}
+        categories={categories}
+        groups={groups}
+        selectedCategoryId={categoryId}
+        onChange={setCategoryId}
+        mode="create"
+        recentCategoryIds={recentIds}
+      />
 
-      {/* 予定日選択サブモーダル */}
-      <Dialog open={dateSubOpen} onOpenChange={setDateSubOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>予定日</DialogTitle>
-            <DialogDescription className="sr-only">予定日を選択してください。</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-4 gap-1.5 pt-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={!scheduledAt ? "default" : "outline"}
-              onClick={() => {
-                setScheduledAt("");
-                setDateSubOpen(false);
-              }}
-            >
-              なし
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={scheduledAt === todayString ? "default" : "outline"}
-              onClick={() => {
-                setScheduledAt(todayString);
-                setDateSubOpen(false);
-              }}
-            >
-              今日
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={scheduledAt === tomorrowString ? "default" : "outline"}
-              onClick={() => {
-                setScheduledAt(tomorrowString);
-                setDateSubOpen(false);
-              }}
-            >
-              明日
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => dateInputRef.current?.showPicker()}>
-              <Calendar className="size-4" />
-              選択
-            </Button>
-            <input
-              ref={dateInputRef}
-              type="date"
-              value={scheduledAt}
-              onChange={(e) => {
-                setScheduledAt(e.target.value);
-                if (e.target.value) setDateSubOpen(false);
-              }}
-              className="sr-only"
-            />
-          </div>
-          {scheduledAt && <p className="text-xs text-muted-foreground mt-2">{scheduledAt.replace(/-/g, "/")}</p>}
-        </DialogContent>
-      </Dialog>
+      <DatePickerDialog
+        open={dateSubOpen}
+        onOpenChange={setDateSubOpen}
+        value={scheduledAt || null}
+        onChange={(date) => setScheduledAt(date ?? "")}
+      />
     </>
   );
 }

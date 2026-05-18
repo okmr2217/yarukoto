@@ -12,15 +12,15 @@ import {
   ResponsiveDialogBody,
   ResponsiveDialogFooter,
 } from "@/components/ui/responsive-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CategorySelector } from "./category-selector";
+import { CategoryPickerDialog } from "./category-picker-dialog";
+import { DatePickerDialog } from "./date-picker-dialog";
 import { useTaskMutations } from "@/hooks/use-task-mutations";
 import { useRecentCategories } from "@/hooks";
 import type { Task, Category, Group } from "@/types";
-import { formatDateTimeForDisplay, formatRelativeScheduledDate, getTodayInJST, addDaysJST } from "@/lib/dateUtils";
+import { formatDateTimeForDisplay, formatRelativeScheduledDate } from "@/lib/dateUtils";
+import { resizeTitle, resizeMemo } from "@/lib/textarea-resize";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -33,14 +33,6 @@ interface TaskDetailModalProps {
   onToggleFavorite: (id: string) => void;
   categories: Category[];
   groups: Group[];
-}
-
-const MEMO_MAX_H = 144; // ~6 rows (6 * 21px line-height + 16px padding)
-
-function resizeMemo(el: HTMLTextAreaElement) {
-  el.style.height = "auto";
-  el.style.height = `${Math.min(el.scrollHeight, MEMO_MAX_H)}px`;
-  el.style.overflowY = el.scrollHeight > MEMO_MAX_H ? "auto" : "hidden";
 }
 
 export function TaskDetailModal({
@@ -63,7 +55,6 @@ export function TaskDetailModal({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
   const memoRef = useRef<HTMLTextAreaElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const { updateTask } = useTaskMutations();
   const { getRecentIds } = useRecentCategories();
@@ -80,14 +71,15 @@ export function TaskDetailModal({
   useEffect(() => {
     if (!open) return;
 
-    const titleEl = titleRef.current;
-    if (titleEl) {
-      titleEl.style.height = "auto";
-      titleEl.style.height = `${titleEl.scrollHeight}px`;
-    }
+    const raf = requestAnimationFrame(() => {
+      const titleEl = titleRef.current;
+      if (titleEl) resizeTitle(titleEl);
 
-    const memoEl = memoRef.current;
-    if (memoEl) resizeMemo(memoEl);
+      const memoEl = memoRef.current;
+      if (memoEl) resizeMemo(memoEl);
+    });
+
+    return () => cancelAnimationFrame(raf);
   }, [task?.id, open]);
 
   const doSave = useCallback(
@@ -121,20 +113,8 @@ export function TaskDetailModal({
   const isEditable = task.status === "PENDING";
   const isCompleted = task.status === "COMPLETED";
   const isSkipped = task.status === "SKIPPED";
-  const todayString = getTodayInJST();
-  const tomorrowString = addDaysJST(todayString, 1);
 
   const categoryBgHex = task.category?.groupColor ?? task.category?.color;
-
-  const handleCategorySelect = (categoryId: string | null) => {
-    setCategorySubOpen(false);
-    saveField("categoryId", categoryId);
-  };
-
-  const handleDateSelect = (dateStr: string | null) => {
-    setDateSubOpen(false);
-    saveField("scheduledAt", dateStr);
-  };
 
   const timestamps = [
     { Icon: PlusCircle, label: "作成", value: task.createdAt, className: "text-muted-foreground/60" },
@@ -163,7 +143,7 @@ export function TaskDetailModal({
           </ResponsiveDialogHeader>
           <ResponsiveDialogDescription className="sr-only">タスクの詳細を確認・編集します。</ResponsiveDialogDescription>
 
-          <ResponsiveDialogBody className="flex-1 overflow-y-auto space-y-4">
+          <ResponsiveDialogBody className="space-y-4">
             {/* Status banner */}
             {isCompleted && (
               <div className="flex items-center gap-2 text-success text-sm">
@@ -193,8 +173,7 @@ export function TaskDetailModal({
                 value={localTitle}
                 disabled={!isEditable}
                 onChange={(e) => {
-                  e.target.style.height = "auto";
-                  e.target.style.height = `${e.target.scrollHeight}px`;
+                  resizeTitle(e.target);
                   setLocalTitle(e.target.value);
                   scheduleTextSave(e.target.value, localMemo);
                 }}
@@ -334,66 +313,23 @@ export function TaskDetailModal({
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      {/* カテゴリ選択サブモーダル */}
-      <Dialog open={categorySubOpen} onOpenChange={setCategorySubOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>カテゴリ</DialogTitle>
-            <DialogDescription className="sr-only">カテゴリを選択してください。</DialogDescription>
-          </DialogHeader>
-          <CategorySelector
-            categories={categories}
-            groups={groups}
-            selectedCategoryId={task.categoryId}
-            onChange={handleCategorySelect}
-            mode="edit"
-            recentCategoryIds={recentIds}
-          />
-        </DialogContent>
-      </Dialog>
+      <CategoryPickerDialog
+        open={categorySubOpen}
+        onOpenChange={setCategorySubOpen}
+        categories={categories}
+        groups={groups}
+        selectedCategoryId={task.categoryId}
+        onChange={(id) => saveField("categoryId", id)}
+        mode="edit"
+        recentCategoryIds={recentIds}
+      />
 
-      {/* 予定日選択サブモーダル */}
-      <Dialog open={dateSubOpen} onOpenChange={setDateSubOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>予定日</DialogTitle>
-            <DialogDescription className="sr-only">予定日を選択してください。</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-4 gap-1.5 pt-2">
-            <Button type="button" size="sm" variant={!task.scheduledAt ? "default" : "outline"} onClick={() => handleDateSelect(null)}>
-              なし
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={task.scheduledAt === todayString ? "default" : "outline"}
-              onClick={() => handleDateSelect(todayString)}
-            >
-              今日
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={task.scheduledAt === tomorrowString ? "default" : "outline"}
-              onClick={() => handleDateSelect(tomorrowString)}
-            >
-              明日
-            </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => dateInputRef.current?.showPicker()}>
-              <Calendar className="size-4" />
-              選択
-            </Button>
-            <input
-              ref={dateInputRef}
-              type="date"
-              value={task.scheduledAt ?? ""}
-              onChange={(e) => handleDateSelect(e.target.value || null)}
-              className="sr-only"
-            />
-          </div>
-          {task.scheduledAt && <p className="text-xs text-muted-foreground mt-2">{task.scheduledAt.replace(/-/g, "/")}</p>}
-        </DialogContent>
-      </Dialog>
+      <DatePickerDialog
+        open={dateSubOpen}
+        onOpenChange={setDateSubOpen}
+        value={task.scheduledAt}
+        onChange={(date) => saveField("scheduledAt", date)}
+      />
     </>
   );
 }
