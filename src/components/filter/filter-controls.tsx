@@ -196,7 +196,7 @@ export function FilterKeywordInput({
         </span>
       )}
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input
           type="text"
           placeholder={placeholder}
@@ -206,7 +206,7 @@ export function FilterKeywordInput({
             isComposingRef.current = true;
           }}
           onCompositionEnd={onCompositionEnd}
-          className="pl-8 pr-7 h-8 text-xs focus-visible:ring-1"
+          className="pl-10 pr-7 h-10 text-sm focus-visible:ring-1"
         />
         {localKeyword && (
           <button
