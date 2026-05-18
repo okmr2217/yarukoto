@@ -12,7 +12,7 @@ import {
 import { CategorySelectFilter } from "@/components/category";
 import type { useFilterState } from "@/hooks/useFilterState";
 import type { Category } from "@/types";
-import { type SortOrder, SORT_OPTIONS } from "@/lib/filter-types";
+import { type SortOrder, SORT_OPTIONS, STATUS_OPTIONS } from "@/lib/filter-types";
 import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 
 type FilterState = ReturnType<typeof useFilterState>;
@@ -39,9 +39,11 @@ export function SectionLabel({ children, tooltip, badge, noMargin = false }: Sec
 // ─── 各セクション ─────────────────────────────────────────────────────────────
 
 export function StatusSection({ state }: { state: FilterState }) {
+  const badge = state.statusFilter !== "pending" ? STATUS_OPTIONS.find((o) => o.value === state.statusFilter)?.label : undefined;
+
   return (
     <section>
-      <SectionLabel tooltip="タスクの進捗状態で絞り込みます。1つだけ選択できます。デフォルトは「未完了」で、完了済みやスキップしたタスクの確認にも使えます。">
+      <SectionLabel tooltip="タスクの進捗状態で絞り込みます。1つだけ選択できます。デフォルトは「未完了」で、完了済みやスキップしたタスクの確認にも使えます。" badge={badge}>
         ステータス
       </SectionLabel>
       <FilterStatusChips
@@ -147,9 +149,11 @@ export function KeywordSection({ state }: { state: FilterState }) {
 }
 
 export function FavoriteSection({ state }: { state: FilterState }) {
+  const badge = state.favoriteFilter ? "ON" : undefined;
+
   return (
     <section>
-      <SectionLabel tooltip="★マークをつけたタスクだけを表示します。重要なタスクをすばやく確認したいときに使います。">
+      <SectionLabel tooltip="★マークをつけたタスクだけを表示します。重要なタスクをすばやく確認したいときに使います。" badge={badge}>
         お気に入り
       </SectionLabel>
       <FilterFavoriteToggle

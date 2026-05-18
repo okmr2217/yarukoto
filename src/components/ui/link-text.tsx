@@ -38,7 +38,7 @@ export function linkifyText(text: string): React.ReactNode[] {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary underline underline-offset-2 break-all hover:opacity-80"
+        className="font-semibold underline underline-offset-2 break-all"
         onClick={(e) => e.stopPropagation()}
       >
         {truncateUrl(url)}
