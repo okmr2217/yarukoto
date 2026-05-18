@@ -67,10 +67,20 @@ export function FilterBottomSheet({
 
         <ResponsiveDialogBody className="overflow-y-auto">
           <div className="flex flex-col gap-4 pb-4">
-            <KeywordSection state={state} />
             <StatusSection state={state} />
-            <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
             <DateSection state={state} />
+            <KeywordSection state={state} />
+            <FavoriteSection state={state} />
+            <div className="border-t border-border/50" />
+            <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
+            <SortSection
+              viewMode={viewMode}
+              listSort={listSort}
+              onListSortChange={onListSortChange}
+              scheduledSort={scheduledSort}
+              onScheduledSortChange={onScheduledSortChange}
+            />
+            <div className="border-t border-border/50" />
             <CategorySection
               categories={categories}
               categoriesLoading={categoriesLoading}
@@ -78,14 +88,6 @@ export function FilterBottomSheet({
               onCategoryFilterChange={onCategoryFilterChange}
               countByCategory={state.countByCategory}
               countByGroup={state.countByGroup}
-            />
-            <FavoriteSection state={state} />
-            <SortSection
-              viewMode={viewMode}
-              listSort={listSort}
-              onListSortChange={onListSortChange}
-              scheduledSort={scheduledSort}
-              onScheduledSortChange={onScheduledSortChange}
             />
           </div>
         </ResponsiveDialogBody>

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { FilterSectionInfo } from "./filter-section-info";
 import {
   FilterStatusChips,
@@ -9,10 +10,10 @@ import {
   FilterSortChips,
   FilterKeywordInput,
 } from "./filter-controls";
-import { FilterCategoryTree } from "./filter-category-tree";
+import { CategorySelectFilter } from "@/components/category";
 import type { useFilterState } from "@/hooks/useFilterState";
 import type { Category } from "@/types";
-import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
+import { type ViewMode, type ListSortOrder, type ScheduledSortOrder, LIST_SORT_OPTIONS, SCHEDULED_SORT_OPTIONS } from "@/lib/filter-types";
 import type { CategoryFilter } from "@/lib/category-filter";
 
 type FilterState = ReturnType<typeof useFilterState>;
@@ -22,14 +23,17 @@ type FilterState = ReturnType<typeof useFilterState>;
 interface SectionLabelProps {
   children: React.ReactNode;
   tooltip?: string;
+  badge?: string;
+  noMargin?: boolean;
 }
 
-export function SectionLabel({ children, tooltip }: SectionLabelProps) {
+export function SectionLabel({ children, tooltip, badge, noMargin = false }: SectionLabelProps) {
   return (
-    <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground tracking-wide mb-1">
+    <div className={cn("flex items-center gap-1 text-xs font-semibold text-muted-foreground tracking-wide", !noMargin && "mb-1")}>
       {children}
       {tooltip && <FilterSectionInfo content={tooltip} />}
-    </span>
+      {badge && <span className="ml-auto font-normal text-[10px] text-primary/90 max-w-[7rem] truncate">{badge}</span>}
+    </div>
   );
 }
 
@@ -63,9 +67,19 @@ export function ViewSection({ viewMode, onViewModeChange }: { viewMode: ViewMode
 }
 
 export function DateSection({ state }: { state: FilterState }) {
+  const badge = (() => {
+    if (!state.dateFilter) return undefined;
+    if (state.dateFilter === state.today) return "今日";
+    const [, m, d] = state.dateFilter.split("-");
+    return `${m}/${d}`;
+  })();
+
   return (
     <section>
-      <SectionLabel tooltip="特定の日付のタスクだけを表示します。未設定の場合は全期間が対象。前後の矢印ボタンで1日ずつ移動できます。">
+      <SectionLabel
+        tooltip="特定の日付のタスクだけを表示します。未設定の場合は全期間が対象。前後の矢印ボタンで1日ずつ移動できます。"
+        badge={badge}
+      >
         日付
       </SectionLabel>
       <FilterDateNav dateFilter={state.dateFilter} today={state.today} onUpdate={state.updateSearchParams} />
@@ -91,7 +105,10 @@ export function CategorySection({
   return (
     <section>
       <div className="flex items-center justify-between mb-1">
-        <SectionLabel tooltip="1つ選択できます。グループ名をクリックするとそのグループ全体、カテゴリ名をクリックすると個別絞り込みができます。再クリックで解除。">
+        <SectionLabel
+          noMargin
+          tooltip="1つ選択できます。グループ名をクリックするとそのグループ全体、カテゴリ名をクリックすると個別絞り込みができます。再クリックで解除。"
+        >
           カテゴリ
         </SectionLabel>
         {categoryFilter.type !== "all" && (
@@ -104,11 +121,11 @@ export function CategorySection({
           </button>
         )}
       </div>
-      <FilterCategoryTree
+      <CategorySelectFilter
         categories={categories}
         categoriesLoading={categoriesLoading}
-        categoryFilter={categoryFilter}
-        onCategoryFilterChange={onCategoryFilterChange}
+        value={categoryFilter}
+        onChange={onCategoryFilterChange}
         countByCategory={countByCategory}
         countByGroup={countByGroup}
       />
@@ -117,9 +134,15 @@ export function CategorySection({
 }
 
 export function KeywordSection({ state }: { state: FilterState }) {
+  const kw = state.localKeyword;
+  const badge = kw ? (kw.length > 8 ? `${kw.slice(0, 8)}…` : kw) : undefined;
+
   return (
     <section>
-      <SectionLabel tooltip="タスク名・メモに含まれる文字列でリアルタイムに絞り込みます。他のフィルターと組み合わせて使えます。">
+      <SectionLabel
+        tooltip="タスク名・メモに含まれる文字列でリアルタイムに絞り込みます。他のフィルターと組み合わせて使えます。"
+        badge={badge}
+      >
         キーワード
       </SectionLabel>
       <FilterKeywordInput
@@ -161,9 +184,19 @@ export function SortSection({
   scheduledSort: ScheduledSortOrder;
   onScheduledSortChange: (sort: ScheduledSortOrder) => void;
 }) {
+  const badge = (() => {
+    if (viewMode === "list") {
+      return listSort !== "displayOrder" ? LIST_SORT_OPTIONS.find((o) => o.value === listSort)?.label : undefined;
+    }
+    return scheduledSort !== "scheduledAt_asc" ? SCHEDULED_SORT_OPTIONS.find((o) => o.value === scheduledSort)?.label : undefined;
+  })();
+
   return (
     <section>
-      <SectionLabel tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「作成日時」は新しい順に並びます。">
+      <SectionLabel
+        tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「作成日時」は新しい順に並びます。"
+        badge={badge}
+      >
         並び順
       </SectionLabel>
       <FilterSortChips

@@ -149,26 +149,28 @@ interface FilterFavoriteToggleProps {
 
 export function FilterFavoriteToggle({ favoriteFilter, favoriteCount, onUpdate }: FilterFavoriteToggleProps) {
   return (
-    <button
-      type="button"
-      aria-pressed={favoriteFilter}
-      onClick={() => onUpdate({ favorite: favoriteFilter ? null : "true" })}
-      className={cn(
-        "w-full flex items-center gap-2 px-2.5 h-8 rounded-md border text-xs transition-colors",
-        favoriteFilter
-          ? "bg-yellow-50 border-yellow-300 text-yellow-700 font-medium dark:bg-yellow-950/30 dark:border-yellow-700 dark:text-yellow-400"
-          : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-      )}
-    >
-      <Star
-        className={cn("size-3.5 shrink-0", favoriteFilter ? "text-yellow-500" : "text-muted-foreground/40")}
-        fill={favoriteFilter ? "currentColor" : "none"}
-      />
-      お気に入りのみ
-      {favoriteCount !== undefined && (
-        <span className={cn("ml-auto tabular-nums text-xs", favoriteFilter ? "opacity-70" : "opacity-50")}>{favoriteCount}</span>
-      )}
-    </button>
+    <div className="flex rounded-md border border-input overflow-hidden text-xs bg-background">
+      <button
+        type="button"
+        aria-pressed={favoriteFilter}
+        onClick={() => onUpdate({ favorite: favoriteFilter ? null : "true" })}
+        className={cn(
+          "flex-1 flex items-center gap-2 px-2.5 py-1.5 transition-colors",
+          favoriteFilter
+            ? "bg-yellow-50 text-yellow-700 font-medium dark:bg-yellow-950/30 dark:text-yellow-400"
+            : "text-muted-foreground hover:bg-muted",
+        )}
+      >
+        <Star
+          className={cn("size-3.5 shrink-0", favoriteFilter ? "text-yellow-500" : "text-muted-foreground/40")}
+          fill={favoriteFilter ? "currentColor" : "none"}
+        />
+        お気に入りのみ
+        {favoriteCount !== undefined && (
+          <span className={cn("ml-auto tabular-nums text-[10px]", favoriteFilter ? "opacity-70" : "opacity-50")}>{favoriteCount}</span>
+        )}
+      </button>
+    </div>
   );
 }
 
