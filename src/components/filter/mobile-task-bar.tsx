@@ -45,7 +45,7 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
         type="button"
         onClick={onFilterOpen}
         className={cn(
-          "relative shrink-0 self-stretch -mr-3 px-3 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
+          "relative shrink-0 self-stretch w-11 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
           activeFilterCount > 0 && "text-primary",
         )}
         aria-label="フィルターを開く"
