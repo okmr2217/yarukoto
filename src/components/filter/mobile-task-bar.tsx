@@ -17,8 +17,8 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
   );
 
   return (
-    <div className="md:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm flex items-center gap-1 px-2 h-11">
-      <Search className="shrink-0 size-4 text-muted-foreground ml-1" />
+    <div className="md:hidden sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm flex items-center h-12 px-3 gap-2">
+      <Search className="shrink-0 size-4 text-muted-foreground" />
       <input
         type="text"
         placeholder="タスク名・メモで検索..."
@@ -37,20 +37,20 @@ export function MobileTaskBar({ activeFilterCount, onFilterOpen }: MobileTaskBar
           className="shrink-0 p-1 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="検索をクリア"
         >
-          <X className="size-3.5" />
+          <X className="size-4" />
         </button>
       )}
-      <div className="shrink-0 w-px h-4 bg-border mx-0.5" />
+      <div className="shrink-0 w-px h-5 bg-border" />
       <button
         type="button"
         onClick={onFilterOpen}
         className={cn(
-          "relative shrink-0 h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
+          "relative shrink-0 h-9 w-9 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
           activeFilterCount > 0 && "text-primary",
         )}
         aria-label="フィルターを開く"
       >
-        <SlidersHorizontal className="size-3.5" />
+        <SlidersHorizontal className="size-4" />
         {activeFilterCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center px-0.5 leading-none">
             {activeFilterCount}
