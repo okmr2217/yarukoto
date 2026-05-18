@@ -1,6 +1,5 @@
 "use client";
 
-import { X } from "lucide-react";
 import type { Category } from "@/types";
 import type { CategoryFilter } from "@/lib/category-filter";
 import type { SortOrder } from "@/lib/filter-types";
@@ -42,19 +41,7 @@ export function FilterBottomSheet({
     <ResponsiveDialog open={open} onOpenChange={(o) => !o && onClose()}>
       <ResponsiveDialogContent>
         <ResponsiveDialogHeader>
-          <div className="flex items-center justify-between">
-            <ResponsiveDialogTitle>絞り込み</ResponsiveDialogTitle>
-            {state.hasActiveFilters && (
-              <button
-                type="button"
-                onClick={state.handleClearFilters}
-                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
-              >
-                <X className="size-3" />
-                クリア
-              </button>
-            )}
-          </div>
+          <ResponsiveDialogTitle>絞り込み</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
         <ResponsiveDialogBody className="overflow-y-auto">
@@ -78,10 +65,11 @@ export function FilterBottomSheet({
         <ResponsiveDialogFooter>
           <button
             type="button"
-            onClick={onClose}
-            className="w-full h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            onClick={state.handleClearFilters}
+            disabled={!state.hasActiveFilters}
+            className="w-full h-9 rounded-md border border-border text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:bg-accent"
           >
-            閉じる
+            クリア
           </button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
