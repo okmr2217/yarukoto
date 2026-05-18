@@ -37,6 +37,24 @@ export default function HomePage() {
   const [prevStatusFilter, setPrevStatusFilter] = useState(statusFilter);
   const [scheduledSort, setScheduledSort] = useState<ScheduledSortOrder>("scheduledAt_asc");
 
+  // 他ページから戻ったとき、直前の検索条件を復元する
+  useEffect(() => {
+    const stored = sessionStorage.getItem("task-filter-params");
+    if (stored && !searchParams.toString()) {
+      router.replace(`/?${stored}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const qs = searchParams.toString();
+    if (qs) {
+      sessionStorage.setItem("task-filter-params", qs);
+    } else {
+      sessionStorage.removeItem("task-filter-params");
+    }
+  }, [searchParams]);
+
   if (prevStatusFilter !== statusFilter) {
     setPrevStatusFilter(statusFilter);
     const derived = statusFilter === "completed" ? "createdAt" : "displayOrder";
