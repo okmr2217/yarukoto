@@ -9,14 +9,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCard } from "./auth-card";
 
+const oauthErrorMessages: Record<string, string> = {
+  oauth_error: "認証に失敗しました。もう一度お試しください。",
+  missing_params: "認証パラメータが不正です。",
+  state_mismatch: "セッションが無効です。もう一度お試しください。",
+  token_exchange_failed: "トークンの取得に失敗しました。もう一度お試しください。",
+};
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const oauthError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(oauthError ? (oauthErrorMessages[oauthError] ?? "認証に失敗しました。") : "");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,6 +91,23 @@ export function LoginForm() {
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "ログイン中..." : "ログイン"}
         </Button>
+
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">または</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => (window.location.href = "/api/auth/paritto")}
+          className="flex w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          Paritto Auth でログイン
+        </button>
 
         <p className="text-center text-sm text-muted-foreground">
           アカウントをお持ちでない方は{" "}
